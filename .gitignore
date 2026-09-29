@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.venv-*/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Databricks
+.databricks/
+.bundle/
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local data (fixtures under tests/fixtures are committed)
+data/
+*.parquet
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

@@ -1,0 +1,75 @@
+# FrostSight Asset Bundle. Same code on every target; only these variables differ.
+# The authoritative variable table is docs/plan/00_README.md section 2. Catalog, schemas and the
+# landing volume come from sql/001_catalog_schemas_volume.sql, never from this bundle (ADR-0003).
+bundle:
+  name: frostsight
+
+include:
+  - resources/*.yml          # pipeline, jobs and dashboards are added by their owners from M2
+
+variables:
+  catalog:
+    description: Unity Catalog catalog created by sql/001_catalog_schemas_volume.sql
+    default: frostsight
+  landing_root:
+    description: Landing volume root the collector writes and Auto Loader reads
+    default: /Volumes/frostsight/landing/raw
+  pilot_county:
+    description: NVDB fylke number, as a string (ADR-0002)
+    default: "55"
+  warehouse_name:
+    description: SQL warehouse for dashboards; check the name with `databricks warehouses list`
+    default: "Serverless Starter Warehouse"
+  warehouse_id:
+    description: Resolved from warehouse_name at validate and deploy time
+    lookup:
+      warehouse: ${var.warehouse_name}
+  schedule_pause_status:
+    description: PAUSED or UNPAUSED for job schedules
+    default: UNPAUSED
+  pipeline_continuous:
+    description: true only where a 24x7 stream is affordable
+    default: false
+  pipeline_development:
+    description: Pipeline development mode
+    default: true
+  notification_email:
+    description: Failure emails from jobs and the pipeline
+    default: safiul.kabir@cefalo.com
+  config_dir:
+    description: Where config/*.yml lands in the workspace
+    default: ${workspace.file_path}/config
+
+artifacts:
+  frostsight:
+    type: whl
+    path: .
+    build: uv build --wheel
+
+targets:
+  personal:
+    default: true             # a bare `bundle deploy` goes to your own workspace
+    mode: development
+    workspace:
+      profile: frostsight-personal
+    variables:
+      schedule_pause_status: PAUSED
+
+  free:
+    mode: development
+    workspace:
+      profile: frostsight-free
+    presets:
+      name_prefix: ""
+      trigger_pause_status: UNPAUSED
+
+  aws:
+    mode: development
+    workspace:
+      profile: frostsight-aws
+    presets:
+      name_prefix: ""
+      trigger_pause_status: UNPAUSED
+    variables:
+      pipeline_development: false
+    # The aws-only collector job is added here at M4 (docs/plan/03_M2_foundation.md T2.5).

@@ -1,0 +1,86 @@
+# Source inventory: one entry per external system the collector calls.
+# Verified live on 2026-09-28 (docs/source-verification.md). Secrets are never stored here;
+# `secret` names the environment variable or secret-scope key the collector reads.
+pilot_county: "55"   # Troms, ADR-0002
+
+sources:
+  datex_road_weather:
+    provider: Statens vegvesen
+    url: https://datex-server-get-v3-1.atlas.vegvesen.no/datexapi/GetMeasuredWeatherData/pullsnapshotdata
+    format: xml               # flattened to JSON lines; raw XML kept in road_weather_xml
+    auth: basic
+    secret: [DATEX_USERNAME, DATEX_PASSWORD]
+    cadence_minutes: 10
+    landing: [road_weather, road_weather_xml]
+    licence: NLOD
+    attribution: Statens vegvesen
+    mvp: true
+
+  datex_incidents:
+    provider: Statens vegvesen
+    url: https://datex-server-get-v3-1.atlas.vegvesen.no/datexapi/GetSituation/pullsnapshotdata
+    format: xml
+    auth: basic
+    secret: [DATEX_USERNAME, DATEX_PASSWORD]
+    cadence_minutes: 30
+    landing: [road_incidents, road_incidents_xml]
+    licence: NLOD
+    attribution: Statens vegvesen
+    mvp: true
+
+  nvdb:
+    provider: Statens vegvesen
+    url: https://nvdbapiles.atlas.vegvesen.no
+    format: json
+    auth: header
+    headers: {X-Client: frostsight}
+    cadence: weekly
+    object_types: {road_weather_stations: 153, traffic_stations: 482, accidents: 570, avalanche_landslide: 445, speed_limits: 105}
+    landing: [nvdb_road_network, nvdb_stations, nvdb_speed_limits, nvdb_accidents, nvdb_avalanche, nvdb_counties]
+    licence: NLOD
+    attribution: Statens vegvesen, NVDB
+    mvp: true
+
+  frost:
+    provider: MET Norway
+    url: https://frost.met.no
+    format: json
+    auth: client_id
+    secret: [FROST_CLIENT_ID]
+    cadence: once             # last winter's history, chunked by month
+    landing: [frost_sources, frost_history]
+    licence: CC BY 4.0
+    attribution: MET Norway
+    mvp: true
+
+  open_meteo_elevation:
+    provider: Open-Meteo
+    url: https://api.open-meteo.com/v1/elevation
+    format: json
+    auth: none
+    cadence: once
+    landing: [elevation]
+    licence: CC BY 4.0
+    attribution: Open-Meteo
+    mvp: true
+    note: Fallback for Kartverket, which was unreachable on 2026-09-28
+
+  met_locationforecast:
+    provider: MET Norway
+    url: https://api.met.no/weatherapi/locationforecast/2.0/compact
+    format: json
+    auth: user_agent
+    cadence_minutes: 60
+    licence: CC BY 4.0
+    attribution: MET Norway
+    mvp: false
+
+  trafikkdata:
+    provider: Statens vegvesen
+    url: https://trafikkdata-api.atlas.vegvesen.no/
+    format: graphql
+    auth: none
+    cadence_minutes: 60
+    licence: NLOD
+    attribution: Statens vegvesen
+    mvp: false

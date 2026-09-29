@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FrostSight screens</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root { --s: 0.5; }
+  html, body { margin:0; padding:0; background:#0b1524; }
+  body { font-family:'IBM Plex Sans', Arial, sans-serif; color:#12233a; }
+  .toolbar { position:fixed; top:0; left:0; right:0; z-index:10; display:flex; gap:16px; align-items:center;
+             padding:8px 16px; background:rgba(11,21,36,.92); color:#b9c6d6; font-size:14px; }
+  .toolbar b { color:#f4f6f8; }
+  .toolbar button { background:#1c3050; color:#f4f6f8; border:1px solid #2a4a70; border-radius:6px; padding:4px 10px; font:inherit; cursor:pointer; }
+  .deck { padding:48px 16px 32px; display:flex; flex-direction:column; gap:16px; align-items:center; }
+  .slide-wrap { width:calc(1920px * var(--s)); height:calc(1080px * var(--s)); position:relative; overflow:hidden;
+                border-radius:6px; box-shadow:0 8px 32px rgba(0,0,0,.4); background:#f4f6f8; }
+  .slide-scale { width:1920px; height:1080px; transform-origin:top left; transform:scale(var(--s)); }
+  section { box-sizing:border-box; width:1920px; height:1080px; position:relative; overflow:hidden; }
+  section h1, section h2, section h3, section p, section ul, section ol, section hr, section table { margin:0; }
+  section h1 { font-size:96px; font-weight:600; line-height:1.1; }
+  section h2 { font-size:64px; font-weight:600; line-height:1.15; }
+  section h3 { font-size:44px; font-weight:600; line-height:1.2; }
+  section p { font-size:32px; line-height:1.4; }
+  section ul, section ol { padding-left:1.1em; }
+  section li { margin:0; }
+  section span { font-size:inherit; }
+  section div { box-sizing:border-box; }
+  section .shape { display:block; flex:none; }
+  section hr { border:0; }
+  section table { border-collapse:collapse; width:100%; }
+  section th, section td { padding:0.35em 0.6em; border-bottom:1px solid #d8dee6; vertical-align:top; }
+  section th { font-weight:600; }
+  section img { display:block; }
+  section svg:not(.pinconn):not(.flowconn) { display:block; flex:none; }
+  .fullscreen .toolbar { display:none; }
+  .fullscreen .deck { padding:0; gap:0; }
+  .fullscreen .slide-wrap { display:none; border-radius:0; box-shadow:none; }
+  .fullscreen .slide-wrap.current { display:block; }
+  @media print {
+    .toolbar { display:none; }
+    html, body { background:#fff; }
+    .deck { padding:0; gap:0; display:block; }
+    .slide-wrap { width:1920px; height:1080px; border-radius:0; box-shadow:none; page-break-after:always; break-after:page; display:block !important; }
+    .slide-scale { transform:none; }
+    @page { size:1920px 1080px; margin:0; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <b>FrostSight screens</b>
+  <span>Mock-ups of the MVP and stretch screens</span>
+  <span style="flex:1"></span>
+  <span id="pos"></span>
+  <button id="prev">Prev</button>
+  <button id="next">Next</button>
+  <button id="present">Present (F)</button>
+  <span>Arrow keys move · Esc exits · Print for PDF</span>
+</div>
+<div class="deck">
+<div class="slide-wrap" id="s11"><div class="slide-scale"><section id="screen-map" data-transition="fade" style="background:#f4f6f8; color:#12233a; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:24px">
+<h2 style="font-size:72px; font-weight:600; line-height:1.1">Screen: Risk Map</h2>
+<div style="background:#fbfcfd; border:1px solid #d8dee6; border-radius:16px; overflow:hidden; display:flex; flex-direction:column">
+<div style="background:#e9eef4; padding:12px 24px; display:flex; gap:10px; align-items:center">
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<p style="font-size:24px; color:#6a7179; padding:0 0 0 12px">FrostSight · AI/BI dashboard · Risk map · Troms pilot · 07:08</p>
+</div>
+<div style="padding:24px; display:flex; gap:24px; align-items:flex-start">
+<div style="width:300px; display:flex; flex-direction:column; gap:16px">
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Segments HIGH or above</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1; color:#12233a">14 <span style="color:#6a7179">of 212</span></p>
+</div>
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Active incidents</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1; color:#12233a">3</p>
+</div>
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Stations reporting</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1; color:#12233a">38 <span style="color:#6a7179">of 41</span></p>
+</div>
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Data age</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1; color:#12233a">4 min</p>
+</div>
+</div>
+<div style="display:flex; flex-direction:column; gap:12px">
+<div style="position:relative; width:1290px; height:470px; border-radius:12px; overflow:hidden; background:#dfe6ee">
+<svg aria-label="Map of a pilot county with roads coloured by risk level" style="position:absolute; left:0; top:0" width="1290" height="470" viewBox="0 0 1290 470">
+  <polygon points="20,470 40,140 240,50 700,20 1270,30 1275,470" fill="#e9eef3"/>
+  <polygon points="560,330 700,410 640,470 470,450" fill="#c9d8e8"/>
+  <polygon points="150,60 300,40 330,120 200,150" fill="#c9d8e8"/>
+  <polyline points="80,420 400,300" fill="none" stroke="#0ca30c" stroke-width="12" stroke-linecap="round"/>
+  <polyline points="400,300 690,255" fill="none" stroke="#fab219" stroke-width="12" stroke-linecap="round"/>
+  <polyline points="690,255 1000,120" fill="none" stroke="#ec835a" stroke-width="12" stroke-linecap="round"/>
+  <polyline points="1000,120 1240,60" fill="none" stroke="#ec835a" stroke-width="12" stroke-linecap="round"/>
+  <polyline points="690,255 800,340 930,430" fill="none" stroke="#d03b3b" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="930,430 1200,440" fill="none" stroke="#ec835a" stroke-width="12" stroke-linecap="round"/>
+  <polyline points="400,300 330,180 440,80" fill="none" stroke="#0ca30c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="440,80 640,40" fill="none" stroke="#fab219" stroke-width="12" stroke-linecap="round"/>
+  <polyline points="1000,120 1130,220 1240,300" fill="none" stroke="#fab219" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="400" cy="300" r="10" fill="#12233a" stroke="#f4f6f8" stroke-width="3"/>
+  <circle cx="690" cy="255" r="10" fill="#12233a" stroke="#f4f6f8" stroke-width="3"/>
+  <circle cx="1000" cy="120" r="10" fill="#12233a" stroke="#f4f6f8" stroke-width="3"/>
+  <circle cx="800" cy="340" r="10" fill="#12233a" stroke="#f4f6f8" stroke-width="3"/>
+  <circle cx="330" cy="180" r="10" fill="#12233a" stroke="#f4f6f8" stroke-width="3"/>
+  <circle cx="930" cy="430" r="10" fill="#12233a" stroke="#f4f6f8" stroke-width="3"/>
+  <circle cx="1130" cy="220" r="10" fill="#f4f6f8" stroke="#6a7179" stroke-width="3"/>
+</svg>
+<p style="position:absolute; left:100px; top:330px; width:60px; font-size:24px; font-weight:600; color:#12233a">E6</p>
+<p style="position:absolute; left:960px; top:380px; width:60px; font-size:24px; font-weight:600; color:#12233a">E8</p>
+<p style="position:absolute; left:470px; top:90px; width:110px; font-size:24px; font-weight:600; color:#12233a">Rv 862</p>
+<p style="position:absolute; left:1160px; top:175px; width:90px; font-size:24px; font-weight:600; color:#12233a">Fv 91</p>
+<p style="position:absolute; left:500px; top:190px; width:200px; font-size:24px; color:#4a5568">Nordkjosbotn</p>
+<p style="position:absolute; left:660px; top:14px; width:120px; font-size:24px; color:#4a5568">Tromsø</p>
+</div>
+<div style="display:flex; gap:16px; align-items:center">
+<p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#0ca30c; color:#12233a">LOW</p>
+<p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#fab219; color:#12233a">MEDIUM</p>
+<p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#ec835a; color:#12233a">HIGH</p>
+<p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#d03b3b; color:#f4f6f8">VERY_HIGH</p>
+<div style="flex:1"></div>
+<div class="shape" style="width:18px; height:18px; background:#12233a; border-radius:50%;"></div>
+<p style="font-size:24px; color:#4a5568">Station reporting</p>
+<div class="shape" style="width:18px; height:18px; background:#f4f6f8; border:3px solid #6a7179; border-radius:50%;"></div>
+<p style="font-size:24px; color:#4a5568">Station stale</p>
+</div>
+</div>
+</div>
+</div>
+<p style="position:absolute; left:128px; bottom:64px; font-size:24px; color:#6a7179">Mock-up of the expected screen. Segment colours come from gold.road_segment_current_risk, refreshed every 10 minutes.</p>
+
+</section></div></div>
+<div class="slide-wrap" id="s12"><div class="slide-scale"><section id="screen-detail" data-transition="fade" style="background:#f4f6f8; color:#12233a; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:24px">
+<h2 style="font-size:72px; font-weight:600; line-height:1.1">Screen: Road Detail</h2>
+<div style="background:#fbfcfd; border:1px solid #d8dee6; border-radius:16px; overflow:hidden; display:flex; flex-direction:column">
+<div style="background:#e9eef4; padding:12px 24px; display:flex; gap:10px; align-items:center">
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<p style="font-size:24px; color:#6a7179; padding:0 0 0 12px">FrostSight · AI/BI dashboard · Road detail</p>
+</div>
+<div style="padding:24px; display:flex; flex-direction:column; gap:20px">
+<div style="display:flex; gap:20px; align-items:center">
+<p style="font-size:32px; font-weight:600">E8 · Nordkjosbotn – Balsfjord · segment 0421</p>
+<p style="font-size:24px; font-weight:600; padding:6px 18px; border-radius:24px; background:#ec835a; color:#12233a">HIGH</p>
+<div style="flex:1"></div>
+<p style="font-size:24px; color:#6a7179">Updated 07:08 · 4 min ago · station 8 Nordkjosbotn</p>
+</div>
+<div style="display:flex; gap:24px; align-items:flex-start">
+<div style="flex:1; display:flex; flex-direction:column; gap:12px">
+<p style="font-size:24px; font-weight:600; color:#6a7179">Risk per type</p>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:200px">Icing</p><p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#ec835a; color:#12233a">HIGH</p><p style="font-size:24px; color:#6a7179">0.91</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:200px">Closure</p><p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#fab219; color:#12233a">MEDIUM</p><p style="font-size:24px; color:#6a7179">post-MVP</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:200px">Accident</p><p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#fab219; color:#12233a">MEDIUM</p><p style="font-size:24px; color:#6a7179">post-MVP</p></div>
+<p style="font-size:24px; font-weight:600; color:#6a7179; padding:12px 0 0 0">Predicted · stretch, ML</p>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:200px">Next 1 h</p><p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#ec835a; color:#12233a">HIGH</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:200px">Next 3 h</p><p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#ec835a; color:#12233a">HIGH</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:200px">Next 6 h</p><p style="font-size:24px; font-weight:600; padding:4px 14px; border-radius:24px; background:#fab219; color:#12233a">MEDIUM</p></div>
+</div>
+<div style="flex:1; display:flex; flex-direction:column; gap:14px">
+<p style="font-size:24px; font-weight:600; color:#6a7179">Top drivers of the icing score</p>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:220px">Surface temperature</p><div style="width:190px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:173px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px; white-space:nowrap">-4.8 °C</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:220px">Precipitation</p><div style="width:190px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:142px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px; white-space:nowrap">snow</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:220px">Change in 1 h</p><div style="width:190px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:104px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px; white-space:nowrap">-2.1 °C</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:220px">Humidity</p><div style="width:190px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:60px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px; white-space:nowrap">94 %</p></div>
+<p style="font-size:24px; font-weight:600; color:#6a7179; padding:12px 0 0 0">Recent incidents on this road</p>
+<p style="font-size:24px; line-height:1.4; color:#4a5568">06:50 · Closure · E8 Balsfjord · snow drift, convoy driving</p>
+<p style="font-size:24px; line-height:1.4; color:#4a5568">Yesterday 18:20 · Accident · E8 Nordkjosbotn · minor</p>
+</div>
+<div style="width:440px; display:flex; flex-direction:column; gap:12px">
+<p style="font-size:24px; font-weight:600; color:#6a7179">Nearest station readings</p>
+<table style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px; color:#12233a">
+<tr><th style="width:55%; text-align:left; font-weight:600">Reading</th><th style="width:45%; text-align:left; font-weight:600">Value</th></tr>
+<tr><td>Air temp</td><td>-7.2 °C</td></tr>
+<tr><td>Surface temp</td><td>-4.8 °C</td></tr>
+<tr><td>Precipitation</td><td>Snow</td></tr>
+<tr><td>Wind</td><td>14 m/s</td></tr>
+<tr><td>Humidity</td><td>94 %</td></tr>
+<tr><td>Traffic</td><td>post-MVP</td></tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<p style="position:absolute; left:128px; bottom:64px; font-size:24px; color:#6a7179">Mock-up of the expected screen. Bars are the normalised factor scores behind gold.road_segment_current_risk.risk_drivers.</p>
+
+</section></div></div>
+<div class="slide-wrap" id="s13"><div class="slide-scale"><section id="screen-priority" data-transition="fade" style="background:#f4f6f8; color:#12233a; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:24px">
+<h2 style="font-size:72px; font-weight:600; line-height:1.1">Screen: Gritting Priority List</h2>
+<div style="background:#fbfcfd; border:1px solid #d8dee6; border-radius:16px; overflow:hidden; display:flex; flex-direction:column">
+<div style="background:#e9eef4; padding:12px 24px; display:flex; gap:10px; align-items:center">
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<p style="font-size:24px; color:#6a7179; padding:0 0 0 12px">FrostSight · AI/BI dashboard · Maintenance priority</p>
+</div>
+<div style="padding:24px; display:flex; flex-direction:column; gap:20px">
+<div style="display:flex; gap:12px; align-items:center">
+<p style="font-size:24px; padding:6px 14px; border-radius:8px; background:#e9eef4">Contract area: Balsfjord – Storfjord</p>
+<p style="font-size:24px; padding:6px 14px; border-radius:8px; background:#e9eef4">Sort: icing score</p>
+<p style="font-size:24px; padding:6px 14px; border-radius:8px; background:#e9eef4">Only surface below 1 °C</p>
+<div style="flex:1"></div>
+<p style="font-size:24px; color:#6a7179">Updated 07:08 · next refresh in 6 min</p>
+</div>
+<table style="font-size:24px; color:#12233a">
+<tr><th style="width:6%; text-align:left; font-weight:600">Rank</th><th style="width:27%; text-align:left; font-weight:600">Segment</th><th style="width:8%; text-align:left; font-weight:600">Road</th><th style="width:15%; text-align:left; font-weight:600">Icing score</th><th style="width:12%; text-align:right; font-weight:600">Surface °C</th><th style="width:10%; text-align:left; font-weight:600">Precip</th><th style="width:22%; text-align:left; font-weight:600">Main drivers</th></tr>
+<tr><td>1</td><td>Nordkjosbotn – Balsfjord</td><td>E8</td><td style="color:#9a3f1e; font-weight:600">0.91 HIGH</td><td style="text-align:right">-4.8</td><td>Snow</td><td>surface T, snow, falling</td></tr>
+<tr><td>2</td><td>Balsfjord – Storfjord</td><td>E8</td><td style="color:#9a3f1e; font-weight:600">0.84 HIGH</td><td style="text-align:right">-3.9</td><td>Snow</td><td>surface T, snow</td></tr>
+<tr><td>3</td><td>Nordkjosbotn – Skibotn</td><td>E6</td><td style="color:#9a3f1e; font-weight:600">0.77 HIGH</td><td style="text-align:right">-2.6</td><td>Sleet</td><td>dew-point spread, sleet</td></tr>
+<tr><td>4</td><td>Skibotn – Kilpisjärvi</td><td>E8</td><td style="color:#9a3f1e; font-weight:600">0.71 HIGH</td><td style="text-align:right">-6.1</td><td>None</td><td>surface T, humidity</td></tr>
+<tr><td>5</td><td>Storsteinnes – Nordkjosbotn</td><td>E6</td><td style="color:#7a5200; font-weight:600">0.55 MEDIUM</td><td style="text-align:right">-0.4</td><td>Sleet</td><td>crossing 0 °C now</td></tr>
+<tr><td>6</td><td>Lyngseidet – Olderdalen</td><td>Fv 91</td><td style="color:#7a5200; font-weight:600">0.42 MEDIUM</td><td style="text-align:right">0.8</td><td>Rain</td><td>trend falling</td></tr>
+</table>
+<p style="font-size:24px; color:#6a7179">Ranked by icing score, then road class. Post-MVP: closure and accident risk add columns; traffic adds a volume column.</p>
+</div>
+</div>
+<p style="position:absolute; left:128px; bottom:64px; font-size:24px; color:#6a7179">Mock-up of the expected screen. Use cases 14 and 15. Segment names are illustrative.</p>
+
+</section></div></div>
+<div class="slide-wrap" id="s14"><div class="slide-scale"><section id="screen-replay" data-transition="fade" style="background:#f4f6f8; color:#12233a; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:24px">
+<h2 style="font-size:72px; font-weight:600; line-height:1.1">Screen: Storm Replay</h2>
+<div style="background:#fbfcfd; border:1px solid #d8dee6; border-radius:16px; overflow:hidden; display:flex; flex-direction:column">
+<div style="background:#e9eef4; padding:12px 24px; display:flex; gap:10px; align-items:center">
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<p style="font-size:24px; color:#6a7179; padding:0 0 0 12px">FrostSight · AI/BI dashboard · Replay · 15 Jan 2025 · Troms pilot</p>
+</div>
+<div style="padding:24px; display:flex; flex-direction:column; gap:16px">
+
+<div style="position:relative; width:1614px; height:110px">
+<hr style="position:absolute; left:40px; top:39px; width:1534px; height:0; border-top:3px solid #c5cdd8">
+<div class="shape" style="position:absolute; left:30px; top:30px; width:20px; height:20px; background:#6a7179; border-radius:50%;"></div>
+<div class="shape" style="position:absolute; left:413px; top:30px; width:20px; height:20px; background:#6a7179; border-radius:50%;"></div>
+<div class="shape" style="position:absolute; left:796px; top:30px; width:20px; height:20px; background:#6a7179; border-radius:50%;"></div>
+<div class="shape" style="position:absolute; left:1179px; top:30px; width:20px; height:20px; background:#6a7179; border-radius:50%;"></div>
+<div class="shape" style="position:absolute; left:1562px; top:30px; width:20px; height:20px; background:#6a7179; border-radius:50%;"></div>
+<p style="position:absolute; left:0; top:64px; width:80px; font-size:24px; color:#6a7179">06:00</p>
+<p style="position:absolute; left:383px; top:64px; width:80px; font-size:24px; color:#6a7179">08:00</p>
+<p style="position:absolute; left:766px; top:64px; width:80px; font-size:24px; color:#6a7179">10:00</p>
+<p style="position:absolute; left:1149px; top:64px; width:80px; font-size:24px; color:#6a7179">12:00</p>
+<p style="position:absolute; left:1534px; top:64px; width:80px; font-size:24px; color:#6a7179">14:00</p>
+<div class="shape" style="position:absolute; left:708px; top:10px; width:6px; height:60px; background:#2a78d6;"></div>
+<p style="position:absolute; left:420px; top:0; width:280px; font-size:24px; font-weight:600; color:#2a78d6; text-align:right">Playing 09:30 · ×60</p>
+<div class="shape" style="position:absolute; left:739px; top:30px; width:20px; height:20px; background:#d03b3b; border-radius:50%;"></div>
+<p style="position:absolute; left:770px; top:0; width:300px; font-size:24px; color:#9a2626">Closure E8 · 09:42</p>
+</div>
+<div style="display:flex; gap:24px">
+<div style="flex:1; background:#f4f6f8; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px">
+<p style="font-size:24px; font-weight:600">08:00 · segments HIGH or above: 2</p>
+<svg aria-label="Risk map snapshot at 08:00, mostly low" width="500" height="220" viewBox="0 0 500 220">
+  <polygon points="8,220 15,65 93,23 271,9 492,14 494,220" fill="#e9eef3"/>
+  <polyline points="31,197 155,140" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="155,140 267,119" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="267,119 387,56" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="387,56 480,28" fill="none" stroke="#fab219" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="267,119 310,159 360,201" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="360,201 465,206" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="155,140 128,84 170,37" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="170,37 248,19" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="387,56 437,103 480,140" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="155" cy="140" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="267" cy="119" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="387" cy="56" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="310" cy="159" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+</svg>
+<p style="font-size:24px; color:#4a5568">Incidents: none. Surface temperatures falling on E6 and E8.</p>
+</div>
+<div style="flex:1; background:#f4f6f8; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px">
+<p style="font-size:24px; font-weight:600">09:00 · segments HIGH or above: 9</p>
+<svg aria-label="Risk map snapshot at 09:00, rising risk on E8" width="500" height="220" viewBox="0 0 500 220">
+  <polygon points="8,220 15,65 93,23 271,9 492,14 494,220" fill="#e9eef3"/>
+  <polyline points="31,197 155,140" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="155,140 267,119" fill="none" stroke="#fab219" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="267,119 387,56" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="387,56 480,28" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="267,119 310,159 360,201" fill="none" stroke="#d03b3b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="360,201 465,206" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="155,140 128,84 170,37" fill="none" stroke="#0ca30c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="170,37 248,19" fill="none" stroke="#fab219" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="387,56 437,103 480,140" fill="none" stroke="#fab219" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="155" cy="140" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="267" cy="119" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="387" cy="56" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="310" cy="159" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+</svg>
+<p style="font-size:24px; color:#4a5568">Incidents: none yet. E8 south of Nordkjosbotn VERY_HIGH.</p>
+</div>
+<div style="flex:1; background:#f4f6f8; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px">
+<p style="font-size:24px; font-weight:600">10:00 · segments HIGH or above: 14</p>
+<svg aria-label="Risk map snapshot at 10:00, high risk across the county" width="500" height="220" viewBox="0 0 500 220">
+  <polygon points="8,220 15,65 93,23 271,9 492,14 494,220" fill="#e9eef3"/>
+  <polyline points="31,197 155,140" fill="none" stroke="#fab219" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="155,140 267,119" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="267,119 387,56" fill="none" stroke="#d03b3b" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="387,56 480,28" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="267,119 310,159 360,201" fill="none" stroke="#d03b3b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="360,201 465,206" fill="none" stroke="#d03b3b" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="155,140 128,84 170,37" fill="none" stroke="#fab219" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="170,37 248,19" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round"/>
+  <polyline points="387,56 437,103 480,140" fill="none" stroke="#ec835a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="155" cy="140" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="267" cy="119" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="387" cy="56" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+  <circle cx="310" cy="159" r="6" fill="#12233a" stroke="#f4f6f8" stroke-width="2"/>
+</svg>
+<p style="font-size:24px; color:#4a5568">Incidents: closure E8 09:42, accident E6 09:55. Score led the closure by 40 min.</p>
+</div>
+</div>
+</div>
+</div>
+<p style="position:absolute; left:128px; bottom:64px; font-size:24px; color:#6a7179">Mock-up of the expected screen, stretch goal. Same pipeline as live, fed from last winter's files. Use cases 13 and 21.</p>
+
+</section></div></div>
+<div class="slide-wrap" id="s15"><div class="slide-scale"><section id="screen-health" data-transition="fade" style="background:#f4f6f8; color:#12233a; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px 128px 160px; display:flex; flex-direction:column; gap:24px">
+<h2 style="font-size:72px; font-weight:600; line-height:1.1">Screen: Platform Health</h2>
+<div style="background:#fbfcfd; border:1px solid #d8dee6; border-radius:16px; overflow:hidden; display:flex; flex-direction:column">
+<div style="background:#e9eef4; padding:12px 24px; display:flex; gap:10px; align-items:center">
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<div class="shape" style="width:14px; height:14px; background:#c5cdd8; border-radius:50%;"></div>
+<p style="font-size:24px; color:#6a7179; padding:0 0 0 12px">FrostSight · AI/BI dashboard · Platform health · 07:08</p>
+</div>
+<div style="padding:24px; display:flex; gap:32px; align-items:flex-start">
+<div style="flex:1; display:flex; flex-direction:column; gap:12px">
+<p style="font-size:24px; font-weight:600; color:#6a7179">Freshness per source</p>
+<table style="font-size:24px; color:#12233a">
+<tr><th style="width:40%; text-align:left; font-weight:600">Source</th><th style="width:20%; text-align:left; font-weight:600">Last event</th><th style="width:20%; text-align:left; font-weight:600">Lag</th><th style="width:20%; text-align:left; font-weight:600">Status</th></tr>
+<tr><td>Road-weather stations</td><td>07:04</td><td>4 min</td><td style="color:#006300; font-weight:600">Fresh</td></tr>
+<tr><td>Incident feed (DATEX II)</td><td>06:55</td><td>13 min</td><td style="color:#006300; font-weight:600">Fresh</td></tr>
+<tr><td>MET Frost (hourly)</td><td>06:00</td><td>1 h 8 min</td><td style="color:#006300; font-weight:600">Fresh</td></tr>
+<tr><td>NVDB road network (weekly)</td><td>22 Nov</td><td>6 d</td><td style="color:#006300; font-weight:600">Fresh</td></tr>
+<tr><td>Kartverket elevation</td><td>3 Nov</td><td>25 d</td><td style="color:#4a5568; font-weight:600">Reference</td></tr>
+<tr><td>Station 12 Lyngseidet</td><td>04:10</td><td>2 h 58 min</td><td style="color:#9a2626; font-weight:600">Stale</td></tr>
+</table>
+<p style="font-size:24px; color:#6a7179">Stale threshold: 30 min for the 10-minute stream, 1 day for reference data.</p>
+</div>
+<div style="width:640px; display:flex; flex-direction:column; gap:16px">
+<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px">
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Quarantined today</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1">41 <span style="color:#6a7179">rows</span></p>
+</div>
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Unmapped observations</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1">3</p>
+</div>
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Streaming latency, median</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1">2 m 40 s</p>
+</div>
+<div style="background:#f4f6f8; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; gap:4px">
+<p style="font-size:24px; color:#6a7179">Pipeline runs today</p>
+<p style="font-size:48px; font-weight:600; line-height:1.1">96 <span style="color:#6a7179">of 96 ok</span></p>
+</div>
+</div>
+<p style="font-size:24px; font-weight:600; color:#6a7179">Quarantine by rule, today</p>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:260px">invalid_road_weather</p><div style="width:280px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:280px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px">28</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:260px">invalid_incidents</p><div style="width:280px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:90px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px">9</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:260px">unmapped_observations</p><div style="width:280px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:30px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px">3</p></div>
+<div style="display:flex; gap:12px; align-items:center"><p style="font-size:24px; width:260px">schema_errors</p><div style="width:280px; height:14px; border-radius:7px; background:#e9eef4; display:flex"><div style="width:10px; height:14px; border-radius:7px; background:#2a78d6"></div></div><p style="font-family:'JetBrains Mono', 'Courier New', monospace; font-size:24px">1</p></div>
+</div>
+</div>
+</div>
+<p style="position:absolute; left:128px; bottom:64px; font-size:24px; color:#6a7179">Mock-up of the expected screen. Fed by gold.data_quality_summary, the pipeline event log and the quarantine tables. Use cases 23 and 24.</p>
+
+</section></div></div>
+</div>
+<script>
+(function() {
+  var wraps = Array.prototype.slice.call(document.querySelectorAll('.slide-wrap'));
+  var cur = 0, present = false;
+  function fit() {
+    var s = present ? Math.min(window.innerWidth / 1920, window.innerHeight / 1080) : (Math.min(window.innerWidth, 1920) - 32) / 1920;
+    document.documentElement.style.setProperty('--s', s);
+  }
+  function show(i) {
+    cur = Math.max(0, Math.min(wraps.length - 1, i));
+    wraps.forEach(function(w, k) { w.classList.toggle('current', k === cur); });
+    document.getElementById('pos').textContent = (cur + 1) + ' / ' + wraps.length;
+    if (!present) wraps[cur].scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  function togglePresent() {
+    present = !present;
+    document.body.classList.toggle('fullscreen', present);
+    if (present && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){});
+    if (!present && document.fullscreenElement) document.exitFullscreen();
+    fit(); show(cur);
+  }
+  document.getElementById('prev').onclick = function() { show(cur - 1); };
+  document.getElementById('next').onclick = function() { show(cur + 1); };
+  document.getElementById('present').onclick = togglePresent;
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(cur + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(cur - 1); }
+    else if (e.key === 'Home') { show(0); }
+    else if (e.key === 'End') { show(wraps.length - 1); }
+    else if (e.key === 'f' || e.key === 'F') { togglePresent(); }
+    else if (e.key === 'Escape' && present) { togglePresent(); }
+  });
+  document.addEventListener('fullscreenchange', function() { if (!document.fullscreenElement && present) togglePresent(); });
+  window.addEventListener('resize', fit);
+  var q = new URLSearchParams(location.search);
+  var start = parseInt(q.get('slide') || '1', 10) - 1;
+  if (q.get('present') === '1') { present = true; document.body.classList.add('fullscreen'); }
+  fit(); show(isNaN(start) ? 0 : start);
+})();
+</script>
+</body>
+</html>

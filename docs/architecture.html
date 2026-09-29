@@ -1,0 +1,448 @@
+<title>FrostSight Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f4f6f8;
+    --surface: #fbfcfd;
+    --ink: #12233a;
+    --muted: #5d6673;
+    --rule: #cfd7e1;
+    --line: #7b8794;
+    --accent: #2a78d6;
+    --accent-soft: #dce9fb;
+    --lane: #eaeff5;
+    --dark-box: #12233a;
+    --dark-ink: #f4f6f8;
+    --dark-sub: #9fb6d1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0e1826;
+      --surface: #15223a;
+      --ink: #e6ecf3;
+      --muted: #a3b0c0;
+      --rule: #2e405a;
+      --line: #7f8ea3;
+      --accent: #5b9cec;
+      --accent-soft: #1d3558;
+      --lane: #121f33;
+      --dark-box: #23385a;
+      --dark-ink: #f4f6f8;
+      --dark-sub: #b7c8de;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0e1826;
+    --surface: #15223a;
+    --ink: #e6ecf3;
+    --muted: #a3b0c0;
+    --rule: #2e405a;
+    --line: #7f8ea3;
+    --accent: #5b9cec;
+    --accent-soft: #1d3558;
+    --lane: #121f33;
+    --dark-box: #23385a;
+    --dark-ink: #f4f6f8;
+    --dark-sub: #b7c8de;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .page { max-width: 1280px; margin: 0 auto; padding-inline: 20px; padding-block: 32px 64px; display: flex; flex-direction: column; gap: 40px; }
+  header { display: flex; flex-direction: column; gap: 8px; max-width: 72ch; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0; }
+  h1 { font-size: clamp(26px, 4vw, 38px); line-height: 1.15; margin: 0; text-wrap: balance; font-weight: 600; }
+  h2 { font-size: 22px; margin: 0; font-weight: 600; text-wrap: balance; }
+  p { margin: 0; }
+  .lede { color: var(--muted); }
+  section { display: flex; flex-direction: column; gap: 14px; }
+  .fig { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow-x: auto; }
+  .fig svg { display: block; width: 100%; min-width: 980px; height: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 13px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .sw { width: 26px; height: 14px; border-radius: 3px; background: var(--surface); border: 1.5px solid var(--line); }
+  .sw.key { border-color: var(--accent); }
+  .sw.dash { border-style: dashed; }
+  .sw.dark { background: var(--dark-box); border-color: var(--dark-box); }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px 28px; font-size: 14px; }
+  .notes p { max-width: 60ch; }
+  .notes b { font-weight: 600; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  td.n { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--accent); width: 32px; }
+  code { font-family: 'JetBrains Mono', Menlo, monospace; font-size: 12.5px; }
+  .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); white-space: nowrap; }
+  footer { font-size: 13px; color: var(--muted); }
+
+  /* SVG */
+  .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.3; }
+  .box.key { stroke: var(--accent); stroke-width: 1.8; }
+  .box.dash { stroke-dasharray: 6 5; }
+  .box.dark { fill: var(--dark-box); stroke: var(--dark-box); }
+  .box.soft { fill: var(--accent-soft); stroke: var(--accent-soft); }
+  .frame { fill: none; stroke: var(--rule); stroke-width: 1.4; }
+  .frame.ws { fill: var(--lane); stroke: var(--rule); }
+  .lane { fill: var(--lane); stroke: none; }
+  .t { font: 600 13px 'IBM Plex Sans', Arial, sans-serif; fill: var(--ink); }
+  .s { font: 400 11.5px 'IBM Plex Sans', Arial, sans-serif; fill: var(--muted); }
+  .m { font: 400 11px 'JetBrains Mono', Menlo, monospace; fill: var(--muted); }
+  .lab { font: 600 11px 'IBM Plex Sans', Arial, sans-serif; letter-spacing: .1em; fill: var(--muted); text-transform: uppercase; }
+  .dark .t, text.onDark { fill: var(--dark-ink); }
+  text.onDarkSub { fill: var(--dark-sub); }
+  .ln { fill: none; stroke: var(--line); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+  .ln.key { stroke: var(--accent); stroke-width: 2; }
+  .ln.dash { stroke-dasharray: 6 5; }
+  .ln.dot { stroke-dasharray: 2 4; }
+  .hd { fill: var(--line); }
+  .hd.key { fill: var(--accent); }
+  .num circle { fill: var(--accent); }
+  .num text { font: 600 11px 'IBM Plex Sans', Arial, sans-serif; fill: #ffffff; }
+</style>
+
+<div class="page">
+  <header>
+    <p class="eyebrow">FrostSight</p>
+    <h1>Architecture and integrations</h1>
+    <p class="lede">Two views of the system described in the implementation plan, milestones M0 to M7 and stretch S1 to S3. The first shows how data moves through the Databricks workspace. The second shows every system the project connects to, with protocol, authentication and cadence.</p>
+  </header>
+
+  <section>
+    <h2>High-level architecture</h2>
+    <div class="fig">
+      <svg viewBox="0 0 1240 800" role="img" aria-label="Data flows from Norwegian sources through a collector into a Unity Catalog landing volume, then through the ingest pipeline into bronze, silver and gold tables, which serve dashboards, alerts, an API and ML predictions">
+        <defs>
+          <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="hd" d="M0 0 L10 5 L0 10 z"/></marker>
+          <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="hd key" d="M0 0 L10 5 L0 10 z"/></marker>
+        </defs>
+
+        <text class="lab" x="20" y="50">External sources</text>
+        <text class="lab" x="250" y="50">Collection</text>
+
+        <!-- workspace frame -->
+        <rect class="frame ws" x="450" y="60" width="770" height="720" rx="12"/>
+        <text class="lab" x="470" y="86">Databricks workspace · same code on targets free, personal, aws</text>
+
+        <!-- sources -->
+        <rect class="box key" x="20" y="100" width="190" height="56" rx="8"/>
+        <text class="t" x="34" y="123">Road weather</text><text class="s" x="34" y="142">DATEX II · every 10 min</text>
+        <rect class="box key" x="20" y="168" width="190" height="56" rx="8"/>
+        <text class="t" x="34" y="191">Road incidents</text><text class="s" x="34" y="210">DATEX II · every 10 to 30 min</text>
+        <rect class="box" x="20" y="236" width="190" height="56" rx="8"/>
+        <text class="t" x="34" y="259">NVDB API</text><text class="s" x="34" y="278">roads, stations, accidents, slides</text>
+        <rect class="box" x="20" y="304" width="190" height="56" rx="8"/>
+        <text class="t" x="34" y="327">MET Frost</text><text class="s" x="34" y="346">last winter's observations</text>
+        <rect class="box" x="20" y="372" width="190" height="56" rx="8"/>
+        <text class="t" x="34" y="395">Open-Meteo</text><text class="s" x="34" y="414">station elevation</text>
+        <rect class="box dash" x="20" y="440" width="190" height="56" rx="8"/>
+        <text class="t" x="34" y="463">trafikkdata</text><text class="s" x="34" y="482">traffic volumes · after MVP</text>
+
+        <!-- collector -->
+        <rect class="box key" x="250" y="100" width="170" height="356" rx="8"/>
+        <text class="t" x="264" y="126">Collector</text>
+        <text class="s" x="264" y="148">Python package</text>
+        <text class="m" x="264" y="166">collector/</text>
+        <text class="s" x="264" y="196">GitHub Actions cron,</text>
+        <text class="s" x="264" y="213">every 30 min</text>
+        <text class="s" x="264" y="243">Static-IP host for DATEX</text>
+        <text class="s" x="264" y="260">if a fixed IP is enforced</text>
+        <text class="s" x="264" y="290">On AWS: runs as a</text>
+        <text class="s" x="264" y="307">job task inside the</text>
+        <text class="s" x="264" y="324">workspace</text>
+        <text class="s" x="264" y="354">Writes JSON lines</text>
+        <text class="s" x="264" y="371">and keeps raw XML</text>
+
+        <path class="ln key" d="M210 128 L248 128" marker-end="url(#ak)"/>
+        <path class="ln key" d="M210 196 L248 196" marker-end="url(#ak)"/>
+        <path class="ln" d="M210 264 L248 264" marker-end="url(#a)"/>
+        <path class="ln" d="M210 332 L248 332" marker-end="url(#a)"/>
+        <path class="ln" d="M210 400 L248 400" marker-end="url(#a)"/>
+
+        <!-- replay harness -->
+        <rect class="box dash" x="250" y="540" width="170" height="70" rx="8"/>
+        <text class="t" x="264" y="566">Replay harness · S1</text>
+        <text class="s" x="264" y="586">last winter at ×N speed</text>
+        <path class="ln dash" d="M420 575 L550 575 L550 458" marker-end="url(#a)"/>
+
+        <!-- landing -->
+        <rect class="box key" x="470" y="100" width="160" height="356" rx="8"/>
+        <text class="t" x="484" y="126">Landing volume</text>
+        <text class="m" x="484" y="148">frostsight.landing</text>
+        <text class="m" x="484" y="162">.raw</text>
+        <text class="s" x="484" y="178">one folder per source</text>
+        <text class="m" x="484" y="198">raw/&lt;source&gt;/</text>
+        <text class="m" x="484" y="214">yyyy/mm/dd/*.jsonl</text>
+        <text class="s" x="484" y="244">replay files beside</text>
+        <text class="s" x="484" y="261">live files, marked</text>
+        <text class="m" x="484" y="279">replay__&lt;event&gt;__</text>
+        <text class="s" x="484" y="309">failed runs leave a</text>
+        <text class="m" x="484" y="327">_failed/</text>
+        <text class="s" x="545" y="327">marker</text>
+        <path class="ln key" d="M420 278 L468 278" marker-end="url(#ak)"/>
+
+        <!-- ingest pipeline -->
+        <rect class="frame" x="660" y="100" width="270" height="356" rx="10"/>
+        <text class="t" x="676" y="124">Ingest pipeline</text>
+        <text class="s" x="676" y="141">Lakeflow Declarative · one per account</text>
+        <rect class="box key" x="676" y="152" width="238" height="58" rx="8"/>
+        <text class="t" x="690" y="176">Bronze</text><text class="s" x="690" y="195">Auto Loader, append-only, metadata</text>
+        <rect class="box key" x="676" y="230" width="238" height="76" rx="8"/>
+        <text class="t" x="690" y="254">Silver</text>
+        <text class="s" x="690" y="273">live and replay flows, each with</text>
+        <text class="s" x="690" y="290">its own 30-min watermark and dedup</text>
+        <rect class="box" x="676" y="326" width="112" height="110" rx="8"/>
+        <text class="t" x="688" y="350">Quarantine</text>
+        <text class="s" x="688" y="370">failed rows,</text>
+        <text class="s" x="688" y="387">one row per</text>
+        <text class="s" x="688" y="404">broken rule</text>
+        <rect class="box" x="802" y="326" width="112" height="110" rx="8"/>
+        <text class="t" x="814" y="350">Station to</text>
+        <text class="t" x="814" y="367">segment</text>
+        <text class="s" x="814" y="387">lookup view,</text>
+        <text class="s" x="814" y="404">H3 then ST_</text>
+        <text class="s" x="814" y="421">distance</text>
+        <path class="ln key" d="M630 181 L674 181" marker-end="url(#ak)"/>
+        <path class="ln key" d="M795 210 L795 228" marker-end="url(#ak)"/>
+        <path class="ln" d="M732 306 L732 324" marker-end="url(#a)"/>
+
+        <!-- reference job -->
+        <rect class="box" x="660" y="486" width="270" height="64" rx="8"/>
+        <text class="t" x="674" y="512">Reference job · weekly</text>
+        <text class="s" x="674" y="531">NVDB, MET, elevation into bronze and silver</text>
+        <path class="ln" d="M630 420 L645 420 L645 518 L658 518" marker-end="url(#a)"/>
+        <path class="ln" d="M858 486 L858 438" marker-end="url(#a)"/>
+
+        <!-- orchestrate -->
+        <rect class="box dark" x="960" y="100" width="240" height="140" rx="8"/>
+        <text class="t onDark" x="974" y="126">Orchestrate job</text>
+        <text class="s onDarkSub" x="974" y="144">every 10 min, serial tasks</text>
+        <text class="s onDarkSub" x="974" y="170">1  pipeline update</text>
+        <text class="s onDarkSub" x="974" y="190">2  build_gold: windows,</text>
+        <text class="s onDarkSub" x="987" y="206">icing risk, drivers</text>
+        <text class="s onDarkSub" x="974" y="226">3  build_freshness</text>
+        <path class="ln dash" d="M960 128 L932 128" marker-end="url(#a)"/>
+        <text class="s" x="936" y="118" text-anchor="end">triggers</text>
+
+        <!-- gold -->
+        <rect class="box key" x="960" y="270" width="240" height="186" rx="8"/>
+        <text class="t" x="974" y="296">Gold tables</text>
+        <text class="m" x="974" y="320">road_segment_current_risk</text>
+        <text class="m" x="974" y="340">road_segment_risk_history</text>
+        <text class="m" x="974" y="360">road_weather_summary</text>
+        <text class="m" x="974" y="380">incident_summary</text>
+        <text class="m" x="974" y="400">data_quality_summary</text>
+        <text class="s" x="974" y="428">MERGE on segment id</text>
+        <path class="ln key" d="M1080 240 L1080 268" marker-end="url(#ak)"/>
+        <path class="ln key" d="M914 268 L942 268 L942 300 L958 300" marker-end="url(#ak)"/>
+        <path class="ln" d="M914 381 L958 381" marker-end="url(#a)"/>
+
+        <!-- warehouse -->
+        <rect class="box" x="960" y="486" width="240" height="64" rx="8"/>
+        <text class="t" x="974" y="512">SQL warehouse</text>
+        <text class="s" x="974" y="531">serverless, 2X-Small</text>
+        <path class="ln key" d="M1080 456 L1080 484" marker-end="url(#ak)"/>
+
+        <!-- consumers -->
+        <path class="ln" d="M1080 550 L1080 575"/>
+        <path class="ln" d="M720 575 L1140 575"/>
+        <path class="ln key" d="M720 575 L720 598" marker-end="url(#ak)"/>
+        <path class="ln dash" d="M860 575 L860 598" marker-end="url(#a)"/>
+        <path class="ln dash" d="M1000 575 L1000 598" marker-end="url(#a)"/>
+        <path class="ln dash" d="M1140 575 L1140 598" marker-end="url(#a)"/>
+        <rect class="box soft" x="660" y="600" width="120" height="84" rx="8"/>
+        <text class="t" x="672" y="624">Dashboards</text>
+        <text class="s" x="672" y="642">risk map, road</text>
+        <text class="s" x="672" y="658">detail, priority,</text>
+        <text class="s" x="672" y="674">platform health</text>
+        <rect class="box dash" x="800" y="600" width="120" height="84" rx="8"/>
+        <text class="t" x="812" y="624">SQL alerts</text>
+        <text class="s" x="812" y="642">HIGH entry, stale</text>
+        <text class="s" x="812" y="658">source · email</text>
+        <text class="s" x="812" y="674">S2</text>
+        <rect class="box dash" x="940" y="600" width="120" height="84" rx="8"/>
+        <text class="t" x="952" y="624">API app</text>
+        <text class="s" x="952" y="642">Databricks App,</text>
+        <text class="s" x="952" y="658">FastAPI</text>
+        <text class="s" x="952" y="674">S2</text>
+        <rect class="box dash" x="1080" y="600" width="120" height="84" rx="8"/>
+        <text class="t" x="1092" y="624">ML</text>
+        <text class="s" x="1092" y="642">MLflow model,</text>
+        <text class="s" x="1092" y="658">hourly batch scores</text>
+        <text class="s" x="1092" y="674">S3</text>
+
+        <!-- governance band -->
+        <rect class="box" x="470" y="712" width="355" height="52" rx="8"/>
+        <text class="t" x="484" y="734">Unity Catalog · catalog frostsight</text>
+        <text class="s" x="484" y="752">schemas landing, bronze, silver, gold, quarantine, ml</text>
+        <rect class="box" x="845" y="712" width="355" height="52" rx="8"/>
+        <text class="t" x="859" y="734">Asset Bundles · deployed from GitHub Actions</text>
+        <text class="s" x="859" y="752">pipeline, jobs, dashboards · targets free, personal, aws</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="sw key"></i>Streaming path in the MVP</span>
+      <span><i class="sw"></i>Batch, reference and support</span>
+      <span><i class="sw dash"></i>Stretch scope or optional</span>
+      <span><i class="sw dark"></i>Scheduler</span>
+    </div>
+    <div class="notes">
+      <p><b>Why the collector sits outside.</b> Free Edition limits outbound internet from notebooks and jobs, so everything that calls an external URL lives in one Python package that runs on GitHub Actions. On the AWS target the same code runs as a job task.</p>
+      <p><b>One pipeline, one serial job.</b> Free Edition allows one active pipeline and five concurrent job tasks per account. Bronze, both silver flows, quarantine and the lookup share the ingest pipeline, and the orchestrate job runs its three tasks in order every 10 minutes.</p>
+      <p><b>Replay reuses the live path.</b> Replay files land in the same folders. Silver reads them through a separate flow with its own watermark, and gold writes them only to the history table, never to current risk.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Integration diagram</h2>
+    <div class="fig">
+      <svg viewBox="0 0 1240 520" role="img" aria-label="Integrations between data providers, the GitHub-based collector and CI, three Databricks workspaces, and people and clients, numbered to match the table below">
+        <defs>
+          <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="hd" d="M0 0 L10 5 L0 10 z"/></marker>
+          <marker id="bk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="hd key" d="M0 0 L10 5 L0 10 z"/></marker>
+        </defs>
+
+        <rect class="lane" x="20" y="20" width="240" height="480" rx="10"/>
+        <rect class="lane" x="300" y="20" width="340" height="480" rx="10"/>
+        <rect class="lane" x="680" y="20" width="280" height="480" rx="10"/>
+        <rect class="lane" x="1000" y="20" width="220" height="480" rx="10"/>
+        <text class="lab" x="40" y="50">Data providers</text>
+        <text class="lab" x="320" y="50">Integration layer</text>
+        <text class="lab" x="700" y="50">Databricks</text>
+        <text class="lab" x="1020" y="50">People and clients</text>
+
+        <!-- providers -->
+        <rect class="box key" x="40" y="80" width="200" height="54" rx="8"/>
+        <text class="t" x="54" y="103">Statens vegvesen DATEX II</text><text class="s" x="54" y="121">road weather, incidents</text>
+        <rect class="box" x="40" y="150" width="200" height="54" rx="8"/>
+        <text class="t" x="54" y="173">NVDB API v4</text><text class="s" x="54" y="191">network and road objects</text>
+        <rect class="box" x="40" y="220" width="200" height="54" rx="8"/>
+        <text class="t" x="54" y="243">MET Frost</text><text class="s" x="54" y="261">historical observations</text>
+        <rect class="box" x="40" y="290" width="200" height="54" rx="8"/>
+        <text class="t" x="54" y="313">Open-Meteo</text><text class="s" x="54" y="331">elevation</text>
+        <rect class="box dash" x="40" y="360" width="200" height="54" rx="8"/>
+        <text class="t" x="54" y="383">MET Locationforecast</text><text class="s" x="54" y="401">forecasts · after MVP</text>
+        <rect class="box dash" x="40" y="430" width="200" height="54" rx="8"/>
+        <text class="t" x="54" y="453">trafikkdata GraphQL</text><text class="s" x="54" y="471">traffic · after MVP</text>
+
+        <path class="ln key" d="M240 107 L280 107"/>
+        <path class="ln" d="M240 177 L280 177"/>
+        <path class="ln" d="M240 247 L280 247"/>
+        <path class="ln" d="M240 317 L280 317"/>
+        <path class="ln" d="M280 107 L280 317"/>
+        <path class="ln key" d="M280 112 L318 112" marker-end="url(#bk)"/>
+        <path class="ln dash" d="M280 192 L318 192" marker-end="url(#b)"/>
+
+        <!-- integration layer -->
+        <rect class="box key" x="320" y="80" width="300" height="64" rx="8"/>
+        <text class="t" x="334" y="105">Collector on GitHub Actions</text>
+        <text class="s" x="334" y="124">collector.yml, cron every 30 min</text>
+        <rect class="box dash" x="320" y="164" width="300" height="56" rx="8"/>
+        <text class="t" x="334" y="187">Static-IP host, only if DATEX needs it</text>
+        <text class="s" x="334" y="205">systemd timer, same collector code</text>
+        <rect class="box" x="320" y="250" width="300" height="56" rx="8"/>
+        <text class="t" x="334" y="273">GitHub repository</text>
+        <text class="s" x="334" y="291">FrostSight · pull requests into main</text>
+        <rect class="box" x="320" y="330" width="300" height="64" rx="8"/>
+        <text class="t" x="334" y="355">CI and deploy workflows</text>
+        <text class="m" x="334" y="375">ci · deploy-free · deploy-aws</text>
+        <rect class="box" x="320" y="420" width="300" height="64" rx="8"/>
+        <text class="t" x="334" y="445">Secrets</text>
+        <text class="s" x="334" y="464">GitHub secrets, local .env, secret scope</text>
+
+        <path class="ln" d="M470 306 L470 328" marker-end="url(#b)"/>
+        <path class="ln dot" d="M470 420 L470 396" marker-end="url(#b)"/>
+        <path class="ln key" d="M620 112 L698 112" marker-end="url(#bk)"/>
+        <path class="ln dash" d="M620 192 L698 192" marker-end="url(#b)"/>
+        <path class="ln" d="M620 362 L660 362"/>
+        <path class="ln" d="M660 215 L660 405"/>
+        <path class="ln" d="M660 215 L698 215" marker-end="url(#b)"/>
+        <path class="ln" d="M660 300 L698 300" marker-end="url(#b)"/>
+        <path class="ln" d="M660 405 L698 405" marker-end="url(#b)"/>
+
+        <!-- databricks -->
+        <rect class="box key" x="700" y="80" width="240" height="165" rx="8"/>
+        <text class="t" x="714" y="105">Team workspace · Free Edition</text>
+        <text class="s" x="714" y="127">landing volume via Files API</text>
+        <text class="s" x="714" y="145">pipeline, jobs, dashboards</text>
+        <text class="s" x="714" y="163">alerts and API app in S2</text>
+        <text class="s" x="714" y="181">ML jobs in S3</text>
+        <text class="m" x="714" y="205">profile frostsight-free</text>
+        <rect class="box" x="700" y="262" width="240" height="76" rx="8"/>
+        <text class="t" x="714" y="287">Personal workspaces × 5</text>
+        <text class="s" x="714" y="306">Free Edition, one per engineer</text>
+        <text class="m" x="714" y="325">target personal</text>
+        <rect class="box dash" x="700" y="360" width="240" height="90" rx="8"/>
+        <text class="t" x="714" y="385">AWS workspace · from M4</text>
+        <text class="s" x="714" y="404">14-day trial, serverless</text>
+        <text class="s" x="714" y="422">collector as a job, service</text>
+        <text class="s" x="714" y="440">principal deploys · target aws</text>
+
+        <!-- people -->
+        <rect class="box soft" x="1020" y="80" width="180" height="54" rx="8"/>
+        <text class="t" x="1032" y="103">Dashboard viewers</text><text class="s" x="1032" y="121">workspace login, CAN_READ</text>
+        <rect class="box dash" x="1020" y="146" width="180" height="44" rx="8"/>
+        <text class="t" x="1032" y="164">Alert recipients · S2</text><text class="s" x="1032" y="181">email</text>
+        <rect class="box dash" x="1020" y="198" width="180" height="44" rx="8"/>
+        <text class="t" x="1032" y="216">API clients · S2</text><text class="s" x="1032" y="233">HTTPS through app login</text>
+        <rect class="box" x="1020" y="270" width="180" height="60" rx="8"/>
+        <text class="t" x="1032" y="294">Engineers × 5</text><text class="s" x="1032" y="313">CLI, OAuth, Git folders</text>
+
+        <path class="ln key" d="M940 107 L1018 107" marker-end="url(#bk)"/>
+        <path class="ln dash" d="M940 168 L1018 168" marker-end="url(#b)"/>
+        <path class="ln dash" d="M940 220 L1018 220" marker-end="url(#b)"/>
+        <path class="ln" d="M1020 300 L975 300"/>
+        <path class="ln" d="M975 235 L975 405"/>
+        <path class="ln" d="M975 235 L942 235" marker-end="url(#b)"/>
+        <path class="ln" d="M975 300 L942 300" marker-end="url(#b)"/>
+        <path class="ln" d="M975 405 L942 405" marker-end="url(#b)"/>
+
+        <!-- numbers -->
+        <g class="num"><circle cx="260" cy="95" r="9"/><text x="260" y="99" text-anchor="middle">1</text></g>
+        <g class="num"><circle cx="260" cy="165" r="9"/><text x="260" y="169" text-anchor="middle">2</text></g>
+        <g class="num"><circle cx="260" cy="235" r="9"/><text x="260" y="239" text-anchor="middle">3</text></g>
+        <g class="num"><circle cx="260" cy="305" r="9"/><text x="260" y="309" text-anchor="middle">4</text></g>
+        <g class="num"><circle cx="660" cy="98" r="9"/><text x="660" y="102" text-anchor="middle">5</text></g>
+        <g class="num"><circle cx="640" cy="348" r="9"/><text x="640" y="352" text-anchor="middle">6</text></g>
+        <g class="num"><circle cx="998" cy="286" r="9"/><text x="998" y="290" text-anchor="middle">7</text></g>
+        <g class="num"><circle cx="980" cy="94" r="9"/><text x="980" y="98" text-anchor="middle">8</text></g>
+        <g class="num"><circle cx="980" cy="155" r="9"/><text x="980" y="159" text-anchor="middle">9</text></g>
+        <g class="num"><circle cx="995" cy="207" r="9"/><text x="995" y="211" text-anchor="middle">10</text></g>
+        <g class="num"><circle cx="488" cy="408" r="9"/><text x="488" y="412" text-anchor="middle">11</text></g>
+        <g class="num"><circle cx="488" cy="318" r="9"/><text x="488" y="322" text-anchor="middle">12</text></g>
+      </svg>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>#</th><th>From → to</th><th>Protocol and format</th><th>Authentication</th><th>Cadence</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="n">1</td><td>DATEX II → collector</td><td>HTTPS GET pull snapshot, XML, flattened to JSON lines</td><td>Basic auth from a free account. The form asks for a fixed IP or DNS name</td><td>10 min road weather, 10 to 30 min incidents</td><td><span class="pill">M0 register · M2 live</span></td></tr>
+          <tr><td class="n">2</td><td>NVDB v4 → collector</td><td>HTTPS REST, JSON, paged through <code>metadata.neste</code></td><td><code>X-Client</code> header, no key</td><td>Weekly</td><td><span class="pill">M1</span></td></tr>
+          <tr><td class="n">3</td><td>MET Frost → collector</td><td>HTTPS REST, JSON, chunked by month</td><td>Client ID</td><td>Once, for last winter</td><td><span class="pill">M1</span></td></tr>
+          <tr><td class="n">4</td><td>Open-Meteo → collector</td><td>HTTPS, JSON, up to 100 points per call</td><td>None</td><td>Once</td><td><span class="pill">M1</span></td></tr>
+          <tr><td class="n">5</td><td>Collector → landing volume</td><td>Databricks Files API through the Python SDK</td><td>Workspace token on Free Edition, service principal on AWS</td><td>Every 30 min</td><td><span class="pill">M2</span></td></tr>
+          <tr><td class="n">6</td><td>CI → workspaces</td><td><code>databricks bundle validate</code> and <code>deploy</code></td><td>User token on Free Edition, service principal OAuth on AWS</td><td>Every pull request and merge</td><td><span class="pill">M2 · M4 for AWS</span></td></tr>
+          <tr><td class="n">7</td><td>Engineers → workspaces</td><td>Databricks CLI, Git folders, <code>bundle deploy -t personal</code></td><td>OAuth user login per CLI profile</td><td>While developing</td><td><span class="pill">M0</span></td></tr>
+          <tr><td class="n">8</td><td>Dashboards → viewers</td><td>AI/BI dashboards on the SQL warehouse</td><td>Workspace login, <code>CAN_READ</code></td><td>Data refreshes with the 10-minute job</td><td><span class="pill">M6</span></td></tr>
+          <tr><td class="n">9</td><td>Alerts → recipients</td><td>SQL alerts, email notification</td><td>Notification destination</td><td>A few minutes after each job run</td><td><span class="pill">S2</span></td></tr>
+          <tr><td class="n">10</td><td>API → clients</td><td>Databricks App, HTTPS JSON</td><td>App login; the app's service principal reads gold</td><td>On request, 60-second cache</td><td><span class="pill">S2</span></td></tr>
+          <tr><td class="n">11</td><td>Secrets → CI and collector</td><td>Environment variables and a secret scope</td><td>DATEX account, Frost client ID, workspace token</td><td>Read at each run</td><td><span class="pill">M0</span></td></tr>
+          <tr><td class="n">12</td><td>Repository → CI</td><td>GitHub Actions on push and pull request</td><td>GitHub token</td><td>Every push</td><td><span class="pill">M2</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Source: <code>docs/plan/</code> and <code>docs/source-verification.md</code>. Traffic and forecasts appear dashed because they are outside the MVP.</footer>
+</div>

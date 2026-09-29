@@ -1,0 +1,15 @@
+# Owners follow docs/overview.md "Ownership". Add @<login> for Md. Sohanur Rahman once known.
+*                       @safiulanik-cefalo
+/docs/                  @safiulanik-cefalo
+/collector/             @pyshawon
+/src/pipelines/         @pyshawon @sani1994
+/src/frostsight/        @sani1994 @safiulanik-cefalo
+/src/jobs/              @sani1994 @safiulanik-cefalo
+/src/dashboards/        @safiulanik-cefalo
+/replay/                @sani1994
+/resources/             @sirayhancse
+/databricks.yml         @sirayhancse @safiulanik-cefalo
+/sql/                   @sirayhancse
+/config/                @safiulanik-cefalo
+/tests/                 @sani1994
+/.github/workflows/     @sirayhancse
