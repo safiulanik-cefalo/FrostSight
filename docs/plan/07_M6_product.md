@@ -37,7 +37,7 @@ Do: read these, then move on.
 1. An AI/BI dashboard is a JSON document. The file extension is `.lvdash.json` ("Lakeview" is the old name).
 2. It has two parts: `datasets` (each one is a single SQL query) and `pages` with `layout` (widgets on a 12-column grid).
 3. A widget is bound to one dataset by `datasetName`, and picks columns from it by `fieldName`. A field name in the widget must match a column or alias in the dataset exactly.
-4. Widget types we use: `counter` (KPI tile), `table`, `symbol-map` (points by lat/lon), `bar`, `line`, `filter-*`, and markdown text. Each type has a fixed `version` number (counter, table, map and filters are 2; bar and line are 3). The wrong version breaks the widget.
+4. Widget types we use: `counter` (KPI tile), `table`, `symbol-map` (points by lat/lon), a path map (lines from a `GEOMETRY` column; its JSON comes from the UI, T6.5 step 2), `bar`, `line`, `filter-*`, and markdown text. Each type has a fixed `version` number (counter, table, map and filters are 2; bar and line are 3). The wrong version breaks the widget.
 5. The dashboard runs on a SQL warehouse. Ours is the one 2X-Small serverless warehouse; its id is the bundle variable `warehouse_id`.
 6. Dataset SQL uses bare table names (`FROM road_segment_current_risk`). The catalog and schema are supplied at deploy time (`dataset_catalog`, `dataset_schema`), so the same JSON works on `free`, `personal` and `aws`. The skill rule is strict: the flags only fill in missing parts, so a hard-coded `frostsight.` breaks portability. Silver tables are therefore reached through gold views (T6.4 step 2), never by a two-part name.
 7. Parameters are `:name` placeholders in the SQL, declared per dataset, and bound to filter widgets. We use them for `road_segment_id`, `road_number` and the surface-temperature threshold.
@@ -282,16 +282,18 @@ If it fails:
 
 ---
 
-### T6.3 Map coordinates per segment      owner: Rayhan
-Why: the map widget needs one lat/lon per segment. Computing a centroid from WKT on every dashboard refresh is wasted work on a 2X-Small warehouse; compute it once.
+### T6.3 Map geometry per segment      owner: Rayhan
+Why: the risk map draws each segment as a line with an AI/BI path map, coloured by risk level. A path map reads a `GEOMETRY` column with LineString or MultiLineString values; silver keeps the line as WGS84 WKT, so one gold view converts it. Centroids stay for the point-map fallback and the station map.
 
 Do:
-1. Nothing new to compute: `silver.road_segments.centroid_lat` and `centroid_lon` are written by the reference job at load time (05_M4 T4.6, `build_road_segments`, shapely centroid of the WGS84 line). If the table on your target predates that change, run `databricks bundle run reference -t free --profile frostsight-free` once; the MERGE fills the two columns for every segment.
-2. Decision recorded here: dashboards read `centroid_lat` and `centroid_lon`; no `ST_` call in dashboard SQL. `ST_Centroid` on the warehouse (04_M3 fallback) is not needed.
+1. Nothing new to compute in silver: `geometry_wkt_4326` (2D WGS84 line) and `centroid_lat`, `centroid_lon` are written by the reference job at load time (05_M4 T4.6, `build_road_segments`). If the table on your target predates the centroid change, run `databricks bundle run reference -t free --profile frostsight-free` once; the MERGE fills the two columns for every segment.
+2. `gold.v_segments` (T6.4 step 2) exposes `ST_GeomFromText(geometry_wkt_4326, 4326) AS geometry` beside the centroids. The conversion runs per query, which is cheap at this size (30 mapped segments on a quiet day, 20,000 at most), and only when a dataset selects the column.
+   verify: on the Free Edition serverless warehouse, `SELECT ST_AsText(ST_GeomFromText('LINESTRING(18.9 69.6, 19.0 69.7)', 4326))` returns the line. If spatial SQL is not available there, drop the column and keep the point map (T6.5 step 2).
+3. Decision recorded here: the segment map is a path map on `geometry`; incidents and stations stay as point layers on lat/lon. Watch the zoom: only segments mapped to a station carry a risk row (one per station in the MVP), and a short line can vanish at county zoom. Check it on the mock dashboards (`tools/mock_dashboards/`) before M6 data exists, and keep the point map if the lines do not read.
 
-Expect: `SELECT count(*) FROM frostsight.silver.road_segments WHERE centroid_lat IS NULL` returns 0; every lat is between 68 and 71 and every lon between 15 and 22 for Troms.
+Expect: `SELECT count(*) FROM frostsight.gold.v_segments WHERE geometry IS NULL` returns 0; every centroid lat is between 68 and 71 and every lon between 15 and 22 for Troms.
 
-If it fails: NULL centroids for a few rows: `geometry_wkt_4326` is NULL for them (the reprojection UDF got an empty WKT); rule `SG001` should have dropped those rows, check `quarantine.invalid_road_segments`.
+If it fails: NULL geometry or centroids for a few rows: `geometry_wkt_4326` is NULL for them (the reprojection UDF got an empty WKT); rule `SG001` should have dropped those rows, check `quarantine.invalid_road_segments`. `ST_GeomFromText` fails on a row: the WKT still carries a Z value; reproject to 2D in `frostsight.geo`, not in the view.
 
 ---
 
@@ -312,7 +314,8 @@ q() { databricks experimental aitools tools query --warehouse "$WH" --profile fr
 
 ```sql
 CREATE OR REPLACE VIEW frostsight.gold.v_segments AS
-  SELECT road_segment_id, road_number, road_category, county, length_m, speed_limit, centroid_lat, centroid_lon
+  SELECT road_segment_id, road_number, road_category, county, length_m, speed_limit, centroid_lat, centroid_lon,
+         ST_GeomFromText(geometry_wkt_4326, 4326) AS geometry          -- path map (T6.3)
   FROM frostsight.silver.road_segments;
 CREATE OR REPLACE VIEW frostsight.gold.v_stations AS
   SELECT station_id, name, latitude, longitude FROM frostsight.silver.road_weather_stations;
@@ -360,10 +363,10 @@ st AS (
 SELECT * FROM risk, inc, st
 ```
 
-`ds_map` (one point per segment):
+`ds_map` (one row per segment: the line for the path map, the centroid for the point fallback):
 
 ```sql
-SELECT r.road_segment_id, s.road_number, s.road_category, s.centroid_lat AS lat, s.centroid_lon AS lon,
+SELECT r.road_segment_id, s.road_number, s.road_category, s.geometry, s.centroid_lat AS lat, s.centroid_lon AS lon,
        r.risk_level, r.risk_score, r.icing_score, r.risk_updated_at,
        CASE r.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END AS risk_rank
 FROM road_segment_current_risk r
@@ -569,7 +572,7 @@ Do:
       "  FROM (SELECT s.station_id, max(o.event_time) AS last_event_time FROM v_stations s LEFT JOIN v_observations o ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp()) GROUP BY s.station_id))\n",
       "SELECT * FROM risk, inc, st\n"]},
     {"name": "ds_map", "displayName": "Segments", "queryLines": [
-      "SELECT r.road_segment_id, s.road_number, s.road_category, s.centroid_lat AS lat, s.centroid_lon AS lon, r.risk_level, r.risk_score, r.icing_score, r.risk_updated_at,\n",
+      "SELECT r.road_segment_id, s.road_number, s.road_category, s.geometry, s.centroid_lat AS lat, s.centroid_lon AS lon, r.risk_level, r.risk_score, r.icing_score, r.risk_updated_at,\n",
       "  CASE r.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END AS risk_rank\n",
       "FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id)\n"]},
     {"name": "ds_stations", "displayName": "Stations", "queryLines": [
@@ -678,7 +681,12 @@ Do:
 }
 ```
 
-2. The other three files use the same skeleton. Deltas only:
+2. The segment map. The `map-segments` widget above is a point map on the centroids: its JSON is known to work, so it is the fallback. The target is a path map on `ds_map.geometry`, coloured by `risk_level` with the same four mappings. The dashboard skill does not document the path-map JSON, so take it from the product instead of guessing:
+   1. Deploy the file as it is (T6.6, or the mock dashboards in `tools/mock_dashboards/`), open the draft, edit `map-segments`, switch the visualization to Path map, set the path source to the `geometry` column and colour to `risk_level`, and pin the four colours.
+   2. Pull the result back into the file: `databricks bundle generate dashboard --resource risk_map -t personal --profile frostsight-personal` (or `databricks lakeview get <id>` for the mock) and keep only the changed widget.
+   3. Record the widget type and version here, next to `symbol-map` v2 in T6.1 item 4.
+   Keep the point map if the lines are too short to read at county zoom (T6.3 step 3).
+3. The other three files use the same skeleton. Deltas only:
 
 | File | Datasets | Widgets (type, dataset, position) | Parameters |
 |---|---|---|---|
@@ -687,14 +695,15 @@ Do:
 | `platform_health.lvdash.json` | `ds_freshness`, `ds_freshness_trend`, `ds_quarantine_today`, `ds_dq_rules`, `ds_latency`, `ds_pipeline_runs` | title text; table `ds_freshness` with a `style` rule on the `status` column: operand `data-value` `STALE`, operator `=`, red background (12x5); counters: quarantined today (`sum(rows_today)` over `ds_quarantine_today`, `disaggregated: false`), unmapped observations (same dataset with a widget-level `filters: [{"expression": "`quarantine_table` = 'unmapped_observations'"}]`, verify the filter shape in the skill's widget spec), `latency_median_s` with `formatTemplate "{{@formatted}} s"`, `runs_ok` with `formatTemplate "{{@formatted}} of {{runs_today}} ok"` (4 x 3x3); `bar` v3 `ds_quarantine_today` x categorical `rule`, y `rows_today`, colour `quarantine_table` (6x5); `line` v3 `ds_freshness_trend` x temporal `computed_at`, y `ingestion_delay_min` (6x5); table `ds_dq_rules` (12x4); text "Threshold: 30 min for the 10-minute stream, 60 min incidents, 8 days NVDB, 60 days elevation" (12x1) | `orchestrate_job_id` INTEGER if the system-table variant is used |
 
    verify: a `filter-single-select` bound to a STRING parameter renders as a free-text box; if the UI needs a value list, add a second query in the filter widget that reads `road_segment_id` from a helper dataset, as in the skill's "Date Range Filtering" example (field plus parameter in one widget).
-3. Validate the JSON files before deploying: `for f in src/dashboards/*.lvdash.json; do jq empty "$f" && echo "ok $f"; done`.
+4. Validate the JSON files before deploying: `for f in src/dashboards/*.lvdash.json; do jq empty "$f" && echo "ok $f"; done`.
 
 Expect: `jq` prints `ok` four times. After T6.6, the risk map shows tiles with numbers, a map with coloured dots over Troms, a second map of station dots, and an incidents table (possibly empty on a quiet day).
 
 If it fails:
 - "failed to parse serialized dashboard": a `queryLines` element without trailing `\n`, or a `query` string instead of `queryLines`, or a missing `pageType`.
 - Counter shows "unsupported widget definition": a `color` on the counter value. Remove it.
-- Map empty but table fine: `lat`/`lon` NULL for every row (`silver.road_segments` on this target predates the centroid columns; run `reference`, T6.3).
+- Map empty but table fine: `lat`/`lon` NULL for every row (`silver.road_segments` on this target predates the centroid columns; run `reference`, T6.3), or for the path map `geometry` NULL (T6.3 step 2).
+- `ds_map` fails with an unknown `ST_GeomFromText`: spatial SQL is not available on this warehouse; drop `s.geometry` from `ds_map` and keep the point map.
 - Widget shows "no selected fields to visualize": a `fields[].name` does not match its `encodings.*.fieldName`.
 
 ---

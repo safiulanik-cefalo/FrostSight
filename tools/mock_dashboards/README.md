@@ -1,0 +1,41 @@
+# Mock dashboards
+
+A preview of the M6 dashboards before M4 to M6 deliver real data. One AI/BI dashboard, four pages (Risk map,
+Road detail, Gritting priority, Platform health), reading `frostsight.mock`. That schema has the same table
+and view names as `gold` (07_M6 T6.4), filled with a synthetic storm morning in Troms. The risk is the real v0
+model, and every timestamp is relative to now, so the dashboard always looks live.
+
+| File | What |
+|---|---|
+| `mock_data.sql` | Seeds plus the views the dashboard reads. Station names are real places; readings are made up |
+| `build_dashboard.py` | Writes `frostsight_demo.lvdash.json`; edit this, not the JSON |
+| `deploy.py` | Loads the mock, tests every dataset, creates or updates the dashboard and publishes it |
+
+## Run
+
+```bash
+databricks auth login --profile frostsight-personal     # once
+uv run python tools/mock_dashboards/build_dashboard.py
+uv run python tools/mock_dashboards/deploy.py --setup   # --setup runs sql/001 first; needed once per workspace
+```
+
+`deploy.py` prints the draft and published links. Run it again after any change; it updates the same
+dashboard. Remove everything with `DROP SCHEMA frostsight.mock CASCADE` and `databricks lakeview trash <id>`.
+
+## Demo path (08_M7 T7.8, on mock data)
+
+1. **Platform health.** Incidents are STALE (75 min against a 60 min threshold), and the delay line shows the
+   collector outage about six hours ago. The point: freshness is visible, not hidden.
+2. **Risk map.** Counters, then the map: inland and mountain stations on E8 and E6 are red, the coast is
+   yellow or green, and Fjellfroskvatn is grey (stale). The closure in Lavangsdalen is in the incident table.
+3. **Road detail**, `E8 · Lavangsdalen` (the default). The driver bars explain the level; the two 24-hour lines
+   show the surface falling through 0 °C as the snow starts.
+4. **Gritting priority.** Filter to E8 and E6, then drag the surface slider to 0 °C or below. Clicking a bar
+   filters the list.
+
+## Moving to gold
+
+The JSON uses bare table names. At M6, deploy it with `dataset_schema: gold` (07_M6 T6.6), or copy the pages
+into the four planned files. Things the mock adds on top of 07_M6 T6.4, still to fold into the plan:
+a `road` label (`E8`, `Fv862`) in `v_segments`; field-bound filters instead of parameters; and the four
+dashboards as pages of one dashboard.

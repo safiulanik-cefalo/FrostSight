@@ -477,9 +477,10 @@ Platform Health). Writing the SQL now shows whether the gold contracts carry wha
 dashboard has one dataset per tile; datasets are SQL over gold and silver on the serverless warehouse.
 The queries below use full three-part names so they run in SQL Editor; in the dashboard JSON at M6 the
 gold names are bare and silver names two-part, because the bundle sets `dataset_catalog` and
-`dataset_schema: gold` (`07_M6`). Map tiles: AI/BI renders points from lat/lon columns; it does not draw
-lines, so a segment is shown at its midpoint (verify: an H3 layer from `h3_h3tostring(cell)` if the map
-widget supports it on this workspace).
+`dataset_schema: gold` (`07_M6`). Map tiles: an AI/BI path map draws each segment as a line from a
+`GEOMETRY` column, built in the query with `ST_GeomFromText(geometry_wkt_4326, 4326)`; points stay for
+incidents and stations. Fallback when spatial SQL is missing on the warehouse, or the lines are too short
+to read at county zoom: the segment centroid as a point (07_M6 T6.3).
 
 Dashboard 1, `risk_map`:
 
@@ -487,7 +488,7 @@ Dashboard 1, `risk_map`:
 +-----------------+-----------------+-----------------+-----------------+
 | VERY_HIGH  3    | HIGH  12        | Stations 28/30  | Updated 07:08   |
 +-----------------+-----------------+-----------------+-----------------+
-| Map: segment midpoints coloured by risk_level         | Legend         |
+| Map: segment lines coloured by risk_level             | Legend         |
 | Active incidents as a second point layer              | LOW  MEDIUM    |
 |                                                        | HIGH VERY_HIGH |
 +--------------------------------------------------------+---------------+
@@ -502,10 +503,9 @@ SELECT count(*) AS reporting FROM frostsight.gold.road_segment_current_risk
 WHERE event_time > current_timestamp() - INTERVAL 30 MINUTES;
 SELECT max(risk_updated_at) AS updated_at FROM frostsight.gold.road_segment_current_risk;
 
--- Map layer: one point per segment
+-- Map layer: one line per segment (path map)
 SELECT r.road_segment_id, r.risk_level, r.risk_score, concat(s.road_category, s.road_number) AS road,
-       ST_Y(ST_Centroid(ST_GeomFromWKT(s.geometry_wkt_4326, 4326))) AS latitude,
-       ST_X(ST_Centroid(ST_GeomFromWKT(s.geometry_wkt_4326, 4326))) AS longitude
+       ST_GeomFromText(s.geometry_wkt_4326, 4326) AS geometry
 FROM frostsight.gold.road_segment_current_risk r
 JOIN frostsight.silver.road_segments s USING (road_segment_id);
 

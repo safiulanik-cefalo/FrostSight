@@ -40,3 +40,7 @@ Thumbs.db
 # Claude Code: personal settings and audit reports
 .claude/settings.local.json
 frostsight-2*.json
+
+# Mock dashboards: per-workspace dashboard id and the resolved script
+tools/mock_dashboards/.dashboard_id
+tools/mock_dashboards/.mock_data.resolved.sql
