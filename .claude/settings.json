@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/credentials*)",
+      "Read(./**/secrets*)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "filesystem": {
+      "allowWrite": ["~/.cache/uv", "~/.local/share/uv", "~/.databricks"]
+    },
+    "network": {
+      "allowMachLookup": ["com.apple.SystemConfiguration.configd"],
+      "allowedDomains": [
+        "pypi.org",
+        "files.pythonhosted.org",
+        "github.com",
+        "*.github.com",
+        "*.githubusercontent.com",
+        "*.cloud.databricks.com",
+        "*.atlas.vegvesen.no",
+        "frost.met.no",
+        "api.met.no",
+        "api.open-meteo.com"
+      ]
+    }
+  },
+  "disableSkillShellExecution": true
+}
