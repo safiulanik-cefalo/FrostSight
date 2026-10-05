@@ -1,0 +1,42 @@
+{
+ "default_segment": "E8 · Bossovarri",
+ "climates": {
+  "mountain": [
+   "Bossovarri",
+   "Galgo",
+   "Gardeborri",
+   "Gratangsfjellet",
+   "Kaperskaret"
+  ],
+  "inland": [
+   "Andsvatnet",
+   "Gumpen",
+   "Halsebakkan nedre",
+   "Heia",
+   "Øse"
+  ],
+  "fjord": [
+   "Breivikeidet",
+   "Djupvik",
+   "Hamn",
+   "Lavangsdalen",
+   "Sandvikeidet",
+   "Skattørsund",
+   "Tverrforbindelsen øst"
+  ],
+  "coast": [
+   "Arnøya",
+   "Fornes",
+   "Gamnes",
+   "Maursund",
+   "Nordnes",
+   "Senjahopen"
+  ],
+  "warm": [
+   "Blomjoten"
+  ]
+ },
+ "closure_station": "Bossovarri",
+ "stale_station": "Gardeborri",
+ "stations": 24
+}

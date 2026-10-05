@@ -1,6 +1,7 @@
 """Load the mock gold layer into a workspace and publish the FrostSight demo dashboard on it.
 
-1. Runs mock_data.sql one statement at a time on a SQL warehouse (creates or replaces frostsight.mock).
+1. Runs nvdb_seed.sql (real roads and stations) and mock_data.sql one statement at a time on a SQL warehouse
+   (creates or replaces frostsight.mock).
 2. Runs every dataset of frostsight_demo.lvdash.json against frostsight.mock and prints its row count,
    as the dashboard skill requires before a deploy.
 3. Creates the dashboard (or updates the one recorded in .dashboard_id) and publishes it.
@@ -23,6 +24,7 @@ from typing import Any
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
+SEED_SQL = HERE / "nvdb_seed.sql"  # written by fetch_nvdb.py
 MOCK_SQL = HERE / "mock_data.sql"
 SETUP_SQL = REPO / "sql" / "001_catalog_schemas_volume.sql"
 DASHBOARD_JSON = HERE / "frostsight_demo.lvdash.json"
@@ -108,16 +110,18 @@ def load_mock(profile: str, wh: str, setup: bool) -> None:
     geometry = "ST_GeomFromText(geometry_wkt_4326, 4326)" if spatial else "CAST(NULL AS STRING)"
     print(f"spatial SQL on this warehouse: {'yes' if spatial else 'no, v_segments.geometry is NULL'}")
 
-    script = MOCK_SQL.read_text().replace("{geometry_expr}", geometry)
-    tmp = HERE / ".mock_data.resolved.sql"
-    tmp.write_text(script)
-    try:
-        for i, s in enumerate(statements(tmp), 1):
-            res = run_sql(s, profile, wh)
-            if not ok(res):
-                sys.exit(f"mock_data.sql statement {i} failed:\n{s[:300]}\n{error(res)}")
-    finally:
-        tmp.unlink(missing_ok=True)
+    if not SEED_SQL.exists():
+        sys.exit("nvdb_seed.sql is missing: run tools/mock_dashboards/fetch_nvdb.py first.")
+    for path in (SEED_SQL, MOCK_SQL):
+        tmp = HERE / ".mock_data.resolved.sql"
+        tmp.write_text(path.read_text().replace("{geometry_expr}", geometry))
+        try:
+            for i, s in enumerate(statements(tmp), 1):
+                res = run_sql(s, profile, wh)
+                if not ok(res):
+                    sys.exit(f"{path.name} statement {i} failed:\n{s[:300]}\n{error(res)}")
+        finally:
+            tmp.unlink(missing_ok=True)
     print(f"loaded {CATALOG}.{SCHEMA}")
 
 

@@ -25,16 +25,42 @@
   },
   {
    "name": "ds_map",
-   "displayName": "Segments",
+   "displayName": "Road risk",
    "queryLines": [
-    "SELECT r.road_segment_id, s.road, st.name AS station_name, s.geometry,\n",
-    "       s.centroid_lat AS lat, s.centroid_lon AS lon,\n",
-    "       r.risk_level, round(r.icing_score, 2) AS icing_score, r.risk_updated_at,\n",
-    "       CASE r.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END\n",
-    "         AS risk_rank\n",
-    "FROM road_segment_current_risk r\n",
-    "JOIN v_segments s USING (road_segment_id)\n",
-    "LEFT JOIN v_stations st ON st.station_id = r.station_id\n"
+    "WITH risk AS (\n",
+    "  SELECT s.road, st.name AS place, st.latitude AS st_lat, st.longitude AS st_lon,\n",
+    "         r.risk_level, round(r.icing_score, 2) AS icing_score\n",
+    "  FROM road_segment_current_risk r\n",
+    "  JOIN v_segments s USING (road_segment_id)\n",
+    "  JOIN v_stations st ON st.station_id = r.station_id),\n",
+    "nearest AS (\n",
+    "  SELECT p.road, p.line_no, p.seq, p.latitude AS lat, p.longitude AS lon,\n",
+    "         k.place, k.risk_level, k.icing_score,\n",
+    "         111.2 * sqrt(power(p.latitude - k.st_lat, 2)\n",
+    "                      + power((p.longitude - k.st_lon) * cos(radians(p.latitude)), 2)) AS station_km\n",
+    "  FROM v_road_points p\n",
+    "  LEFT JOIN risk k ON k.road = p.road\n",
+    "  QUALIFY row_number() OVER (PARTITION BY p.road, p.line_no, p.seq ORDER BY station_km) = 1)\n",
+    "SELECT road, lat, lon,\n",
+    "       CASE WHEN station_km <= 5 THEN risk_level ELSE 'Road' END AS layer,\n",
+    "       CASE WHEN station_km <= 5 THEN place END AS place,\n",
+    "       CASE WHEN station_km <= 5 THEN icing_score END AS icing_score,\n",
+    "       CASE WHEN station_km > 5 OR station_km IS NULL THEN 0\n",
+    "            WHEN risk_level = 'VERY_HIGH' THEN 4 WHEN risk_level = 'HIGH' THEN 3\n",
+    "            WHEN risk_level = 'MEDIUM' THEN 2 ELSE 1 END AS draw_order\n",
+    "FROM nearest\n",
+    "UNION ALL\n",
+    "SELECT s.road, st.latitude, st.longitude,\n",
+    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp()) THEN 'Station'\n",
+    "            ELSE 'Station (stale)' END,\n",
+    "       st.name, round(r.icing_score, 2), 9\n",
+    "FROM v_stations st\n",
+    "JOIN road_segment_current_risk r ON r.station_id = st.station_id\n",
+    "JOIN v_segments s ON s.road_segment_id = r.road_segment_id\n",
+    "LEFT JOIN v_observations o\n",
+    "  ON o.station_id = st.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "GROUP BY s.road, st.latitude, st.longitude, st.name, r.icing_score\n",
+    "ORDER BY draw_order\n"
    ]
   },
   {
@@ -43,12 +69,16 @@
    "queryLines": [
     "SELECT s.station_id, s.name, s.latitude AS lat, s.longitude AS lon,\n",
     "       max(o.event_time) AS last_event_time,\n",
+    "       timestampdiff(MINUTE, max(o.event_time), current_timestamp()) AS minutes_since,\n",
     "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp())\n",
-    "            THEN 'Reporting' ELSE 'Stale' END AS station_status\n",
+    "            THEN 'Reporting' ELSE 'Stale' END AS station_status,\n",
+    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp())\n",
+    "            THEN '🟢 Reporting' ELSE '⚪ Stale' END AS status_label\n",
     "FROM v_stations s\n",
     "LEFT JOIN v_observations o\n",
     "  ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
-    "GROUP BY s.station_id, s.name, s.latitude, s.longitude\n"
+    "GROUP BY s.station_id, s.name, s.latitude, s.longitude\n",
+    "ORDER BY station_status DESC, s.name\n"
    ]
   },
   {
@@ -91,7 +121,8 @@
    "displayName": "Risk per type",
    "queryLines": [
     "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
-    "SELECT seg.segment, 1 AS sort_key, 'Icing' AS risk_type, r.risk_level, round(r.icing_score, 2) AS score,\n",
+    "SELECT seg.segment, 1 AS sort_key, 'Icing' AS risk_type, CASE r.risk_level WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END AS level,\n",
+    "       round(r.icing_score, 2) AS score,\n",
     "       'live' AS note\n",
     "FROM road_segment_current_risk r JOIN seg USING (road_segment_id)\n",
     "UNION ALL SELECT segment, 2, 'Closure', NULL, NULL, 'after the MVP' FROM seg\n",
@@ -163,6 +194,7 @@
     "ranked AS (\n",
     "  SELECT r.road_segment_id, s.road, st.name AS place,\n",
     "         round(r.icing_score, 2) AS icing_score, r.risk_level,\n",
+    "         CASE r.risk_level WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END AS level,\n",
     "         o.surface_c, initcap(coalesce(o.precip, 'None')) AS precip,\n",
     "         array_join(transform(r.risk_drivers, d -> CASE d.factor WHEN 'surface_temp' THEN 'Surface temperature' WHEN 'air_temp' THEN 'Air temperature' WHEN 'dew_point_spread' THEN 'Close to dew point' WHEN 'precipitation' THEN 'Precipitation' WHEN 'temp_trend_1h' THEN 'Cooling, last hour' ELSE d.factor END), ', ')\n",
     "           AS main_drivers,\n",
@@ -180,7 +212,10 @@
    "name": "ds_freshness",
    "displayName": "Freshness",
    "queryLines": [
-    "SELECT source, last_event_time, last_successful_ingestion, round(ingestion_delay_min) AS delay_min,\n",
+    "SELECT source,\n",
+    "       CASE status WHEN 'STALE' THEN '🔴 STALE' WHEN 'NO_DATA' THEN '⚪ NO_DATA' ELSE '🟢 FRESH' END\n",
+    "         AS status_label,\n",
+    "       last_event_time, last_successful_ingestion, round(ingestion_delay_min) AS delay_min,\n",
     "       threshold_min, status, rows_last_24h, quarantined_last_24h\n",
     "FROM data_quality_summary\n",
     "ORDER BY CASE status WHEN 'STALE' THEN 0 WHEN 'NO_DATA' THEN 1 ELSE 2 END, source\n"
@@ -439,7 +474,7 @@
     },
     {
      "widget": {
-      "name": "map-segments",
+      "name": "map-risk",
       "queries": [
        {
         "name": "main_query",
@@ -455,24 +490,20 @@
            "expression": "`lon`"
           },
           {
-           "name": "risk_level",
-           "expression": "`risk_level`"
+           "name": "layer",
+           "expression": "`layer`"
           },
           {
            "name": "road",
            "expression": "`road`"
           },
           {
-           "name": "station_name",
-           "expression": "`station_name`"
+           "name": "place",
+           "expression": "`place`"
           },
           {
            "name": "icing_score",
            "expression": "`icing_score`"
-          },
-          {
-           "name": "road_segment_id",
-           "expression": "`road_segment_id`"
           }
          ],
          "disaggregated": true
@@ -492,8 +523,8 @@
          }
         },
         "color": {
-         "fieldName": "risk_level",
-         "displayName": "Risk level",
+         "fieldName": "layer",
+         "displayName": "Risk",
          "scale": {
           "type": "categorical",
           "mappings": [
@@ -512,8 +543,32 @@
            {
             "value": "VERY_HIGH",
             "color": "#B3261E"
+           },
+           {
+            "value": "Road",
+            "color": "#8A939C"
+           },
+           {
+            "value": "Station",
+            "color": "#2F9BFF"
+           },
+           {
+            "value": "Station (stale)",
+            "color": "#E9ECEF"
            }
-          ]
+          ],
+          "sort": {
+           "by": "custom-order",
+           "orderedValues": [
+            "VERY_HIGH",
+            "HIGH",
+            "MEDIUM",
+            "LOW",
+            "Road",
+            "Station",
+            "Station (stale)"
+           ]
+          }
          }
         }
        },
@@ -522,7 +577,9 @@
        },
        "frame": {
         "showTitle": true,
-        "title": "Icing risk per segment"
+        "title": "Icing risk on the road network",
+        "description": "Road within 5 km of a station takes its risk. Grey: none. Blue dot: station.",
+        "showDescription": true
        }
       }
      },
@@ -530,12 +587,12 @@
       "x": 0,
       "y": 5,
       "width": 8,
-      "height": 9
+      "height": 10
      }
     },
     {
      "widget": {
-      "name": "map-stations",
+      "name": "stations-table",
       "queries": [
        {
         "name": "main_query",
@@ -543,20 +600,16 @@
          "datasetName": "ds_stations",
          "fields": [
           {
-           "name": "lat",
-           "expression": "`lat`"
-          },
-          {
-           "name": "lon",
-           "expression": "`lon`"
-          },
-          {
-           "name": "station_status",
-           "expression": "`station_status`"
-          },
-          {
            "name": "name",
            "expression": "`name`"
+          },
+          {
+           "name": "status_label",
+           "expression": "`status_label`"
+          },
+          {
+           "name": "minutes_since",
+           "expression": "`minutes_since`"
           }
          ],
          "disaggregated": true
@@ -565,41 +618,27 @@
       ],
       "spec": {
        "version": 2,
-       "widgetType": "symbol-map",
+       "widgetType": "table",
        "encodings": {
-        "coordinates": {
-         "latitude": {
-          "fieldName": "lat"
+        "columns": [
+         {
+          "fieldName": "name",
+          "displayName": "Station"
          },
-         "longitude": {
-          "fieldName": "lon"
+         {
+          "fieldName": "status_label",
+          "displayName": "Status"
+         },
+         {
+          "fieldName": "minutes_since",
+          "displayName": "Min ago"
          }
-        },
-        "color": {
-         "fieldName": "station_status",
-         "displayName": "Station",
-         "scale": {
-          "type": "categorical",
-          "mappings": [
-           {
-            "value": "Reporting",
-            "color": "#4C9A6A"
-           },
-           {
-            "value": "Stale",
-            "color": "#9AA3AD"
-           }
-          ]
-         }
-        }
-       },
-       "mark": {
-        "opacity": 0.9
+        ]
        },
        "frame": {
         "showTitle": true,
         "title": "Stations",
-        "description": "Green: reported in the last 30 min. Grey: stale.",
+        "description": "Stale: no reading in the last 30 min",
         "showDescription": true
        }
       }
@@ -608,7 +647,7 @@
       "x": 8,
       "y": 5,
       "width": 4,
-      "height": 9
+      "height": 10
      }
     },
     {
@@ -680,7 +719,7 @@
      },
      "position": {
       "x": 0,
-      "y": 14,
+      "y": 15,
       "width": 12,
       "height": 4
      }
@@ -696,7 +735,7 @@
      },
      "position": {
       "x": 0,
-      "y": 18,
+      "y": 19,
       "width": 12,
       "height": 1
      }
@@ -853,7 +892,7 @@
           "dataType": "STRING",
           "values": [
            {
-            "value": "E8 · Lavangsdalen"
+            "value": "E8 · Bossovarri"
            }
           ]
          }
@@ -1137,8 +1176,8 @@
            "expression": "`risk_type`"
           },
           {
-           "name": "risk_level",
-           "expression": "`risk_level`"
+           "name": "level",
+           "expression": "`level`"
           },
           {
            "name": "score",
@@ -1163,65 +1202,8 @@
           "displayName": "Risk"
          },
          {
-          "fieldName": "risk_level",
-          "displayName": "Level",
-          "style": {
-           "type": "basic",
-           "rules": [
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "LOW"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 5
-             }
-            },
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "MEDIUM"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 6
-             }
-            },
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "HIGH"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 7
-             }
-            },
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "VERY_HIGH"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 8
-             }
-            }
-           ]
-          }
+          "fieldName": "level",
+          "displayName": "Level"
          },
          {
           "fieldName": "score",
@@ -1720,8 +1702,8 @@
            "expression": "`place`"
           },
           {
-           "name": "risk_level",
-           "expression": "`risk_level`"
+           "name": "level",
+           "expression": "`level`"
           },
           {
            "name": "icing_score",
@@ -1766,65 +1748,8 @@
           "displayName": "Place"
          },
          {
-          "fieldName": "risk_level",
-          "displayName": "Level",
-          "style": {
-           "type": "basic",
-           "rules": [
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "LOW"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 5
-             }
-            },
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "MEDIUM"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 6
-             }
-            },
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "HIGH"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 7
-             }
-            },
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "VERY_HIGH"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 8
-             }
-            }
-           ]
-          }
+          "fieldName": "level",
+          "displayName": "Level"
          },
          {
           "fieldName": "icing_score",
@@ -1901,8 +1826,8 @@
            "expression": "`source`"
           },
           {
-           "name": "status",
-           "expression": "`status`"
+           "name": "status_label",
+           "expression": "`status_label`"
           },
           {
            "name": "delay_min",
@@ -1939,39 +1864,8 @@
           "displayName": "Source"
          },
          {
-          "fieldName": "status",
-          "displayName": "Status",
-          "style": {
-           "type": "basic",
-           "rules": [
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "STALE"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 8
-             }
-            },
-            {
-             "condition": {
-              "operand": {
-               "type": "data-value",
-               "value": "NO_DATA"
-              },
-              "operator": "="
-             },
-             "backgroundColor": {
-              "themeColorType": "visualizationColors",
-              "position": 9
-             }
-            }
-           ]
-          }
+          "fieldName": "status_label",
+          "displayName": "Status"
          },
          {
           "fieldName": "delay_min",
@@ -2424,12 +2318,7 @@
     "#4E5185",
     "#7FA7C9",
     "#9AA3AD",
-    "#6C8EAD",
-    "#DCEFE2",
-    "#FBEFCF",
-    "#F9DFCB",
-    "#F4D3D0",
-    "#E9ECEF"
+    "#6C8EAD"
    ],
    "widgetHeaderAlignment": "LEFT"
   }

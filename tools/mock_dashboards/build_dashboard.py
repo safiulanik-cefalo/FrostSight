@@ -17,22 +17,21 @@ OUT = Path(__file__).resolve().parent / "frostsight_demo.lvdash.json"
 
 LEVEL_COLOURS = {"LOW": "#4C9A6A", "MEDIUM": "#E3B23C", "HIGH": "#E07A2F", "VERY_HIGH": "#B3261E"}
 GREY = "#9AA3AD"
-# Theme palette. Charts without explicit mappings cycle through the first five (neutral, so a category never
-# reads as a risk level); table cell rules can only point at palette slots, so light tints sit at 5 to 9.
-PALETTE = [
-    "#2272B4",
-    "#4E5185",
-    "#7FA7C9",
-    GREY,
-    "#6C8EAD",
-    "#DCEFE2",
-    "#FBEFCF",
-    "#F9DFCB",
-    "#F4D3D0",
-    "#E9ECEF",
-]
-TINT_SLOT = {"LOW": 5, "MEDIUM": 6, "HIGH": 7, "VERY_HIGH": 8, "NO_DATA": 9}
-DEFAULT_SEGMENT = "E8 · Lavangsdalen"
+# Theme palette for charts without explicit mappings: neutral, so a category never reads as a risk level.
+PALETTE = ["#2272B4", "#4E5185", "#7FA7C9", GREY, "#6C8EAD"]
+# Tables show state as a coloured symbol plus the word, not a cell background: tinted cells keep the theme's
+# text colour and turn unreadable in dark mode. Emoji keep their colour in both themes.
+LEVEL_BADGE = (
+    "CASE {col} WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' "
+    "WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END"
+)
+ROAD_COLOUR = "#8A939C"  # road without a station nearby
+STATION_COLOUR = "#2F9BFF"  # a reporting weather station; not a risk colour
+STALE_COLOUR = "#E9ECEF"  # a station without a reading in 30 min
+LEGEND_ORDER = ["VERY_HIGH", "HIGH", "MEDIUM", "LOW", "Road", "Station", "Station (stale)"]
+STRETCH_KM = 5  # a station's risk covers its own road this far either side (mock assumption)
+SEED_META = Path(__file__).resolve().parent / "nvdb_seed.json"  # written by fetch_nvdb.py
+DEFAULT_SEGMENT = json.loads(SEED_META.read_text())["default_segment"] if SEED_META.exists() else ""
 MOCK_NOTE = "Mock data: a synthetic storm morning, always relative to now. Not real observations."
 SOURCES_NOTE = "Sources: Statens vegvesen (NLOD), MET Norway (CC BY 4.0). Not an official warning service."
 
@@ -75,27 +74,59 @@ st AS (
         GROUP BY s.station_id))
 SELECT * FROM risk, inc, st""",
     ),
+    # the road network as points every 300 m; a point within STRETCH_KM of a station on the same road takes
+    # that station's risk, the rest stay grey. Coloured points come last so they draw on top.
     "ds_map": (
-        "Segments",
-        """SELECT r.road_segment_id, s.road, st.name AS station_name, s.geometry,
-       s.centroid_lat AS lat, s.centroid_lon AS lon,
-       r.risk_level, round(r.icing_score, 2) AS icing_score, r.risk_updated_at,
-       CASE r.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END
-         AS risk_rank
-FROM road_segment_current_risk r
-JOIN v_segments s USING (road_segment_id)
-LEFT JOIN v_stations st ON st.station_id = r.station_id""",
+        "Road risk",
+        f"""WITH risk AS (
+  SELECT s.road, st.name AS place, st.latitude AS st_lat, st.longitude AS st_lon,
+         r.risk_level, round(r.icing_score, 2) AS icing_score
+  FROM road_segment_current_risk r
+  JOIN v_segments s USING (road_segment_id)
+  JOIN v_stations st ON st.station_id = r.station_id),
+nearest AS (
+  SELECT p.road, p.line_no, p.seq, p.latitude AS lat, p.longitude AS lon,
+         k.place, k.risk_level, k.icing_score,
+         111.2 * sqrt(power(p.latitude - k.st_lat, 2)
+                      + power((p.longitude - k.st_lon) * cos(radians(p.latitude)), 2)) AS station_km
+  FROM v_road_points p
+  LEFT JOIN risk k ON k.road = p.road
+  QUALIFY row_number() OVER (PARTITION BY p.road, p.line_no, p.seq ORDER BY station_km) = 1)
+SELECT road, lat, lon,
+       CASE WHEN station_km <= {STRETCH_KM} THEN risk_level ELSE 'Road' END AS layer,
+       CASE WHEN station_km <= {STRETCH_KM} THEN place END AS place,
+       CASE WHEN station_km <= {STRETCH_KM} THEN icing_score END AS icing_score,
+       CASE WHEN station_km > {STRETCH_KM} OR station_km IS NULL THEN 0
+            WHEN risk_level = 'VERY_HIGH' THEN 4 WHEN risk_level = 'HIGH' THEN 3
+            WHEN risk_level = 'MEDIUM' THEN 2 ELSE 1 END AS draw_order
+FROM nearest
+UNION ALL
+SELECT s.road, st.latitude, st.longitude,
+       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp()) THEN 'Station'
+            ELSE 'Station (stale)' END,
+       st.name, round(r.icing_score, 2), 9
+FROM v_stations st
+JOIN road_segment_current_risk r ON r.station_id = st.station_id
+JOIN v_segments s ON s.road_segment_id = r.road_segment_id
+LEFT JOIN v_observations o
+  ON o.station_id = st.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())
+GROUP BY s.road, st.latitude, st.longitude, st.name, r.icing_score
+ORDER BY draw_order""",
     ),
     "ds_stations": (
         "Stations",
         """SELECT s.station_id, s.name, s.latitude AS lat, s.longitude AS lon,
        max(o.event_time) AS last_event_time,
+       timestampdiff(MINUTE, max(o.event_time), current_timestamp()) AS minutes_since,
        CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp())
-            THEN 'Reporting' ELSE 'Stale' END AS station_status
+            THEN 'Reporting' ELSE 'Stale' END AS station_status,
+       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp())
+            THEN '🟢 Reporting' ELSE '⚪ Stale' END AS status_label
 FROM v_stations s
 LEFT JOIN v_observations o
   ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())
-GROUP BY s.station_id, s.name, s.latitude, s.longitude""",
+GROUP BY s.station_id, s.name, s.latitude, s.longitude
+ORDER BY station_status DESC, s.name""",
     ),
     "ds_incidents": (
         "Active incidents",
@@ -127,7 +158,8 @@ ORDER BY contribution DESC""",
     "ds_rd_types": (
         "Risk per type",
         f"""WITH {SEGMENT_CTE}
-SELECT seg.segment, 1 AS sort_key, 'Icing' AS risk_type, r.risk_level, round(r.icing_score, 2) AS score,
+SELECT seg.segment, 1 AS sort_key, 'Icing' AS risk_type, {LEVEL_BADGE.format(col="r.risk_level")} AS level,
+       round(r.icing_score, 2) AS score,
        'live' AS note
 FROM road_segment_current_risk r JOIN seg USING (road_segment_id)
 UNION ALL SELECT segment, 2, 'Closure', NULL, NULL, 'after the MVP' FROM seg
@@ -188,6 +220,7 @@ ORDER BY i.start_time DESC""",
 ranked AS (
   SELECT r.road_segment_id, s.road, st.name AS place,
          round(r.icing_score, 2) AS icing_score, r.risk_level,
+         {LEVEL_BADGE.format(col="r.risk_level")} AS level,
          o.surface_c, initcap(coalesce(o.precip, 'None')) AS precip,
          array_join(transform(r.risk_drivers, d -> {FACTOR_LABEL.format(col="d.factor")}), ', ')
            AS main_drivers,
@@ -203,7 +236,10 @@ ORDER BY rank""",
     # platform health
     "ds_freshness": (
         "Freshness",
-        """SELECT source, last_event_time, last_successful_ingestion, round(ingestion_delay_min) AS delay_min,
+        """SELECT source,
+       CASE status WHEN 'STALE' THEN '🔴 STALE' WHEN 'NO_DATA' THEN '⚪ NO_DATA' ELSE '🟢 FRESH' END
+         AS status_label,
+       last_event_time, last_successful_ingestion, round(ingestion_delay_min) AS delay_min,
        threshold_min, status, rows_last_24h, quarantined_last_24h
 FROM data_quality_summary
 ORDER BY CASE status WHEN 'STALE' THEN 0 WHEN 'NO_DATA' THEN 1 ELSE 2 END, source""",
@@ -336,42 +372,6 @@ def level_mappings() -> list[dict[str, str]]:
     return [{"value": k, "color": v} for k, v in LEVEL_COLOURS.items()]
 
 
-def level_style() -> dict[str, Any]:
-    """Table cell tint per risk level (palette slots 5 to 8)."""
-    rules = [
-        {
-            "condition": {"operand": {"type": "data-value", "value": lvl}, "operator": "="},
-            "backgroundColor": {"themeColorType": "visualizationColors", "position": TINT_SLOT[lvl]},
-        }
-        for lvl in LEVEL_COLOURS
-    ]
-    return {"style": {"type": "basic", "rules": rules}}
-
-
-def status_style() -> dict[str, Any]:
-    return {
-        "style": {
-            "type": "basic",
-            "rules": [
-                {
-                    "condition": {"operand": {"type": "data-value", "value": "STALE"}, "operator": "="},
-                    "backgroundColor": {
-                        "themeColorType": "visualizationColors",
-                        "position": TINT_SLOT["VERY_HIGH"],
-                    },
-                },
-                {
-                    "condition": {"operand": {"type": "data-value", "value": "NO_DATA"}, "operator": "="},
-                    "backgroundColor": {
-                        "themeColorType": "visualizationColors",
-                        "position": TINT_SLOT["NO_DATA"],
-                    },
-                },
-            ],
-        }
-    }
-
-
 def page(name: str, title: str, layout: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "name": name,
@@ -390,19 +390,17 @@ def header(name: str, title: str, subtitle: str) -> list[dict[str, Any]]:
 
 
 def risk_map_page() -> dict[str, Any]:
-    segment_map = {
-        "name": "map-segments",
+    layers = [
+        *level_mappings(),
+        {"value": "Road", "color": ROAD_COLOUR},
+        {"value": "Station", "color": STATION_COLOUR},
+        {"value": "Station (stale)", "color": STALE_COLOUR},
+    ]
+    risk_map = {
+        "name": "map-risk",
         "queries": query(
             "ds_map",
-            [
-                field("lat"),
-                field("lon"),
-                field("risk_level"),
-                field("road"),
-                field("station_name"),
-                field("icing_score"),
-                field("road_segment_id"),
-            ],
+            [field(f) for f in ("lat", "lon", "layer", "road", "place", "icing_score")],
         ),
         "spec": {
             "version": 2,
@@ -410,39 +408,29 @@ def risk_map_page() -> dict[str, Any]:
             "encodings": {
                 "coordinates": {"latitude": {"fieldName": "lat"}, "longitude": {"fieldName": "lon"}},
                 "color": {
-                    "fieldName": "risk_level",
-                    "displayName": "Risk level",
-                    "scale": {"type": "categorical", "mappings": level_mappings()},
-                },
-            },
-            "mark": {"opacity": 0.9},
-            "frame": frame("Icing risk per segment"),
-        },
-    }
-    station_map = {
-        "name": "map-stations",
-        "queries": query("ds_stations", [field("lat"), field("lon"), field("station_status"), field("name")]),
-        "spec": {
-            "version": 2,
-            "widgetType": "symbol-map",
-            "encodings": {
-                "coordinates": {"latitude": {"fieldName": "lat"}, "longitude": {"fieldName": "lon"}},
-                "color": {
-                    "fieldName": "station_status",
-                    "displayName": "Station",
+                    "fieldName": "layer",
+                    "displayName": "Risk",
                     "scale": {
                         "type": "categorical",
-                        "mappings": [
-                            {"value": "Reporting", "color": LEVEL_COLOURS["LOW"]},
-                            {"value": "Stale", "color": GREY},
-                        ],
+                        "mappings": layers,
+                        "sort": {"by": "custom-order", "orderedValues": LEGEND_ORDER},
                     },
                 },
             },
             "mark": {"opacity": 0.9},
-            "frame": frame("Stations", "Green: reported in the last 30 min. Grey: stale."),
+            "frame": frame(
+                "Icing risk on the road network",
+                f"Road within {STRETCH_KM} km of a station takes its risk. Grey: none. Blue dot: station.",
+            ),
         },
     }
+    stations = table(
+        "stations-table",
+        "ds_stations",
+        [("name", "Station"), ("status_label", "Status"), ("minutes_since", "Min ago")],
+        "Stations",
+        "Stale: no reading in the last 30 min",
+    )
     return page(
         "risk_map",
         "Risk map",
@@ -495,8 +483,8 @@ def risk_map_page() -> dict[str, Any]:
                 3,
                 3,
             ),
-            place(segment_map, 0, 5, 8, 9),
-            place(station_map, 8, 5, 4, 9),
+            place(risk_map, 0, 5, 8, 10),
+            place(stations, 8, 5, 4, 10),
             place(
                 table(
                     "incidents-table",
@@ -511,7 +499,7 @@ def risk_map_page() -> dict[str, Any]:
                     "Active incidents (DATEX II)",
                 ),
                 0,
-                14,
+                15,
                 12,
                 4,
             ),
@@ -525,7 +513,7 @@ def risk_map_page() -> dict[str, Any]:
                     ],
                 ),
                 0,
-                18,
+                19,
                 12,
                 1,
             ),
@@ -683,7 +671,7 @@ def road_detail_page() -> dict[str, Any]:
                     "ds_rd_types",
                     [
                         ("risk_type", "Risk"),
-                        ("risk_level", "Level", level_style()),
+                        ("level", "Level"),
                         ("score", "Score"),
                         ("note", "Note"),
                     ],
@@ -844,7 +832,7 @@ def priority_page() -> dict[str, Any]:
                         ("rank", "Rank"),
                         ("road", "Road"),
                         ("place", "Place"),
-                        ("risk_level", "Level", level_style()),
+                        ("level", "Level"),
                         ("icing_score", "Icing"),
                         ("surface_c", "Surface °C"),
                         ("precip", "Precipitation"),
@@ -915,7 +903,7 @@ def health_page() -> dict[str, Any]:
                     "ds_freshness",
                     [
                         ("source", "Source"),
-                        ("status", "Status", status_style()),
+                        ("status_label", "Status"),
                         ("delay_min", "Delay (min)"),
                         ("threshold_min", "Threshold (min)"),
                         ("last_event_time", "Newest event (UTC)"),
@@ -1038,6 +1026,16 @@ def check(d: dict[str, Any]) -> None:
             for q in w.get("queries", []):
                 assert q["query"]["datasetName"] in names, q["query"]["datasetName"]
         assert all(v == 12 for v in rows.values()), (p["name"], rows)
+        cells: set[tuple[int, int]] = set()
+        for item in p["layout"]:
+            pos = item["position"]
+            cover = {
+                (x, y)
+                for x in range(pos["x"], pos["x"] + pos["width"])
+                for y in range(pos["y"], pos["y"] + pos["height"])
+            }
+            assert not cells & cover, (p["name"], item["widget"]["name"], "overlaps")
+            cells |= cover
 
 
 if __name__ == "__main__":

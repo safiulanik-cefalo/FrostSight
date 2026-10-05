@@ -3,11 +3,12 @@
 -- Creates frostsight.mock with the same table and view names the dashboards read in gold (07_M6 T6.4), filled
 -- with a synthetic storm morning in Troms: dry and mild 24 hours ago, then cooling overnight with snow over the
 -- last four hours. Every timestamp is relative to the current time, so the dashboards always look live.
--- Station names are real places on the pilot roads; ids, positions and readings are made up.
+-- Roads, stations and their nearest segments are real NVDB data (nvdb_seed.sql, fetch_nvdb.py, NLOD); readings,
+-- risk, incidents and quality numbers are made up.
 -- Risk is the real v0 model (04_M3 T3.4 weights, breakpoints and levels), computed in SQL.
 --
--- Run with `uv run python tools/mock_dashboards/deploy.py`, which replaces {geometry_expr} and runs one
--- statement at a time. Needs the catalog from sql/001_catalog_schemas_volume.sql.
+-- Run with `uv run python tools/mock_dashboards/deploy.py`, which runs nvdb_seed.sql first, replaces
+-- {geometry_expr} and runs one statement at a time. Needs the catalog from sql/001_catalog_schemas_volume.sql.
 -- Remove with: DROP SCHEMA frostsight.mock CASCADE;
 
 CREATE SCHEMA IF NOT EXISTS frostsight.mock COMMENT 'Mock gold layer for dashboard previews; safe to drop';
@@ -24,56 +25,6 @@ INSERT INTO frostsight.mock.seed_climate VALUES
   ('fjord', 0.6, 0.6),
   ('inland', -0.4, 0.6),
   ('mountain', -1.3, 0.5);
-
--- silent_min: minutes without readings before now (a stale station); heading_deg: road direction at the station
-CREATE OR REPLACE TABLE frostsight.mock.seed_stations (
-  station_id STRING, name STRING, road_category STRING, road_number STRING,
-  latitude DOUBLE, longitude DOUBLE, heading_deg DOUBLE, climate STRING, silent_min INT,
-  road_segment_id STRING, length_m DOUBLE, speed_limit INT
-);
-
-INSERT INTO frostsight.mock.seed_stations VALUES
-  ('1900171', 'Tromsdalen',     'E', '8',   69.6420, 19.0050, 110, 'coast',    0, '1113653-1-9',  1180, 60),
-  ('1900172', 'Ramfjordnes',    'E', '8',   69.5600, 19.1200, 150, 'fjord',    0, '1113671-1-4',  2140, 80),
-  ('1900173', 'Fagernes',       'E', '8',   69.5050, 19.2550, 140, 'fjord',    0, '1113702-1-2',  1630, 80),
-  ('1900174', 'Lavangsdalen',   'E', '8',   69.4100, 19.3700, 160, 'mountain', 0, '1113719-1-6',  2870, 80),
-  ('1900175', 'Laksvatn',       'E', '8',   69.3150, 19.4600, 150, 'inland',   0, '1113744-1-3',  1920, 80),
-  ('1900176', 'Nordkjosbotn',   'E', '8',   69.2220, 19.5480, 120, 'inland',   0, '1113760-1-1',   940, 60),
-  ('1900177', 'Oteren',         'E', '6',   69.2550, 19.8800,  75, 'fjord',    0, '1084412-1-7',  1460, 80),
-  ('1900178', 'Hatteng',        'E', '6',   69.2700, 19.9700,  60, 'fjord',    0, '1084431-1-2',  1210, 60),
-  ('1900179', 'Elvevoll',       'E', '6',   69.3300, 20.1200,  45, 'coast',    0, '1084458-1-5',  2350, 80),
-  ('1900180', 'Skibotn',        'E', '6',   69.3900, 20.2700,  40, 'fjord',    0, '1084470-1-3',  1080, 60),
-  ('1900181', 'Olderdalen',     'E', '6',   69.6000, 20.5300,  20, 'coast',    0, '1084502-1-8',  1760, 80),
-  ('1900182', 'Manndalen',      'E', '6',   69.6400, 20.5800,  30, 'coast',    0, '1084519-1-2',  1340, 80),
-  ('1900183', 'Takelvdalen',    'E', '6',   69.1500, 19.2500, 230, 'inland',   0, '1084377-1-4',  2610, 80),
-  ('1900184', 'Andselv',        'E', '6',   69.0650, 18.5400, 200, 'fjord',    0, '1084341-1-6',  1150, 60),
-  ('1900185', 'Setermoen',      'E', '6',   68.8600, 18.3500, 210, 'inland',   0, '1084310-1-1',  1490, 60),
-  ('1900186', 'Lapphaugen',     'E', '6',   68.6800, 17.9700, 220, 'mountain', 0, '1084288-1-9',  2980, 80),
-  ('1900187', 'Fjellfroskvatn', 'E', '6',   68.6400, 17.7000, 250, 'mountain', 90, '1084265-1-3', 2240, 80),
-  ('1900188', 'Kvaløysletta',   'F', '862', 69.6900, 18.8700, 290, 'coast',    0, '1131208-1-5',   870, 50),
-  ('1900189', 'Kaldfjord',      'F', '862', 69.7300, 18.7000, 300, 'coast',    0, '1131236-1-2',  1690, 70),
-  ('1900190', 'Tromvik',        'F', '862', 69.8000, 18.5700, 320, 'warm',     0, '1131259-1-7',  1020, 60),
-  ('1900191', 'Tønsvik',        'F', '91',  69.7000, 19.1800,  60, 'coast',    0, '1129014-1-3',  1380, 70),
-  ('1900192', 'Breivikeidet',   'F', '91',  69.6400, 19.6000,  90, 'fjord',    0, '1129047-1-1',  2020, 70),
-  ('1900193', 'Svensby',        'F', '91',  69.7000, 19.8000,  60, 'fjord',    0, '1129071-1-4',  1150, 60),
-  ('1900194', 'Lyngseidet',     'F', '91',  69.5750, 20.2150, 140, 'fjord',    0, '1129098-1-6',   990, 50),
-  ('1900195', 'Kanebogen',      'R', '83',  68.7800, 16.5900, 200, 'warm',     0, '1066130-1-2',   760, 50),
-  ('1900196', 'Sandtorg',       'R', '83',  68.7000, 16.4900, 230, 'warm',     0, '1066152-1-5',  1640, 80),
-  ('1900197', 'Gibostad',       'F', '86',  69.3500, 18.0800, 170, 'coast',    0, '1137740-1-3',  1270, 60);
-
--- ages are minutes before now; end_age_min NULL means still open
-CREATE OR REPLACE TABLE frostsight.mock.seed_incidents (
-  incident_id STRING, incident_type STRING, severity STRING, station_id STRING,
-  start_age_min INT, end_age_min INT, description STRING
-);
-
-INSERT INTO frostsight.mock.seed_incidents VALUES
-  ('NPRA_HBT_9911', 'CLOSURE',     'HIGH',   '1900174',   95, NULL, 'Road closed: snowdrift and stuck vehicles in Lavangsdalen. Column driving from 08:00.'),
-  ('NPRA_HBT_9914', 'ACCIDENT',    'MEDIUM', '1900186',   80, NULL, 'Vehicle off the road at Lapphaugen, one lane open.'),
-  ('NPRA_HBT_9902', 'WEATHER',     'MEDIUM', '1900192',  170, NULL, 'Slippery road, gritting in progress.'),
-  ('NPRA_HBT_9876', 'OBSTRUCTION', 'LOW',    '1900173',  380,  300, 'Fallen tree cleared from the road.'),
-  ('NPRA_HBT_9851', 'ROADWORK',    'LOW',    '1900184', 1720, 1210, 'Night roadwork, alternating one-lane traffic.'),
-  ('NPRA_HBT_9840', 'ACCIDENT',    'HIGH',   '1900189', 2210, 2080, 'Collision, road reopened.');
 
 -- source, minutes since the newest event, minutes since the newest ingestion, threshold, row counts
 CREATE OR REPLACE TABLE frostsight.mock.seed_freshness (
@@ -223,27 +174,25 @@ SELECT road_segment_id, station_id, event_time, icing_score, risk_score, risk_le
 FROM frostsight.mock.risk_series
 QUALIFY row_number() OVER (PARTITION BY road_segment_id ORDER BY k) = 1;
 
--- one short line per segment through its station, along the road heading
+-- the real NVDB segment nearest each station (nvdb_seed.sql), as silver.station_segment_lookup will map it
 CREATE OR REPLACE VIEW frostsight.mock.v_segments AS
-WITH d AS (
-  SELECT *,
-         length_m / 2000.0 * cos(radians(heading_deg)) / 111.32 AS dlat,
-         length_m / 2000.0 * sin(radians(heading_deg)) / (111.32 * cos(radians(latitude))) AS dlon
-  FROM frostsight.mock.seed_stations),
-w AS (
-  SELECT *,
-         format_string('LINESTRING(%.5f %.5f, %.5f %.5f, %.5f %.5f)',
-                       longitude - dlon, latitude - dlat,
-                       longitude + 0.08 * dlat, latitude - 0.08 * dlon,
-                       longitude + dlon, latitude + dlat) AS geometry_wkt_4326
-  FROM d)
 SELECT road_segment_id, road_number, road_category,
        concat(CASE road_category WHEN 'E' THEN 'E' WHEN 'R' THEN 'Rv' WHEN 'F' THEN 'Fv' WHEN 'K' THEN 'Kv' ELSE '' END,
               road_number) AS road,
-       55 AS county, length_m, speed_limit,
-       latitude AS centroid_lat, longitude AS centroid_lon,
+       55 AS county, length_m, CAST(NULL AS INT) AS speed_limit, centroid_lat, centroid_lon,
        {geometry_expr} AS geometry
-FROM w;
+FROM frostsight.mock.seed_segments;
+
+-- the road network as lines (path map) and as points every 300 m (point map), for the grey road layer
+CREATE OR REPLACE VIEW frostsight.mock.v_road_network AS
+SELECT concat(CASE road_category WHEN 'E' THEN 'E' WHEN 'R' THEN 'Rv' WHEN 'F' THEN 'Fv' WHEN 'K' THEN 'Kv' ELSE '' END,
+              road_number) AS road, line_no, length_m, {geometry_expr} AS geometry
+FROM frostsight.mock.seed_roads;
+
+CREATE OR REPLACE VIEW frostsight.mock.v_road_points AS
+SELECT concat(CASE road_category WHEN 'E' THEN 'E' WHEN 'R' THEN 'Rv' WHEN 'F' THEN 'Fv' WHEN 'K' THEN 'Kv' ELSE '' END,
+              road_number) AS road, line_no, seq, latitude, longitude
+FROM frostsight.mock.seed_road_points;
 
 CREATE OR REPLACE VIEW frostsight.mock.v_stations AS
 SELECT station_id, name, latitude, longitude FROM frostsight.mock.seed_stations;
