@@ -36,3 +36,7 @@ data/
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+
+# Claude Code: personal settings and audit reports
+.claude/settings.local.json
+frostsight-2*.json
