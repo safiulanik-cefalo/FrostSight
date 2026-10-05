@@ -36,7 +36,7 @@ packages = ["src/frostsight", "collector"]
 line-length = 110
 target-version = "py312"
 # Databricks notebooks (dbutils/spark globals, mid-file imports) are not linted.
-extend-exclude = ["collector/01_ingest_bronze.py", "collector/01_ingest_bronze.ipynb"]
+extend-exclude = ["collector/ingest_bronze.py", "collector/ingest_bronze.ipynb"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
