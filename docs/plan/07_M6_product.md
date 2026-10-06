@@ -37,7 +37,7 @@ Do: read these, then move on.
 1. An AI/BI dashboard is a JSON document. The file extension is `.lvdash.json` ("Lakeview" is the old name).
 2. It has two parts: `datasets` (each one is a single SQL query) and `pages` with `layout` (widgets on a 12-column grid).
 3. A widget is bound to one dataset by `datasetName`, and picks columns from it by `fieldName`. A field name in the widget must match a column or alias in the dataset exactly.
-4. Widget types we use: `counter` (KPI tile), `table`, `symbol-map` (points by lat/lon), a path map (lines from a `GEOMETRY` column; its JSON comes from the UI, T6.5 step 2), `bar`, `line`, `filter-*`, and markdown text. Each type has a fixed `version` number (counter, table, map and filters are 2; bar and line are 3). The wrong version breaks the widget.
+4. Widget types we use: `counter` (KPI tile), `table`, `symbol-map` (points by lat/lon; hover fields in `encodings.extra`, T6.5 step 2), a path map (lines from a `GEOMETRY` column; its JSON comes from the UI, T6.5 step 2), `bar`, `line`, `filter-*`, and markdown text. Each type has a fixed `version` number (counter, table, map and filters are 2; bar and line are 3). The wrong version breaks the widget.
 5. The dashboard runs on a SQL warehouse. Ours is the one 2X-Small serverless warehouse; its id is the bundle variable `warehouse_id`.
 6. Dataset SQL uses bare table names (`FROM road_segment_current_risk`). The catalog and schema are supplied at deploy time (`dataset_catalog`, `dataset_schema`), so the same JSON works on `free`, `personal` and `aws`. The skill rule is strict: the flags only fill in missing parts, so a hard-coded `frostsight.` breaks portability. Silver tables are therefore reached through gold views (T6.4 step 2), never by a two-part name.
 7. Parameters are `:name` placeholders in the SQL, declared per dataset, and bound to filter widgets. We use them for `road_segment_id`, `road_number` and the surface-temperature threshold.
@@ -661,12 +661,15 @@ Do:
         "spec": {"version": 2, "widgetType": "symbol-map",
           "encodings": {
             "coordinates": {"latitude": {"fieldName": "lat"}, "longitude": {"fieldName": "lon"}},
-            "color": {"fieldName": "layer", "displayName": "Risk",
+            "color": {"fieldName": "layer", "displayName": "",
               "scale": {"type": "categorical", "mappings": [
                 {"value": "VERY_HIGH", "color": "#B3261E"}, {"value": "HIGH", "color": "#E07A2F"},
                 {"value": "MEDIUM", "color": "#E3B23C"}, {"value": "LOW", "color": "#4C9A6A"},
                 {"value": "Road", "color": "#8A939C"}, {"value": "Station", "color": "#2F9BFF"},
-                {"value": "Station (stale)", "color": "#E9ECEF"}]}}},
+                {"value": "Station (stale)", "color": "#E9ECEF"}],
+                "sort": {"by": "custom-order", "orderedValues": ["VERY_HIGH", "HIGH", "MEDIUM", "LOW", "Road", "Station", "Station (stale)"]}}},
+            "extra": [{"fieldName": "place", "displayName": "Station"}, {"fieldName": "road", "displayName": "Road"},
+                      {"fieldName": "icing_score", "displayName": "Icing score"}]},
           "mark": {"opacity": 0.9},
           "frame": {"showTitle": true, "title": "Icing risk on the road network",
                     "showDescription": true, "description": "Road within 5 km of a station takes its risk. Grey: none. Blue dot: station."}}},
@@ -708,7 +711,11 @@ Do:
 }
 ```
 
-2. The map. `map-risk` above is a point map (T6.3 step 5); its JSON is known to work and is the layout the mock dashboards use. Later upgrade: a path map on `v_segments.geometry` with the same `layer` colours, which draws lines instead of points. The dashboard skill does not document the path-map JSON, so take it from the product instead of guessing:
+2. The map. `map-risk` above is a point map (T6.3 step 5); its JSON is known to work and is the layout the mock dashboards use. Three details checked in the UI on the mock (6 Oct 2026):
+   - The hover tooltip is `encodings.extra`, a list of `{fieldName, displayName}`; the editor's Tooltip panel writes exactly that.
+   - An empty colour `displayName` makes the hover show the layer value alone ("Station", "HIGH"); with a title it reads "Risk: Station".
+   - `scale.sort` with `custom-order` sets the legend order on a map, as on chart axes.
+ Later upgrade: a path map on `v_segments.geometry` with the same `layer` colours, which draws lines instead of points. The dashboard skill does not document the path-map JSON, so take it from the product instead of guessing:
    1. Add a dataset like `ds_map` that selects `s.geometry` per segment instead of the road points, deploy (T6.6, or the mock dashboards), open the draft, add a Path map on it with the path source `geometry` and colour `layer`, and pin the colours.
    2. Pull the result back into the file: `databricks bundle generate dashboard --resource risk_map -t personal --profile frostsight-personal` (or `databricks lakeview get <id>` for the mock) and keep only the changed widget.
    3. Record the widget type and version here, next to `symbol-map` v2 in T6.1 item 4. Stations stay a point layer.

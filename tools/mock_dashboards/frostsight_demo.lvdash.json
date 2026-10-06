@@ -524,7 +524,7 @@
         },
         "color": {
          "fieldName": "layer",
-         "displayName": "Risk",
+         "displayName": "",
          "scale": {
           "type": "categorical",
           "mappings": [
@@ -570,7 +570,21 @@
            ]
           }
          }
-        }
+        },
+        "extra": [
+         {
+          "fieldName": "place",
+          "displayName": "Station"
+         },
+         {
+          "fieldName": "road",
+          "displayName": "Road"
+         },
+         {
+          "fieldName": "icing_score",
+          "displayName": "Icing score"
+         }
+        ]
        },
        "mark": {
         "opacity": 0.9

@@ -407,15 +407,22 @@ def risk_map_page() -> dict[str, Any]:
             "widgetType": "symbol-map",
             "encodings": {
                 "coordinates": {"latitude": {"fieldName": "lat"}, "longitude": {"fieldName": "lon"}},
+                # no title: the hover shows the value alone ("Station", "HIGH", "Road"), not "Risk: Station"
                 "color": {
                     "fieldName": "layer",
-                    "displayName": "Risk",
+                    "displayName": "",
                     "scale": {
                         "type": "categorical",
                         "mappings": layers,
                         "sort": {"by": "custom-order", "orderedValues": LEGEND_ORDER},
                     },
                 },
+                # the tooltip, as the dashboard editor stores it: extra fields with their labels
+                "extra": [
+                    {"fieldName": "place", "displayName": "Station"},
+                    {"fieldName": "road", "displayName": "Road"},
+                    {"fieldName": "icing_score", "displayName": "Icing score"},
+                ],
             },
             "mark": {"opacity": 0.9},
             "frame": frame(
