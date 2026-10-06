@@ -633,6 +633,8 @@ RUN_ID = spark.conf.get("pipelines.id", "unknown")
 H3_RES = 9          # matches silver.road_segments.h3_cells
 K_RING = 2          # ~ 3 cells of 170 m edge: candidates within ~500 m
 MAX_DISTANCE_M = 500
+COVERAGE_M = 5000   # a station's risk covers its own road this far, straight line (04_M3 T3.3 step 7, ADR 0006)
+COVER_RES = 7       # ~1.2 km cells; a 4-ring around the station reaches past 5 km
 QUARANTINE_COLS = ["original_row", "source", "quarantined_at", "rule", "reason", "pipeline_run_id"]
 
 
@@ -660,6 +662,33 @@ def station_segment_lookup():
             .where(F.col("distance_m") <= MAX_DISTANCE_M)
             .select("station_id", "road_segment_id", "distance_m",
                     F.lit("h3_kring2_st_distance_25833").alias("method"),
+                    F.current_timestamp().alias("computed_at")))
+
+
+@dp.materialized_view(
+    name=f"{CATALOG}.silver.segment_station_coverage",
+    comment="Segments on a station's own road within 5 km of it; the nearer station wins. Map and gritting list only.",
+)
+def segment_station_coverage():
+    seg = spark.read.table(f"{CATALOG}.silver.road_segments").select(
+        "road_segment_id", "road_category", "road_number", "geometry_wkt_25833", "h3_cells")
+    home_road = (spark.read.table(f"{CATALOG}.silver.station_segment_lookup")
+                 .join(seg, "road_segment_id").select("station_id", "road_category", "road_number"))
+    st = (spark.read.table(f"{CATALOG}.silver.road_weather_stations").join(home_road, "station_id")
+          .select("station_id", "road_category", "road_number", "latitude", "longitude",
+                  F.explode(F.expr(f"h3_kring(h3_longlatash3(longitude, latitude, {COVER_RES}), 4)")).alias("cell")))
+    seg_cells = seg.select(
+        "road_segment_id", "road_category", "road_number", "geometry_wkt_25833",
+        F.explode(F.expr(f"array_distinct(transform(h3_cells, c -> h3_toparent(c, {COVER_RES})))")).alias("cell"))
+    pairs = (st.join(seg_cells, ["cell", "road_category", "road_number"])
+             .dropDuplicates(["station_id", "road_segment_id"])
+             .withColumn("distance_m", F.expr(
+                 "ST_Distance(ST_Transform(ST_Point(longitude, latitude, 4326), 25833), ST_GeomFromWKT(geometry_wkt_25833, 25833))"))
+             .where(F.col("distance_m") <= COVERAGE_M))
+    return (pairs.groupBy("road_segment_id")
+            .agg(F.min_by(F.struct("station_id", "distance_m"), "distance_m").alias("best"))
+            .select("road_segment_id", "best.station_id", "best.distance_m",
+                    F.lit(f"same_road_within_{COVERAGE_M}m").alias("method"),
                     F.current_timestamp().alias("computed_at")))
 
 
@@ -711,6 +740,11 @@ GROUP BY station_id;
 
 Expect: `SELECT count(*) FROM frostsight.silver.station_segment_lookup` = 30 (Troms); `max(distance_m)` under
 100 m for most stations; `quarantine.unmapped_observations WHERE source = 'road_weather_stations'` empty.
+`silver.segment_station_coverage` has a few thousand rows. Every station appears in it, its own lookup segment is
+covered by that station, and `max(distance_m)` is at most 5000. The covered share of road length, for ADR 0006:
+`SELECT round(100 * sum(CASE WHEN c.station_id IS NOT NULL THEN s.length_m END) / sum(s.length_m), 1) FROM
+frostsight.silver.road_segments s LEFT JOIN frostsight.silver.segment_station_coverage c USING (road_segment_id)
+WHERE s.road_category IN ('E', 'R', 'F')`.
 If it fails: `h3_cells` on segments was built at another resolution than 9; a station sits on a road that
 NVDB classifies outside the extract (private road), then the k-ring finds nothing.
 
@@ -1501,6 +1535,7 @@ If it fails: `RESOURCE_EXHAUSTED` on `personal` (your own account already has an
 - [ ] `silver.road_segments` (~20k, Troms, with `centroid_lat/lon` and `h3_cells`), `silver.road_weather_stations` (30, `latitude/longitude`), `silver.accidents`, `silver.avalanche_landslide_events`, `silver.admin_boundaries` loaded by `reference`; second run changes nothing.
 - [ ] Bundle variables and targets match the README table (`schedule_pause_status`, `pipeline_development`, `config_dir`, `mode: development` everywhere, presets on `free` and `aws`).
 - [ ] `silver.station_segment_lookup` covers 30 of 30 stations, all within 500 m.
+- [ ] `silver.segment_station_coverage` holds the segments within 5 km of each station on its own road, the nearer station winning (04_M3 T3.3 step 7).
 - [ ] Stop-and-restart, duplicate file and late file tests done on `personal`, results noted in `runbooks/ingestion.md` draft.
 - [ ] `orchestrate` runs every 10 minutes on `free`, `max_concurrent_runs: 1`, email on failure.
 - [ ] `uv run pytest` green locally and in CI.

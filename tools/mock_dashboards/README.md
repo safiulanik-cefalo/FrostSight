@@ -42,7 +42,8 @@ dashboard. Remove everything with `DROP SCHEMA frostsight.mock CASCADE` and `dat
 ## Moving to gold
 
 The JSON uses bare table names. At M6, deploy it with `dataset_schema: gold` (07_M6 T6.6), or copy the pages
-into the four planned files. Things the mock adds on top of 07_M6 T6.4, still to fold into the plan:
-a road-network layer under the risk markers (`v_road_points` from `silver.road_segments`; one NVDB segment is
-often only metres long, so a single segment never reads as a road); a `road` label (`E8`, `Fv862`) in
-`v_segments`; field-bound filters instead of parameters; and the four dashboards as pages of one dashboard.
+into the four planned files. The road network, the station coverage rule (5 km on the station's own road, the nearer station winning) and
+the three-layer map are now in the plan: 04_M3 T3.3 step 7 (for ADR 0006), 05_M4 T4.5
+(`silver.segment_station_coverage`) and 07_M6 T6.3 to T6.5. The mock computes coverage in the `ds_map` query
+instead of a silver table. Still to fold into the plan: a `road` label (`E8`, `Fv862`) in `v_segments`;
+field-bound filters instead of parameters; and the four dashboards as pages of one dashboard.

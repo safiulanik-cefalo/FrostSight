@@ -19,7 +19,7 @@ Priority List, Platform Health.
 |---|---|---|
 | T6.1 | AI/BI dashboards explained | Safiul |
 | T6.2 | Freshness table and data-quality events | Rayhan |
-| T6.3 | Map coordinates per segment | Rayhan |
+| T6.3 | Map geometry, road points and station coverage | Rayhan |
 | T6.4 | Dashboard SQL, tested through the CLI | Safiul |
 | T6.5 | Dashboard JSON files | Safiul |
 | T6.6 | Bundle resource, deploy, open | Safiul |
@@ -282,18 +282,20 @@ If it fails:
 
 ---
 
-### T6.3 Map geometry per segment      owner: Rayhan
-Why: the risk map draws each segment as a line with an AI/BI path map, coloured by risk level. A path map reads a `GEOMETRY` column with LineString or MultiLineString values; silver keeps the line as WGS84 WKT, so one gold view converts it. Centroids stay for the point-map fallback and the station map.
+### T6.3 Map geometry, road points and station coverage      owner: Rayhan
+Why: the risk map shows the main road network, colours the road each station covers by that station's risk (04_M3 T3.3 step 7), and marks the stations. A single NVDB segment is often only metres long, so the map draws roads, not station segments. A point map needs points along the roads; a path map reads a `GEOMETRY` column, which one gold view converts from WKT.
 
 Do:
-1. Nothing new to compute in silver: `geometry_wkt_4326` (2D WGS84 line) and `centroid_lat`, `centroid_lon` are written by the reference job at load time (05_M4 T4.6, `build_road_segments`). If the table on your target predates the centroid change, run `databricks bundle run reference -t free --profile frostsight-free` once; the MERGE fills the two columns for every segment.
-2. `gold.v_segments` (T6.4 step 2) exposes `ST_GeomFromText(geometry_wkt_4326, 4326) AS geometry` beside the centroids. The conversion runs per query, which is cheap at this size (30 mapped segments on a quiet day, 20,000 at most), and only when a dataset selects the column.
-   verify: on the Free Edition serverless warehouse, `SELECT ST_AsText(ST_GeomFromText('LINESTRING(18.9 69.6, 19.0 69.7)', 4326))` returns the line. If spatial SQL is not available there, drop the column and keep the point map (T6.5 step 2).
-3. Decision recorded here: the segment map is a path map on `geometry`; incidents and stations stay as point layers on lat/lon. Watch the zoom: only segments mapped to a station carry a risk row (one per station in the MVP), and a short line can vanish at county zoom. Check it on the mock dashboards (`tools/mock_dashboards/`) before M6 data exists, and keep the point map if the lines do not read.
+1. Nothing new to compute in silver for the segments: `geometry_wkt_4326` (2D WGS84 line) and `centroid_lat`, `centroid_lon` are written by the reference job at load time (05_M4 T4.6, `build_road_segments`). If the table on your target predates the centroid change, run `databricks bundle run reference -t free --profile frostsight-free` once; the MERGE fills the two columns for every segment.
+2. `gold.v_segments` (T6.4 step 2) exposes `ST_GeomFromText(geometry_wkt_4326, 4326) AS geometry` beside the centroids, for the path map. It is cheap and only computed when a dataset selects the column.
+   verify: on the Free Edition serverless warehouse, `SELECT ST_AsText(ST_GeomFromText('LINESTRING(18.9 69.6, 19.0 69.7)', 4326))` returns the line. It did on a personal Free Edition workspace on 5 Oct 2026.
+3. Road points for the point map. Add `sample_points(wkt_4326: str, step_m: float = 300) -> list[tuple[int, float, float]]` to `frostsight.geo` (shapely: interpolate along the line every `step_m`, both ends included; `(seq, lat, lon)`), with a unit test. Add `build_road_points` to `src/jobs/load_reference.py`: explode the points of every `E`, `R` and `F` segment into `silver.road_points` (`road_segment_id, seq, latitude, longitude`), overwritten on each run. One point every 300 m reads as a line at county zoom; the mock uses the same spacing.
+4. Station coverage comes from `silver.segment_station_coverage` (05_M4 T4.5): segments within 5 km of a station on its own road, the nearer station winning. Do not recompute it in dashboard SQL.
+5. Decision recorded here: the risk map is one point map with three layers in one dataset (T6.4 `ds_map`): road points in grey, road points of covered segments in the covering station's risk colour, and the stations as dots (blue reporting, pale stale). Coloured rows sort last so they draw on top. The path map on `geometry` is the later upgrade (T6.5 step 2). The mock dashboards (`tools/mock_dashboards/`) show this layout on real NVDB roads.
 
-Expect: `SELECT count(*) FROM frostsight.gold.v_segments WHERE geometry IS NULL` returns 0; every centroid lat is between 68 and 71 and every lon between 15 and 22 for Troms.
+Expect: `SELECT count(*) FROM frostsight.gold.v_segments WHERE geometry IS NULL` returns 0; every centroid lat is between 68 and 71 and every lon between 15 and 22 for Troms; `silver.road_points` has one row per 300 m of `E`, `R` and `F` road (Troms: roughly 10,000 to 20,000 rows).
 
-If it fails: NULL geometry or centroids for a few rows: `geometry_wkt_4326` is NULL for them (the reprojection UDF got an empty WKT); rule `SG001` should have dropped those rows, check `quarantine.invalid_road_segments`. `ST_GeomFromText` fails on a row: the WKT still carries a Z value; reproject to 2D in `frostsight.geo`, not in the view.
+If it fails: NULL geometry or centroids for a few rows: `geometry_wkt_4326` is NULL for them (the reprojection UDF got an empty WKT); rule `SG001` should have dropped those rows, check `quarantine.invalid_road_segments`. `ST_GeomFromText` fails on a row: the WKT still carries a Z value; reproject to 2D in `frostsight.geo`, not in the view. Road points over the sea: latitude and longitude swapped in `sample_points` (shapely coordinates are `lon, lat`).
 
 ---
 
@@ -310,13 +312,17 @@ q() { databricks experimental aitools tools query --warehouse "$WH" --profile fr
 ```
 
    If `--warehouse` is rejected: `export DATABRICKS_WAREHOUSE_ID=$WH` and drop the flag.
-2. Two naming rules. In the CLI test, write full names (`frostsight.gold.road_segment_current_risk`). In the JSON, every table is bare (`road_segment_current_risk`), because the bundle sets `dataset_catalog: frostsight` and `dataset_schema: gold` and the dashboard skill says those flags do not rewrite a schema you typed. Silver tables are reached through three gold views, created once per target with `src/sql/002_gold_views.sql` (run it in the SQL editor, then `q` it on the other targets):
+2. Two naming rules. In the CLI test, write full names (`frostsight.gold.road_segment_current_risk`). In the JSON, every table is bare (`road_segment_current_risk`), because the bundle sets `dataset_catalog: frostsight` and `dataset_schema: gold` and the dashboard skill says those flags do not rewrite a schema you typed. Silver tables are reached through gold views, created once per target with `src/sql/002_gold_views.sql` (run it in the SQL editor, then `q` it on the other targets):
 
 ```sql
 CREATE OR REPLACE VIEW frostsight.gold.v_segments AS
   SELECT road_segment_id, road_number, road_category, county, length_m, speed_limit, centroid_lat, centroid_lon,
          ST_GeomFromText(geometry_wkt_4326, 4326) AS geometry          -- path map (T6.3)
   FROM frostsight.silver.road_segments;
+CREATE OR REPLACE VIEW frostsight.gold.v_coverage AS               -- station coverage (T6.3 step 4)
+  SELECT road_segment_id, station_id, distance_m FROM frostsight.silver.segment_station_coverage;
+CREATE OR REPLACE VIEW frostsight.gold.v_road_points AS            -- the road layer (T6.3 step 3)
+  SELECT road_segment_id, seq, latitude, longitude FROM frostsight.silver.road_points;
 CREATE OR REPLACE VIEW frostsight.gold.v_stations AS
   SELECT station_id, name, latitude, longitude FROM frostsight.silver.road_weather_stations;
 CREATE OR REPLACE VIEW frostsight.gold.v_observations AS
@@ -363,17 +369,34 @@ st AS (
 SELECT * FROM risk, inc, st
 ```
 
-`ds_map` (one row per segment: the line for the path map, the centroid for the point fallback):
+`ds_map` (the three map layers of T6.3 step 5 in one dataset; coloured rows sort last so they draw on top):
 
 ```sql
-SELECT r.road_segment_id, s.road_number, s.road_category, s.geometry, s.centroid_lat AS lat, s.centroid_lon AS lon,
-       r.risk_level, r.risk_score, r.icing_score, r.risk_updated_at,
-       CASE r.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END AS risk_rank
-FROM road_segment_current_risk r
-JOIN v_segments s USING (road_segment_id)
+WITH layer_of AS (
+  SELECT s.road_segment_id, s.road_category, s.road_number, st.name AS place, r.risk_level, r.icing_score
+  FROM v_segments s
+  LEFT JOIN v_coverage c USING (road_segment_id)
+  LEFT JOIN road_segment_current_risk r ON r.station_id = c.station_id
+  LEFT JOIN v_stations st ON st.station_id = c.station_id
+  WHERE s.road_category IN ('E', 'R', 'F'))
+SELECT concat(l.road_category, l.road_number) AS road, p.latitude AS lat, p.longitude AS lon,
+       coalesce(l.risk_level, 'Road') AS layer, l.place, round(l.icing_score, 2) AS icing_score,
+       CASE l.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END
+         AS draw_order
+FROM v_road_points p JOIN layer_of l USING (road_segment_id)
+UNION ALL
+SELECT NULL, st.latitude, st.longitude,
+       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp()) THEN 'Station'
+            ELSE 'Station (stale)' END,
+       st.name, NULL, 9
+FROM v_stations st
+LEFT JOIN v_observations o
+  ON o.station_id = st.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())
+GROUP BY st.station_id, st.latitude, st.longitude, st.name
+ORDER BY draw_order
 ```
 
-`ds_stations` (station dots, reporting or stale):
+`ds_stations` (the station table beside the map, stale first):
 
 ```sql
 SELECT s.station_id, s.name, s.latitude AS lat, s.longitude AS lon, max(o.event_time) AS last_event_time,
@@ -546,7 +569,7 @@ FROM v_dq_events WHERE event_time >= current_date()
 
 `ds_dq_rules` (failed rows per rule today, the "bad rows are counted" story in the M7 demo): `SELECT rule_id, action, sum(rows_failed) AS rows_failed, sum(rows_checked) AS rows_checked FROM v_dq_events WHERE event_time >= current_date() GROUP BY rule_id, action ORDER BY rows_failed DESC`
 
-Expect: every `q` call prints rows. `ds_kpi` prints one row with six numbers. `ds_map` prints one row per segment that has a risk row (30 on a quiet day: one mapped segment per station) with no NULL lat. `ds_priority` prints a ranked list where rank 1 has the highest `icing_score`.
+Expect: every `q` call prints rows. `ds_kpi` prints one row with six numbers. `ds_map` prints one row per road point plus one per station; `layer` is `Road` for most points, a risk level for the covered stretches, and `Station` or `Station (stale)` for the 30 stations; no NULL lat. `ds_priority` prints a ranked list where rank 1 has the highest `icing_score`.
 
 If it fails:
 - `PARSE_SYNTAX_ERROR` near `:road_segment_id`: the CLI does not bind dashboard parameters; for the test replace `:road_segment_id` with a literal.
@@ -571,10 +594,17 @@ Do:
       "st AS (SELECT count(*) AS stations_total, sum(CASE WHEN last_event_time >= timestampadd(MINUTE, -30, current_timestamp()) THEN 1 ELSE 0 END) AS stations_reporting\n",
       "  FROM (SELECT s.station_id, max(o.event_time) AS last_event_time FROM v_stations s LEFT JOIN v_observations o ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp()) GROUP BY s.station_id))\n",
       "SELECT * FROM risk, inc, st\n"]},
-    {"name": "ds_map", "displayName": "Segments", "queryLines": [
-      "SELECT r.road_segment_id, s.road_number, s.road_category, s.geometry, s.centroid_lat AS lat, s.centroid_lon AS lon, r.risk_level, r.risk_score, r.icing_score, r.risk_updated_at,\n",
-      "  CASE r.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 ELSE 1 END AS risk_rank\n",
-      "FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id)\n"]},
+    {"name": "ds_map", "displayName": "Road risk", "queryLines": [
+      "WITH layer_of AS (SELECT s.road_segment_id, s.road_category, s.road_number, st.name AS place, r.risk_level, r.icing_score\n",
+      "  FROM v_segments s LEFT JOIN v_coverage c USING (road_segment_id) LEFT JOIN road_segment_current_risk r ON r.station_id = c.station_id\n",
+      "  LEFT JOIN v_stations st ON st.station_id = c.station_id WHERE s.road_category IN ('E', 'R', 'F'))\n",
+      "SELECT concat(l.road_category, l.road_number) AS road, p.latitude AS lat, p.longitude AS lon, coalesce(l.risk_level, 'Road') AS layer, l.place,\n",
+      "  round(l.icing_score, 2) AS icing_score, CASE l.risk_level WHEN 'VERY_HIGH' THEN 4 WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END AS draw_order\n",
+      "FROM v_road_points p JOIN layer_of l USING (road_segment_id)\n",
+      "UNION ALL SELECT NULL, st.latitude, st.longitude, CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp()) THEN 'Station' ELSE 'Station (stale)' END, st.name, NULL, 9\n",
+      "FROM v_stations st LEFT JOIN v_observations o ON o.station_id = st.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+      "GROUP BY st.station_id, st.latitude, st.longitude, st.name\n",
+      "ORDER BY draw_order\n"]},
     {"name": "ds_stations", "displayName": "Stations", "queryLines": [
       "SELECT s.station_id, s.name, s.latitude AS lat, s.longitude AS lon, max(o.event_time) AS last_event_time,\n",
       "  CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, current_timestamp()) THEN 'Reporting' ELSE 'Stale' END AS station_status\n",
@@ -623,35 +653,32 @@ Do:
           "frame": {"showTitle": true, "title": "Data age"}}},
        "position": {"x": 9, "y": 2, "width": 3, "height": 3}},
 
-      {"widget": {"name": "map-segments",
+      {"widget": {"name": "map-risk",
         "queries": [{"name": "main_query", "query": {"datasetName": "ds_map", "disaggregated": true,
           "fields": [{"name": "lat", "expression": "`lat`"}, {"name": "lon", "expression": "`lon`"},
-                     {"name": "risk_level", "expression": "`risk_level`"}, {"name": "road_segment_id", "expression": "`road_segment_id`"},
-                     {"name": "road_number", "expression": "`road_number`"}, {"name": "icing_score", "expression": "`icing_score`"}]}}],
+                     {"name": "layer", "expression": "`layer`"}, {"name": "road", "expression": "`road`"},
+                     {"name": "place", "expression": "`place`"}, {"name": "icing_score", "expression": "`icing_score`"}]}}],
         "spec": {"version": 2, "widgetType": "symbol-map",
           "encodings": {
             "coordinates": {"latitude": {"fieldName": "lat"}, "longitude": {"fieldName": "lon"}},
-            "color": {"fieldName": "risk_level", "displayName": "Risk level",
+            "color": {"fieldName": "layer", "displayName": "Risk",
               "scale": {"type": "categorical", "mappings": [
-                {"value": "LOW", "color": "#4C9A6A"}, {"value": "MEDIUM", "color": "#E3B23C"},
-                {"value": "HIGH", "color": "#E07A2F"}, {"value": "VERY_HIGH", "color": "#B3261E"}]}}},
-          "mark": {"opacity": 0.85},
-          "frame": {"showTitle": true, "title": "Segment icing risk"}}},
-       "position": {"x": 0, "y": 5, "width": 8, "height": 8}},
-
-      {"widget": {"name": "map-stations",
-        "queries": [{"name": "main_query", "query": {"datasetName": "ds_stations", "disaggregated": true,
-          "fields": [{"name": "lat", "expression": "`lat`"}, {"name": "lon", "expression": "`lon`"},
-                     {"name": "station_status", "expression": "`station_status`"}, {"name": "name", "expression": "`name`"}]}}],
-        "spec": {"version": 2, "widgetType": "symbol-map",
-          "encodings": {
-            "coordinates": {"latitude": {"fieldName": "lat"}, "longitude": {"fieldName": "lon"}},
-            "color": {"fieldName": "station_status", "displayName": "Station",
-              "scale": {"type": "categorical", "mappings": [
-                {"value": "Reporting", "color": "#4C9A6A"}, {"value": "Stale", "color": "#9AA3AD"}]}}},
+                {"value": "VERY_HIGH", "color": "#B3261E"}, {"value": "HIGH", "color": "#E07A2F"},
+                {"value": "MEDIUM", "color": "#E3B23C"}, {"value": "LOW", "color": "#4C9A6A"},
+                {"value": "Road", "color": "#8A939C"}, {"value": "Station", "color": "#2F9BFF"},
+                {"value": "Station (stale)", "color": "#E9ECEF"}]}}},
           "mark": {"opacity": 0.9},
-          "frame": {"showTitle": true, "title": "Stations: reporting or stale"}}},
-       "position": {"x": 8, "y": 5, "width": 4, "height": 8}},
+          "frame": {"showTitle": true, "title": "Icing risk on the road network",
+                    "showDescription": true, "description": "Road within 5 km of a station takes its risk. Grey: none. Blue dot: station."}}},
+       "position": {"x": 0, "y": 5, "width": 8, "height": 10}},
+
+      {"widget": {"name": "stations-table",
+        "queries": [{"name": "main_query", "query": {"datasetName": "ds_stations", "disaggregated": true,
+          "fields": [{"name": "name", "expression": "`name`"}, {"name": "station_status", "expression": "`station_status`"}]}}],
+        "spec": {"version": 2, "widgetType": "table",
+          "encodings": {"columns": [{"fieldName": "name", "displayName": "Station"}, {"fieldName": "station_status", "displayName": "Status"}]},
+          "frame": {"showTitle": true, "title": "Stations", "showDescription": true, "description": "Stale: no reading in the last 30 min"}}},
+       "position": {"x": 8, "y": 5, "width": 4, "height": 10}},
 
       {"widget": {"name": "incidents-table",
         "queries": [{"name": "main_query", "query": {"datasetName": "ds_incidents", "disaggregated": true,
@@ -664,10 +691,10 @@ Do:
             {"fieldName": "severity", "displayName": "Severity"}, {"fieldName": "road_number", "displayName": "Road"},
             {"fieldName": "road_segment_id", "displayName": "Segment"}]},
           "frame": {"showTitle": true, "title": "Active incidents (DATEX II)"}}},
-       "position": {"x": 0, "y": 13, "width": 12, "height": 5}},
+       "position": {"x": 0, "y": 15, "width": 12, "height": 5}},
 
-      {"widget": {"name": "footer", "multilineTextboxSpec": {"lines": ["Legend: LOW green, MEDIUM yellow, HIGH orange, VERY_HIGH red. Station dot: green reporting within 30 min, grey stale. Sources: Statens vegvesen (NLOD), MET Norway (CC BY 4.0).\n"]}},
-       "position": {"x": 0, "y": 18, "width": 12, "height": 1}}
+      {"widget": {"name": "footer", "multilineTextboxSpec": {"lines": ["Legend: LOW green, MEDIUM yellow, HIGH orange, VERY_HIGH red, grey road without a station. Station dot: blue reporting within 30 min, pale stale. Sources: Statens vegvesen (NLOD), MET Norway (CC BY 4.0).\n"]}},
+       "position": {"x": 0, "y": 20, "width": 12, "height": 1}}
      ]}
   ],
   "uiSettings": {"theme": {
@@ -681,11 +708,10 @@ Do:
 }
 ```
 
-2. The segment map. The `map-segments` widget above is a point map on the centroids: its JSON is known to work, so it is the fallback. The target is a path map on `ds_map.geometry`, coloured by `risk_level` with the same four mappings. The dashboard skill does not document the path-map JSON, so take it from the product instead of guessing:
-   1. Deploy the file as it is (T6.6, or the mock dashboards in `tools/mock_dashboards/`), open the draft, edit `map-segments`, switch the visualization to Path map, set the path source to the `geometry` column and colour to `risk_level`, and pin the four colours.
+2. The map. `map-risk` above is a point map (T6.3 step 5); its JSON is known to work and is the layout the mock dashboards use. Later upgrade: a path map on `v_segments.geometry` with the same `layer` colours, which draws lines instead of points. The dashboard skill does not document the path-map JSON, so take it from the product instead of guessing:
+   1. Add a dataset like `ds_map` that selects `s.geometry` per segment instead of the road points, deploy (T6.6, or the mock dashboards), open the draft, add a Path map on it with the path source `geometry` and colour `layer`, and pin the colours.
    2. Pull the result back into the file: `databricks bundle generate dashboard --resource risk_map -t personal --profile frostsight-personal` (or `databricks lakeview get <id>` for the mock) and keep only the changed widget.
-   3. Record the widget type and version here, next to `symbol-map` v2 in T6.1 item 4.
-   Keep the point map if the lines are too short to read at county zoom (T6.3 step 3).
+   3. Record the widget type and version here, next to `symbol-map` v2 in T6.1 item 4. Stations stay a point layer.
 3. The other three files use the same skeleton. Deltas only:
 
 | File | Datasets | Widgets (type, dataset, position) | Parameters |
@@ -697,13 +723,15 @@ Do:
    verify: a `filter-single-select` bound to a STRING parameter renders as a free-text box; if the UI needs a value list, add a second query in the filter widget that reads `road_segment_id` from a helper dataset, as in the skill's "Date Range Filtering" example (field plus parameter in one widget).
 4. Validate the JSON files before deploying: `for f in src/dashboards/*.lvdash.json; do jq empty "$f" && echo "ok $f"; done`.
 
-Expect: `jq` prints `ok` four times. After T6.6, the risk map shows tiles with numbers, a map with coloured dots over Troms, a second map of station dots, and an incidents table (possibly empty on a quiet day).
+Expect: `jq` prints `ok` four times. After T6.6, the risk map shows tiles with numbers; a map of the Troms main roads in grey with the covered stretches in risk colours and the stations as blue dots; the station table; and an incidents table (possibly empty on a quiet day).
 
 If it fails:
 - "failed to parse serialized dashboard": a `queryLines` element without trailing `\n`, or a `query` string instead of `queryLines`, or a missing `pageType`.
 - Counter shows "unsupported widget definition": a `color` on the counter value. Remove it.
-- Map empty but table fine: `lat`/`lon` NULL for every row (`silver.road_segments` on this target predates the centroid columns; run `reference`, T6.3), or for the path map `geometry` NULL (T6.3 step 2).
-- `ds_map` fails with an unknown `ST_GeomFromText`: spatial SQL is not available on this warehouse; drop `s.geometry` from `ds_map` and keep the point map.
+- Map shows only station dots: `silver.road_points` is empty on this target (run `reference` after T6.3 step 3).
+- Map all grey: `silver.segment_station_coverage` is empty, or the coverage join misses because the station's lookup segment has another `road_number` (05_M4 T4.5).
+- Coloured stretches hidden under grey: the `ORDER BY draw_order` was dropped from `ds_map`.
+- `ST_GeomFromText` unknown (path-map upgrade only): spatial SQL is not available on this warehouse; stay on the point map.
 - Widget shows "no selected fields to visualize": a `fields[].name` does not match its `encodings.*.fieldName`.
 
 ---
@@ -856,6 +884,7 @@ If it fails: empty widgets on `personal` (no gold rows yet: run `orchestrate` th
 
 - [ ] `gold.data_quality_summary` has four rows with the 03_M2 columns and is rewritten by every `orchestrate` run; `silver.data_quality_events` fills after each pipeline update; `quarantine.late_road_weather` exists.
 - [ ] `silver.road_segments.centroid_lat/lon` populated for every pilot-county segment (written by `reference`).
+- [ ] `silver.road_points` written by `reference`; the risk map shows the main roads in grey, the stretch within 5 km of each station in its risk colour, and the stations as dots (T6.3).
 - [ ] `src/sql/002_gold_views.sql` applied on every target; dashboard SQL uses bare names only.
 - [ ] Every dataset query in T6.4 ran through the CLI and returned rows.
 - [ ] Four `.lvdash.json` files in `src/dashboards/`, `jq` clean, deployed by `resources/dashboards.dashboard.yml`.
@@ -879,4 +908,4 @@ gh run list --workflow deploy-free.yml --limit 3
 for f in src/dashboards/*.lvdash.json; do jq empty "$f" && echo "ok $f"; done
 ```
 
-Expected: validate prints no warnings; summary shows four dashboards with URLs; freshness shows `road_weather FRESH`; `missing` is 0; six `v_` views; the last `deploy-free` run is `completed success`; `jq` prints `ok` four times.
+Expected: validate prints no warnings; summary shows four dashboards with URLs; freshness shows `road_weather FRESH`; `missing` is 0; eight `v_` views; the last `deploy-free` run is `completed success`; `jq` prints `ok` four times.
