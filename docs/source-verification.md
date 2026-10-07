@@ -1,7 +1,7 @@
 # FrostSight: source verification
 
-Date: 28 September 2026. Method: live HTTP requests with curl, with failing hosts
-retried from a second location. No credentials were used. Companion to
+Date: 28 September 2026, DATEX WFS added 7 October 2026. Method: live HTTP requests with curl, with
+failing hosts retried from a second location. No credentials were used. Companion to
 `overview.md` and `architecture.md`.
 
 ## Summary
@@ -16,9 +16,11 @@ retried from a second location. No credentials were used. Companion to
 | trafikkdata.no GraphQL | Works | No key. Troms registration points and hourly volumes returned. |
 | MET Locationforecast | Works | User-Agent header only. Fresh Tromsø forecast returned. |
 | MET Frost observations | Needs account | 401 without client ID. Free, email only. Statens vegvesen is a documented station holder. |
-| DATEX II road weather, 10 min | Needs account | 401. Free self-service form, NLOD licence, form asks for a fixed IP or DNS name. |
-| DATEX II incidents (situations) | Needs account | Same account and same finding as above. |
-| DATEX II measurement site table | Needs account | Same. Not needed for mapping because NVDB type 153 has the station points. |
+| DATEX road weather, open WFS `WeatherSimple_v2` | Works | No account (ADR-0008). 468 stations, 24 in Troms, all with road surface temperature; ids are NVDB station numbers. |
+| DATEX incidents, open WFS `SituationSimple_v2` | Works | No account. 2,659 situations nationally, 153 in the Troms bbox. |
+| DATEX road weather, full WFS `WeatherData` | Works | No account. Nested DATEX; adds precipitation type, road condition type, friction. Fallback layer. |
+| DATEX II pull API: road weather, situations, site table | Needs account | 401. Free form, NLOD, asks for a fixed IP or DNS name. Superseded by the WFS for the MVP. |
+| NVDB road closures (object type 485) | Works, history only | 996 Troms records; newest closure date October 2020, so not a live incident source. |
 | Kartverket elevation (hoydedata), Kartverket kommuneinfo, Geonorge catalogue and download, WCS | Unreachable today | Timed out here and connection refused from a second location. Outage or geo-block, not our network. |
 | Open-Meteo elevation API (fallback) | Works | No key. Returned 9 m and 34 m for two Troms points. |
 | transportportal.no | Reachable | Catalogue only, no data endpoint. |
@@ -45,6 +47,14 @@ retried from a second location. No credentials were used. Companion to
 | `https://datex-server-get-v3-1.atlas.vegvesen.no/datexapi/GetSituation/pullsnapshotdata` | none | 401 |
 | `https://datex-server-get-v3-1.atlas.vegvesen.no/datexapi/GetMeasuredWeatherData/pullsnapshotdata` | none | 401 |
 | `https://datex-server-get-v3-1.atlas.vegvesen.no/datexapi/GetMeasurementWeatherSiteTable/pullsnapshotdata` | none | 401 |
+| `https://ogckart-sn1.atlas.vegvesen.no/datex_3_1/wfs?service=wfs&request=GetCapabilities` | none | 200, 16 feature types; `Fees: NONE`, `AccessConstraints: NONE` |
+| `.../datex_3_1/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=datex_3_1:WeatherSimple_v2&outputFormat=application/json` | none | 200, 440 KB, 468 features; newest `MEASUREMENT_TIME` 06:30, `PUBLICATION_TIME` 06:34 local |
+| same, plus `CQL_FILTER=COUNTY='Troms'` | none | 200, 23 KB, 24 features; `REFERENCE_ID` matches NVDB `Målestasjonsnummer` for 23 |
+| `...typeNames=datex_3_1:SituationSimple_v2&outputFormat=application/json` | none | 200, 10 MB, 2,659 features |
+| same, plus `srsName=EPSG:4326&bbox=68.3,15.5,70.4,22.9,urn:ogc:def:crs:EPSG::4326` | none | 200, 0.8 MB, 153 features |
+| `...typeNames=datex_3_1:WeatherData&...&bbox=` (Troms) | none | 200, 0.5 MB, 31 features, nested DATEX `physicalQuantity` |
+| `https://nvdbapiles.atlas.vegvesen.no/omrader/fylker?inkluder=alle&srid=4326` | `X-Client` | 200; Troms `kartutsnitt` lat 68.21 to 70.78, lon 15.59 to 23.27 (lat first) |
+| `https://nvdbapiles.atlas.vegvesen.no/vegobjekter/485?fylke=55` | `X-Client` | 200, 996 closures; newest `Stengt fra dato` 2020-10-02 |
 | `https://ws.geonorge.no/hoydedata/v1/punkt?...` | none | timeout (60 s) here; ECONNREFUSED from second location |
 | `https://api.kartverket.no/kommuneinfo/v1/fylker` | none | timeout here; ECONNREFUSED from second location |
 | `https://kartkatalog.geonorge.no/`, `https://nedlasting.geonorge.no/api/capabilities/`, `https://wms.geonorge.no/skwms1/wcs.hoyde-dtm-nhm-25833`, `https://www.kartverket.no/`, `https://hoydedata.no/` | none | timeout here; nedlasting refused from second location |
@@ -62,6 +72,18 @@ retried from a second location. No credentials were used. Companion to
   Sources: [What is DATEX](https://www.vegvesen.no/en/fag/technology/open-data/a-selection-of-open-data/what-is-datex/),
   [Request access](https://www.vegvesen.no/en/fag/technology/open-data/a-selection-of-open-data/what-is-datex/get-access/),
   [Road weather data dataset](https://dataut.vegvesen.no/en/dataset/vaerdata).
+- DATEX open WFS (Statens vegvesen OGC services): `datex_3_1` serves the DATEX publications Situation,
+  TravelTime, WeatherData, ForecastPoint and Cctv, each as a full layer, a `Simple` layer and a `Simple_v2`
+  layer. Registration is optional (it only subscribes you to change notices). `WeatherSimple_v2` fields:
+  `REFERENCE_ID`, `MEASUREMENT_TIME`, `PUBLICATION_TIME`, `COUNTY`, `ROAD_NUMBER`, `LOCATION_DESCRIPTION`,
+  `AIR_TEMPERATURE`, `ROAD_SURFACE_TEMPERATURE`, `DEW_POINT_TEMPERATURE`, `RELATIVE_HUMIDITY`,
+  `PRECIPITATION_INTENSITY`, `PRECIPITATION_TYPE` (null everywhere on 7 Oct), `WIND_SPEED`,
+  `WIND_DIRECTION_BEARING`, `DEPTH_OF_SNOW`, visibility and min/max temperature. `SituationSimple_v2`
+  fields include `RECORD_ID`, `VERSION`, `SITUATION_ID`, `SITUATION_TYPE`, `SECONDARY_TYPES`, `SEVERITY`,
+  `START_TIME`, `END_TIME`, `ACTIVE`, `ROAD_NUMBER`, `DESCRIPTION` and a display point. A record with several
+  validity periods appears once per period with the same `RECORD_ID` and `VERSION`.
+  Sources: [OGC map services](https://www.vegvesen.no/fag/teknologi/apne-data/et-utvalg-apne-data/ogc-karttjenester/kartlag/),
+  [Road traffic information dataset](https://dataut.vegvesen.no/en/dataset/trafikkmeldinger).
 - MET Frost: free, register with an email to get a client ID and secret. Frost documents
   querying stations by `stationholder=STATENS VEGVESEN`. Resolution and coverage of road-weather
   stations not verified without a client ID.
@@ -71,10 +93,10 @@ retried from a second location. No credentials were used. Companion to
 
 ## Findings that change the plan
 
-1. **DATEX fixed IP.** The access form asks for a fixed IP address or DNS name. A GitHub Actions
-   cron has no fixed IP, and Free Edition serverless has none either. Options, in order of
-   preference: ask Statens vegvesen whether the field is enforced; run the collector on a small
-   VM or company server with a static IP; use a fixed egress IP on a paid workspace. Settle at M0.
+1. **DATEX fixed IP: resolved by the open WFS (ADR-0008).** The pull API's access form asks for a
+   fixed IP address or DNS name, which GitHub Actions and Free Edition serverless do not have. The
+   same publications are on the open WFS with no account, so the MVP does not need the form. The
+   plan changes are listed in `docs/changes/0008-datex-open-wfs.md`.
 2. **Frost is the history source.** Replay and the demo depend on last winter's road-weather
    observations. Register a Frost client ID now and run one query against a Troms station to
    confirm resolution (expected PT10M) and coverage.
@@ -87,8 +109,10 @@ retried from a second location. No credentials were used. Companion to
 
 ## Net effect on the MVP
 
-The three MVP sources are road weather, incidents and NVDB. NVDB is fully confirmed. Road weather
-and incidents sit behind one free DATEX account whose fixed-IP requirement is the open question.
+The three MVP sources are road weather, incidents and NVDB. All three are confirmed with no account:
+road weather and incidents through the open DATEX WFS, NVDB with the `X-Client` header. Live
+precipitation type is approximated and road surface state is absent in the simple weather layer
+(ADR-0008).
 Traffic, accidents, avalanche, forecasts and elevation fallbacks are confirmed with no
 registration.
 
@@ -96,8 +120,9 @@ registration.
 
 | Action | Owner | Milestone |
 |---|---|---|
-| Submit the DATEX access form; ask whether a fixed IP is enforced | E1 | M0 |
+| ~~Submit the DATEX access form~~ replaced by the open WFS (ADR-0008); confirm the WFS is NLOD | E1 | M0 |
+| Apply `docs/changes/0008-datex-open-wfs.md` to the plan and the collector | E1 | M0 to M2 |
 | Register a Frost client ID; query one Troms station for last winter | E1 | M0 |
 | Pull the NVDB Troms extract (links, type 153, 570, 445, 482) into a volume | E3 | M1 |
 | Re-test Kartverket; if still unreachable, adopt Open-Meteo plus NVDB Z as the terrain source | E3 | M1 |
-| Decide the collector host based on the DATEX answer | E1, E3 | M2 |
+| Decide the collector host (GitHub Actions is now enough for DATEX) | E1, E3 | M2 |

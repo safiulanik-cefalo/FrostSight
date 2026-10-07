@@ -307,6 +307,36 @@ for name in ("h3", "st"):
    two disagree for a station, keep the smaller distance and look at the geometry by hand; a station on a
    bridge or a junction is the usual cause.
 
+7. Station coverage: how far a station's risk applies. Decided here and recorded in ADR 0006 with the
+   lookup. The lookup gives each station one segment, and NVDB segments are often only metres long
+   (`1113653-1-9` is 3.4 m), so a station's risk drawn on its own segment cannot be seen on a county map. Rule
+   for the MVP:
+   - A station's risk covers the segments on its own road (the `road_category` and `road_number` of its lookup
+     segment) within 5 km straight-line distance of the station (`COVERAGE_M = 5000` in `lookup.py`, 05_M4 T4.5).
+   - Where two stations cover the same segment, the nearer one wins.
+   - Segments outside every station's coverage carry no risk and are drawn grey. The MVP never interpolates
+     between stations.
+   - Coverage feeds the map and the gritting list only. `gold.road_segment_current_risk` keeps one row per
+     station segment (T3.5), so scoring, history and replay are unchanged.
+
+   Options for the ADR. Give each the share of pilot road length it covers at 3, 5 and 10 km, using the
+   coverage query in 05_M4 T4.5 with `COVERAGE_M` changed:
+
+   | Option | For or against |
+   |---|---|
+   | The station's own segment only | Cannot be seen at county zoom; the map shows nothing useful |
+   | Fixed radius on the same road, nearest station wins (chosen, 5 km) | Simple, shows the gaps honestly, one number to tune |
+   | Halfway to the next station on the same road | Colours every road with a station, including 50 km gaps the station never measured |
+   | Interpolation between stations, or terrain-aware coverage | Better physics, but needs elevation and validation; after the MVP |
+
+   Limitations to state in the ADR:
+   - Straight-line distance overstates coverage on winding roads and across fjords.
+   - A mountain pass can change within 5 km. A radius per station is a later refinement.
+   - 5 km is a judgement, not yet checked against incidents. The S2 baselines can test it.
+
+   The mock dashboards (`tools/mock_dashboards/`) show the rule on real NVDB roads: 5 km covers about 270 of
+   the 1,170 km on the 12 Troms roads that have a station.
+
 Expect: both queries return 30 rows; the H3 query runs in a few seconds, the brute-force one in under a
 minute; at most 2 stations differ; every distance is under 500 m except stations that sit beside a
 municipal road missing from the extract, which have no lookup row.
@@ -477,9 +507,10 @@ Platform Health). Writing the SQL now shows whether the gold contracts carry wha
 dashboard has one dataset per tile; datasets are SQL over gold and silver on the serverless warehouse.
 The queries below use full three-part names so they run in SQL Editor; in the dashboard JSON at M6 the
 gold names are bare and silver names two-part, because the bundle sets `dataset_catalog` and
-`dataset_schema: gold` (`07_M6`). Map tiles: AI/BI renders points from lat/lon columns; it does not draw
-lines, so a segment is shown at its midpoint (verify: an H3 layer from `h3_h3tostring(cell)` if the map
-widget supports it on this workspace).
+`dataset_schema: gold` (`07_M6`). Map tiles: an AI/BI path map draws each segment as a line from a
+`GEOMETRY` column, built in the query with `ST_GeomFromText(geometry_wkt_4326, 4326)`; points stay for
+incidents and stations. Fallback when spatial SQL is missing on the warehouse, or the lines are too short
+to read at county zoom: the segment centroid as a point (07_M6 T6.3).
 
 Dashboard 1, `risk_map`:
 
@@ -487,7 +518,7 @@ Dashboard 1, `risk_map`:
 +-----------------+-----------------+-----------------+-----------------+
 | VERY_HIGH  3    | HIGH  12        | Stations 28/30  | Updated 07:08   |
 +-----------------+-----------------+-----------------+-----------------+
-| Map: segment midpoints coloured by risk_level         | Legend         |
+| Map: segment lines coloured by risk_level             | Legend         |
 | Active incidents as a second point layer              | LOW  MEDIUM    |
 |                                                        | HIGH VERY_HIGH |
 +--------------------------------------------------------+---------------+
@@ -502,10 +533,9 @@ SELECT count(*) AS reporting FROM frostsight.gold.road_segment_current_risk
 WHERE event_time > current_timestamp() - INTERVAL 30 MINUTES;
 SELECT max(risk_updated_at) AS updated_at FROM frostsight.gold.road_segment_current_risk;
 
--- Map layer: one point per segment
+-- Map layer: one line per segment (path map)
 SELECT r.road_segment_id, r.risk_level, r.risk_score, concat(s.road_category, s.road_number) AS road,
-       ST_Y(ST_Centroid(ST_GeomFromWKT(s.geometry_wkt_4326, 4326))) AS latitude,
-       ST_X(ST_Centroid(ST_GeomFromWKT(s.geometry_wkt_4326, 4326))) AS longitude
+       ST_GeomFromText(s.geometry_wkt_4326, 4326) AS geometry
 FROM frostsight.gold.road_segment_current_risk r
 JOIN frostsight.silver.road_segments s USING (road_segment_id);
 
@@ -622,7 +652,7 @@ Agenda:
 |---|---|---|---|
 | 0-10 | M2 gate status, what is landing, quota observations | Shawon, Rayhan | context |
 | 10-30 | Silver contracts and streaming semantics (T3.1, T3.2) | Sani | ADR 0007 accepted or changed |
-| 30-45 | Mapping benchmark result and recommendation (T3.3) | Rayhan | ADR 0006 accepted |
+| 30-45 | Mapping benchmark result and recommendation, station coverage rule (T3.3) | Rayhan | ADR 0006 accepted |
 | 45-65 | Risk model v0 with the three worked examples, gold contracts (T3.4, T3.5) | Safiul | ADR 0005 accepted |
 | 65-80 | Dashboard wireframes; does every tile have its column | Safiul | `dashboards.md` accepted |
 | 80-90 | Labels, leakage rules and time split for the stretch ML (M2 E5 doc) | Sohanur | noted, not blocking |
@@ -653,6 +683,7 @@ dated revisit note in the ADR. The build does not wait.
 - [ ] `docs/contracts.md` with the five main silver tables, the job-only silver tables, the quarantine shape and the six gold tables
 - [ ] ADR 0005, 0006, 0007 merged in `docs/adr/` and linked from `docs/adr/README.md`
 - [ ] `sql/benchmarks/00_prepare.sql`, `mapping_h3.sql`, `mapping_st.sql` and the timing numbers in ADR 0006; the `bench_*` tables dropped
+- [ ] ADR 0006 states the station coverage rule (T3.3 step 7) with the covered share of road length at 3, 5 and 10 km
 - [ ] `config/risk_weights.yml` merged (identical to `06_M5` T5.1); examples A, B, C with arithmetic in the ADR
 - [ ] `docs/dashboards.md` with four wireframes and their SQL
 - [ ] Review session held; checklist all yes
