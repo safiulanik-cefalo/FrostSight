@@ -24,7 +24,8 @@ uv run python tools/mock_dashboards/deploy.py --setup   # --setup runs sql/001 f
 ```
 
 `deploy.py` prints the draft and published links. Run it again after any change; it updates the same
-dashboard. Remove everything with `DROP SCHEMA frostsight.mock CASCADE` and `databricks lakeview trash <id>`.
+dashboard (the id is kept per profile in `.dashboard_id.<profile>`). For the team workspace, add
+`--profile frostsight-free --share users` so every workspace user can open it. Remove everything with `DROP SCHEMA frostsight.mock CASCADE` and `databricks lakeview trash <id>`.
 
 ## Demo path (08_M7 T7.8, on mock data)
 

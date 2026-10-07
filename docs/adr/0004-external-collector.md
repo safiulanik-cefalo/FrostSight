@@ -2,7 +2,7 @@
 
 - Status: Proposed. Host choice and DATEX format amended by ADR-0008
 - Date: 2026-09-29
-- Owner: Safiul Kabir
+- Owner: Safiul Anik
 
 ## Context
 

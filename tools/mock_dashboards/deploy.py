@@ -4,11 +4,13 @@
    (creates or replaces frostsight.mock).
 2. Runs every dataset of frostsight_demo.lvdash.json against frostsight.mock and prints its row count,
    as the dashboard skill requires before a deploy.
-3. Creates the dashboard (or updates the one recorded in .dashboard_id) and publishes it.
+3. Creates the dashboard (or updates the one recorded in .dashboard_id.<profile>) and publishes it.
+4. With --share GROUP, gives that workspace group CAN_RUN on the dashboard.
 
 Nothing outside frostsight.mock and the one dashboard is touched. Personal workspace by default.
 
 Run: uv run python tools/mock_dashboards/deploy.py [--profile NAME] [--warehouse-id ID] [--setup]
+     [--share GROUP]
 """
 
 from __future__ import annotations
@@ -28,7 +30,6 @@ SEED_SQL = HERE / "nvdb_seed.sql"  # written by fetch_nvdb.py
 MOCK_SQL = HERE / "mock_data.sql"
 SETUP_SQL = REPO / "sql" / "001_catalog_schemas_volume.sql"
 DASHBOARD_JSON = HERE / "frostsight_demo.lvdash.json"
-STATE = HERE / ".dashboard_id"
 CATALOG, SCHEMA = "frostsight", "mock"
 DISPLAY_NAME = "FrostSight demo (mock data)"
 WAREHOUSE_NAME = "Serverless Starter Warehouse"  # databricks.yml default for warehouse_name
@@ -140,6 +141,7 @@ def test_datasets(profile: str, wh: str, dashboard: dict[str, Any]) -> None:
 
 
 def deploy(profile: str, wh: str, dashboard: dict[str, Any]) -> str:
+    state = HERE / f".dashboard_id.{profile}"  # one dashboard per workspace
     serialized = json.dumps(dashboard)
     common = [
         "--warehouse-id",
@@ -153,7 +155,7 @@ def deploy(profile: str, wh: str, dashboard: dict[str, Any]) -> str:
         "--serialized-dashboard",
         serialized,
     ]
-    dashboard_id = STATE.read_text().strip() if STATE.exists() else ""
+    dashboard_id = state.read_text().strip() if state.exists() else ""
     if dashboard_id:
         try:
             cli(["lakeview", "update", dashboard_id, *common], profile)
@@ -167,7 +169,7 @@ def deploy(profile: str, wh: str, dashboard: dict[str, Any]) -> str:
         cli(["workspace", "mkdirs", folder], profile)
         created = cli(["lakeview", "create", *common, "--json", json.dumps({"parent_path": folder})], profile)
         dashboard_id = created["dashboard_id"]
-        STATE.write_text(dashboard_id + "\n")
+        state.write_text(dashboard_id + "\n")
         print(f"created dashboard {dashboard_id} in {folder}")
     cli(
         [
@@ -182,12 +184,19 @@ def deploy(profile: str, wh: str, dashboard: dict[str, Any]) -> str:
     return dashboard_id
 
 
+def share(profile: str, dashboard_id: str, group: str) -> None:
+    acl = {"access_control_list": [{"group_name": group, "permission_level": "CAN_RUN"}]}
+    cli(["permissions", "update", "dashboards", dashboard_id, "--json", json.dumps(acl)], profile)
+    print(f"shared with group '{group}' (CAN_RUN)")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--profile", default="frostsight-personal")
     p.add_argument("--warehouse-id", default=None)
     p.add_argument("--setup", action="store_true", help="run sql/001_catalog_schemas_volume.sql first")
     p.add_argument("--skip-load", action="store_true", help="keep frostsight.mock as it is")
+    p.add_argument("--share", metavar="GROUP", help="give this workspace group CAN_RUN, e.g. users")
     a = p.parse_args()
 
     wh = pick_warehouse(a.profile, a.warehouse_id)
@@ -197,6 +206,8 @@ def main() -> None:
     print("datasets against frostsight.mock:")
     test_datasets(a.profile, wh, dashboard)
     dashboard_id = deploy(a.profile, wh, dashboard)
+    if a.share:
+        share(a.profile, dashboard_id, a.share)
     host = (
         cli(["auth", "env"], a.profile).get("env", {}).get("DATABRICKS_HOST", "<workspace host>").rstrip("/")
     )

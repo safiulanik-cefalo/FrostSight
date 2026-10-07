@@ -18,7 +18,7 @@ Recommended structure: **six accounts**.
 
 | Account | Owner | Purpose |
 |---|---|---|
-| Team workspace | Safiul Kabir (admin), the other four added as users and admins | The integrated project: shared catalog `frostsight`, the one production-style pipeline, the scheduled job, the dashboard, the demo |
+| Team workspace | Safiul Anik (admin), the other four added as users and admins | The integrated project: shared catalog `frostsight`, the one production-style pipeline, the scheduled job, the dashboard, the demo |
 | Personal workspace × 5 | Each engineer | Experiments and individual development of their own tables before merging into the team workspace |
 
 Why two layers: Free Edition quotas are **per account**, not per user. In one shared account the whole team gets

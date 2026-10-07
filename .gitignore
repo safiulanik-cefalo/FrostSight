@@ -42,7 +42,7 @@ Thumbs.db
 frostsight-2*.json
 
 # Mock dashboards: per-workspace dashboard id and the resolved script
-tools/mock_dashboards/.dashboard_id
+tools/mock_dashboards/.dashboard_id*
 tools/mock_dashboards/.mock_data.resolved.sql
 
 # Local scratch notes, never committed
