@@ -1,29 +1,32 @@
 # Source inventory: one entry per external system the collector calls.
-# Verified live on 2026-09-28 (docs/source-verification.md). Secrets are never stored here;
+# Verified live on 2026-09-28, DATEX WFS on 2026-10-07 (docs/source-verification.md). Secrets are never stored here;
 # `secret` names the environment variable or secret-scope key the collector reads.
 pilot_county: "55"   # Troms, ADR-0002
 
 sources:
+  # DATEX publications through the open WFS (ADR-0008): no account, no fixed IP.
   datex_road_weather:
     provider: Statens vegvesen
-    url: https://datex-server-get-v3-1.atlas.vegvesen.no/datexapi/GetMeasuredWeatherData/pullsnapshotdata
-    format: xml               # flattened to JSON lines; raw XML kept in road_weather_xml
-    auth: basic
-    secret: [DATEX_USERNAME, DATEX_PASSWORD]
+    url: https://ogckart-sn1.atlas.vegvesen.no/datex_3_1/wfs
+    params: {service: WFS, version: 2.0.0, request: GetFeature, typeNames: "datex_3_1:WeatherSimple_v2", outputFormat: application/json}
+    format: geojson           # mapped to contract v1 JSON lines; raw GeoJSON kept in road_weather_raw
+    auth: none
+    scope: national           # silver filters to the county through the station table
     cadence_minutes: 10
-    landing: [road_weather, road_weather_xml]
-    licence: NLOD
+    landing: [road_weather, road_weather_raw, datex_sites]
+    licence: NLOD             # service declares Fees NONE, AccessConstraints NONE; NLOD for the WFS to be confirmed
     attribution: Statens vegvesen
     mvp: true
 
   datex_incidents:
     provider: Statens vegvesen
-    url: https://datex-server-get-v3-1.atlas.vegvesen.no/datexapi/GetSituation/pullsnapshotdata
-    format: xml
-    auth: basic
-    secret: [DATEX_USERNAME, DATEX_PASSWORD]
+    url: https://ogckart-sn1.atlas.vegvesen.no/datex_3_1/wfs
+    params: {service: WFS, version: 2.0.0, request: GetFeature, typeNames: "datex_3_1:SituationSimple_v2", outputFormat: application/json, srsName: "EPSG:4326"}
+    format: geojson
+    auth: none
+    scope: county_bbox        # bbox from NVDB omrader/fylker kartutsnitt for pilot_county; national is 10 MB
     cadence_minutes: 30
-    landing: [road_incidents, road_incidents_xml]
+    landing: [road_incidents, road_incidents_raw]
     licence: NLOD
     attribution: Statens vegvesen
     mvp: true
