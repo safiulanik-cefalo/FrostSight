@@ -2,7 +2,7 @@
 
 - Status: Proposed
 - Date: 2026-09-29
-- Owner: Safiul Kabir (decision), Saiful Islam Rayhan (figures, plan task T0.6)
+- Owner: Safiul Anik (decision), Saiful Islam Rayhan (figures, plan task T0.6)
 
 ## Context
 

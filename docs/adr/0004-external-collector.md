@@ -1,8 +1,8 @@
 # ADR-0004: External collector
 
-- Status: Proposed
+- Status: Proposed. Host choice and DATEX format amended by ADR-0008
 - Date: 2026-09-29
-- Owner: Safiul Kabir
+- Owner: Safiul Anik
 
 ## Context
 
@@ -30,3 +30,6 @@ not, a static-IP host if it is. On the `aws` target the same package may also ru
 - The collector flattens DATEX XML to JSON lines and keeps the raw XML beside it.
 - Collection cadence is bounded by the scheduler: every 30 minutes on GitHub Actions within the free
   minutes, every 10 minutes on a static-IP host or an AWS job.
+
+ADR-0008 moves road weather and incidents to the open WFS: no account, no fixed IP, GeoJSON instead of
+XML. The collector stays external; the host no longer depends on the fixed-IP answer.

@@ -26,7 +26,7 @@ Every output carries its timestamp and data freshness.
 | E1 Ingestion and streaming | Shaid Hasan Shawon | @pyshawon | Collector, API clients, bronze, streaming ingestion, checkpoints, schema evolution |
 | E2 Lakehouse and transformations | Nazmul Hasan Sani | @sani1994 | Silver, dedup, event-time windows and trends, replay mechanics, performance |
 | E3 Geospatial, data quality and governance | Saiful Islam Rayhan | @sirayhancse | Road-segment model, station mapping, data-quality rules and quarantine, Unity Catalog, bundle and CI, monitoring |
-| E4 Architecture, analytics and product | Safiul Kabir | @safiulanik-cefalo | Architecture, integrations, ADRs, gold tables, risk engine, dashboards, API |
+| E4 Architecture, analytics and product | Safiul Anik | @safiulanik-cefalo | Architecture, integrations, ADRs, gold tables, risk engine, dashboards, API |
 | E5 ML and prediction | Md. Sohanur Rahman | (to add) | Labels, features, models, batch prediction |
 
 Milestones M0 to M7 (MVP) and S1 to S3 (stretch) are in [`plan/`](plan/00_README.md). They have an order,

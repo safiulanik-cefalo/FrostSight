@@ -13,4 +13,5 @@ paths:
   credential value into `config/` or a fixture, and never print one in logs.
 - Landing paths follow `raw/<source>/<yyyy>/<mm>/<dd>/<UTC timestamp>.jsonl` with one flat folder per
   source. A failed run writes `raw/<source>/_failed/<UTC timestamp>.json` instead of a partial file.
-- DATEX XML is converted to JSON lines and the raw XML is kept beside it in the `*_xml` source.
+- DATEX comes from the open WFS with no credentials (ADR-0008). The GeoJSON is mapped to contract v1 JSON
+  lines and the raw response is kept beside it in the `*_raw` source.
