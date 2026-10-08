@@ -5,9 +5,8 @@ Demo (default):
    (creates or replaces frostsight.mock).
 Live (--dashboard live, docs/gold-from-team-silver.md):
 1. With --load-reference, loads the roads, segments, road points and stations of nvdb_seed.sql into
-   silver.nvdb_seed_* (the interim reference data, B3). Then creates the gold views
-   (src/sql/002_gold_views.sql); the gold job (resources/gold.job.yml) must have run once, because it
-   creates the gold tables.
+   silver.nvdb_seed_* (the interim reference data, B3). The dashboard reads the plot-ready gold tables
+   (frostsight.serving), so the gold job (resources/gold.job.yml) must have run once since.
 Both:
 2. Runs every dataset of the dashboard JSON against its schema and prints the row count, as the dashboard
    skill requires before a deploy.
@@ -37,7 +36,6 @@ REPO = HERE.parents[1]
 SEED_SQL = HERE / "nvdb_seed.sql"  # written by fetch_nvdb.py
 MOCK_SQL = HERE / "mock_data.sql"
 SETUP_SQL = REPO / "sql" / "001_catalog_schemas_volume.sql"
-VIEWS_SQL = REPO / "src" / "sql" / "002_gold_views.sql"
 CATALOG = "frostsight"
 # variant: (dashboard JSON, schema, display name, state-file suffix)
 VARIANTS = {
@@ -168,11 +166,11 @@ def load_reference(profile: str, wh: str) -> None:
     print(f"loaded {CATALOG}.silver.nvdb_seed_{{{','.join(REFERENCE_TABLES)}}}")
 
 
-def create_gold_views(profile: str, wh: str) -> None:
-    if not ok(run_sql(f"DESCRIBE TABLE {CATALOG}.gold.road_weather_observation_log", profile, wh)):
-        sys.exit("gold tables are missing: run the gold job once (databricks bundle run gold -t <target>).")
-    run_script(VIEWS_SQL, profile, wh)
-    print(f"created the gold views ({VIEWS_SQL.relative_to(REPO)})")
+def require_gold(profile: str, wh: str) -> None:
+    if not ok(run_sql(f"DESCRIBE TABLE {CATALOG}.gold.map_points", profile, wh)):
+        sys.exit(
+            "plot-ready gold tables are missing: run the gold job (databricks bundle run gold -t <target>)."
+        )
 
 
 def fetch_url(profile: str, host: str) -> str:
@@ -270,7 +268,7 @@ def main() -> None:
     if a.dashboard == "live":
         if a.load_reference:
             load_reference(a.profile, wh)
-        create_gold_views(a.profile, wh)
+        require_gold(a.profile, wh)
         text = text.replace("{{FETCH_URL}}", fetch_url(a.profile, host))
     elif not a.skip_load:
         load_mock(a.profile, wh, a.setup)

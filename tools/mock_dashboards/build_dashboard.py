@@ -16,6 +16,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from frostsight.serving import FACTOR_LABEL, LEVEL_BADGE, PENDING
+
 OUT = Path(__file__).resolve().parent / "frostsight_demo.lvdash.json"
 LIVE_OUT = Path(__file__).resolve().parent / "frostsight_live.lvdash.json"
 
@@ -23,12 +25,6 @@ LEVEL_COLOURS = {"LOW": "#4C9A6A", "MEDIUM": "#E3B23C", "HIGH": "#E07A2F", "VERY
 GREY = "#9AA3AD"
 # Theme palette for charts without explicit mappings: neutral, so a category never reads as a risk level.
 PALETTE = ["#2272B4", "#4E5185", "#7FA7C9", GREY, "#6C8EAD"]
-# Tables show state as a coloured symbol plus the word, not a cell background: tinted cells keep the theme's
-# text colour and turn unreadable in dark mode. Emoji keep their colour in both themes.
-LEVEL_BADGE = (
-    "CASE {col} WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' "
-    "WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END"
-)
 ROAD_COLOUR = "#8A939C"  # road without a station nearby
 STATION_COLOUR = "#2F9BFF"  # a reporting weather station; not a risk colour
 STALE_COLOUR = "#E9ECEF"  # a station without a reading in 30 min
@@ -38,13 +34,6 @@ SEED_META = Path(__file__).resolve().parent / "nvdb_seed.json"  # written by fet
 DEFAULT_SEGMENT = json.loads(SEED_META.read_text())["default_segment"] if SEED_META.exists() else ""
 MOCK_NOTE = "Mock data: a synthetic storm morning, always relative to now. Not real observations."
 SOURCES_NOTE = "Sources: Statens vegvesen (NLOD), MET Norway (CC BY 4.0). Not an official warning service."
-
-# Human labels for risk_drivers.factor (04_M3 T3.4 factor names)
-FACTOR_LABEL = (
-    "CASE {col} WHEN 'surface_temp' THEN 'Surface temperature' WHEN 'air_temp' THEN 'Air temperature' "
-    "WHEN 'dew_point_spread' THEN 'Close to dew point' WHEN 'precipitation' THEN 'Precipitation' "
-    "WHEN 'temp_trend_1h' THEN 'Cooling, last hour' ELSE {col} END"
-)
 
 # One label per segment, shared by every road-detail dataset so one filter drives the whole page
 SEGMENT_CTE = (
@@ -1054,10 +1043,7 @@ def check(d: dict[str, Any]) -> None:
 FETCH_URL = (
     "{{FETCH_URL}}"  # deploy.py puts the gold job's page here; its "Run now" fetches and rebuilds gold
 )
-PENDING = "Pending Live Data"
 LIVE_NOTE = "Live data from DATEX road weather, fetched every 4 hours or on demand."
-# A fetch every 4 h: "reporting" means the station was in the newest fetch, not in the clock's last 30 min
-NEWEST_FETCH = "(SELECT max(event_time) FROM v_observations)"
 
 # (widget name, title, why) of the widgets that have no real source yet (docs/gold-from-team-silver.md B7)
 PENDING_WIDGETS = {
@@ -1068,81 +1054,90 @@ PENDING_WIDGETS = {
     "rules-table": ("Expectations today", "no data-quality rules in silver yet"),
 }
 
-
-def _swap(sql: str, old: str, new: str, count: int = 1) -> str:
-    assert sql.count(old) == count, (old, sql.count(old))
-    return sql.replace(old, new)
-
-
-def live_datasets() -> dict[str, tuple[str, str]]:
-    ds = dict(DATASETS)
-    recent = "timestampadd(MINUTE, -30, current_timestamp())"
-    for name, n in (("ds_kpi", 1), ("ds_map", 1), ("ds_stations", 2)):
-        title, sql = ds[name]
-        ds[name] = (title, _swap(sql, recent, f"timestampadd(MINUTE, -30, {NEWEST_FETCH})", n))
-    # every station on the map, also those without a risk row (silent, or not in DATEX): road from v_stations
-    title, sql = ds["ds_map"]
-    sql = _swap(
-        sql,
-        "SELECT s.road, st.latitude, st.longitude,",
-        "SELECT st.road, st.latitude, st.longitude,",
-    )
-    sql = _swap(
-        sql,
-        """JOIN road_segment_current_risk r ON r.station_id = st.station_id
-JOIN v_segments s ON s.road_segment_id = r.road_segment_id
-""",
-        "LEFT JOIN road_segment_current_risk r ON r.station_id = st.station_id\n",
-    )
-    ds["ds_map"] = (title, _swap(sql, "GROUP BY s.road, st.latitude", "GROUP BY st.road, st.latitude"))
-    title, sql = ds["ds_priority"]
-    ds["ds_priority"] = (
-        title,
-        _swap(sql, "timestampadd(HOUR, -3, current_timestamp())", f"timestampadd(HOUR, -3, {NEWEST_FETCH})"),
-    )
-    title, sql = ds["ds_rd_header"]
-    ds["ds_rd_header"] = (
-        title,
-        _swap(
-            sql,
-            "r.temperature_change_1h AS change_1h_c,",
-            "r.temperature_change_1h AS change_1h_c,\n"
-            "       coalesce(concat(CASE WHEN r.temperature_change_1h > 0 THEN '+' ELSE '' END,\n"
-            f"                       round(r.temperature_change_1h, 1), ' in 1 h'), 'trend: {PENDING}')"
-            " AS change_label,",
-        ),
-    )
-    title, sql = ds["ds_rd_types"]
-    ds["ds_rd_types"] = (title, _swap(sql, "'after the MVP'", f"'{PENDING}'", 2))
-    # x is the measurement time: the first gold run scores old readings too, all with the same risk_updated_at
-    title, sql = ds["ds_rd_history"]
-    sql = _swap(sql, "SELECT seg.segment, h.risk_updated_at,", "SELECT seg.segment, h.event_time,")
-    sql = _swap(sql, "WHERE h.risk_updated_at >= ", "WHERE h.event_time >= ")
-    ds["ds_rd_history"] = (title, _swap(sql, "ORDER BY h.risk_updated_at", "ORDER BY h.event_time"))
-    title, sql = ds["ds_rd_readings"]
-    ds["ds_rd_readings"] = (
-        title,
-        _swap(sql, "initcap(road_surface_state)", f"coalesce(initcap(road_surface_state), '{PENDING}')"),
-    )
-    title, sql = ds["ds_freshness"]
-    ds["ds_freshness"] = (
-        title,
-        _swap(
-            sql,
-            "rows_last_24h, quarantined_last_24h",
-            "rows_last_24h, "
-            f"coalesce(CAST(quarantined_last_24h AS STRING), '{PENDING}') AS quarantined_last_24h",
-        ),
-    )
-    ds["ds_health_kpi"] = (
-        "Health KPIs",
-        """SELECT median(timestampdiff(SECOND, event_time, risk_updated_at)) AS latency_median_s
-FROM road_segment_risk_history
+# The live datasets read the plot-ready gold tables (frostsight.serving, built after every fetch): one table
+# each, no joins. Only what depends on the viewer's clock is computed here.
+MINUTES_SINCE = "timestampdiff(MINUTE, {col}, current_timestamp())"
+LIVE_DATASETS: dict[str, tuple[str, str]] = {
+    "ds_kpi": (
+        "KPIs",
+        f"SELECT *, {MINUTES_SINCE.format(col='risk_updated_at')} AS data_age_minutes FROM kpi_summary",
+    ),
+    "ds_map": (
+        "Road risk",
+        "SELECT lat, lon, layer, road, place, icing_score FROM map_points ORDER BY draw_order",
+    ),
+    "ds_stations": (
+        "Stations",
+        f"""SELECT name, status_label, station_status,
+       {MINUTES_SINCE.format(col="last_event_time")} AS minutes_since
+FROM station_status
+ORDER BY station_status DESC, name""",
+    ),
+    "ds_incidents": (
+        "Active incidents",
+        """SELECT start_time, incident_type, severity, road_ref, description
+FROM road_incidents
+WHERE start_time <= current_timestamp() AND (end_time IS NULL OR end_time > current_timestamp())
+ORDER BY start_time DESC""",
+    ),
+    "ds_rd_header": (
+        "Segment",
+        f"""SELECT segment, icing_score, risk_level, surface_c, change_label, air_c, station_name,
+       {MINUTES_SINCE.format(col="risk_updated_at")} AS updated_minutes_ago
+FROM segment_detail""",
+    ),
+    "ds_rd_drivers": (
+        "Drivers",
+        "SELECT segment, factor, contribution FROM segment_drivers ORDER BY contribution DESC",
+    ),
+    "ds_rd_types": (
+        "Risk per type",
+        "SELECT segment, risk_type, level, score, note FROM segment_risk_types ORDER BY sort_key",
+    ),
+    "ds_rd_history": (
+        "Last 24 hours",
+        """SELECT segment, event_time, icing_score, surface_c
+FROM segment_history
 WHERE event_time >= timestampadd(HOUR, -24, current_timestamp())
-  AND coalesce(_batch_id, '') NOT LIKE 'replay:%'""",
-    )
-    del ds["ds_quarantine_today"], ds["ds_dq_rules"]
-    return ds
+ORDER BY event_time""",
+    ),
+    "ds_rd_readings": (
+        "Station readings",
+        "SELECT segment, reading, value FROM segment_readings ORDER BY sort_key",
+    ),
+    "ds_rd_incidents": (
+        "Incidents on this road",
+        """SELECT segment, start_time, incident_type, severity,
+       CASE WHEN start_time <= current_timestamp() AND (end_time IS NULL OR end_time > current_timestamp())
+            THEN 'Active' ELSE 'Closed' END AS state,
+       description
+FROM segment_incidents
+WHERE start_time >= timestampadd(HOUR, -48, current_timestamp())
+ORDER BY start_time DESC""",
+    ),
+    "ds_priority": (
+        "Priority",
+        f"""SELECT rank, road, place, level, risk_level, icing_score, surface_c, precip, main_drivers,
+       {MINUTES_SINCE.format(col="risk_updated_at")} AS updated_minutes_ago
+FROM priority_list
+ORDER BY rank""",
+    ),
+    # freshness is judged against the viewer's clock, so a stopped job shows STALE
+    "ds_freshness": (
+        "Freshness",
+        f"""SELECT source,
+       CASE WHEN last_event_time IS NULL THEN '⚪ NO_DATA'
+            WHEN {MINUTES_SINCE.format(col="last_event_time")} > threshold_min THEN '🔴 STALE'
+            ELSE '🟢 FRESH' END AS status_label,
+       {MINUTES_SINCE.format(col="last_event_time")} AS delay_min, threshold_min, last_event_time,
+       rows_last_24h,
+       coalesce(CAST(quarantined_last_24h AS STRING), '{PENDING}') AS quarantined_last_24h
+FROM data_quality_summary
+ORDER BY status_label, source""",
+    ),
+    "ds_health_kpi": ("Health KPIs", "SELECT latency_median_s FROM kpi_summary"),
+    "ds_freshness_trend": DATASETS["ds_freshness_trend"],
+}
 
 
 def pending(name: str, title: str, why: str) -> dict[str, Any]:
@@ -1193,7 +1188,7 @@ def live_dashboard() -> dict[str, Any]:
     d = dashboard()
     d["datasets"] = [
         {"name": name, "displayName": display, "queryLines": [line + "\n" for line in sql.splitlines()]}
-        for name, (display, sql) in live_datasets().items()
+        for name, (display, sql) in LIVE_DATASETS.items()
     ]
     for p in d["pages"]:
         for item in p["layout"]:

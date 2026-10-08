@@ -28,7 +28,8 @@ M6 T6.2 to T6.4, adapted to the silver tables that exist today rather than the o
 ## 2. What the dashboard needs, and where it comes from
 
 The dashboard (`tools/mock_dashboards/frostsight_demo.lvdash.json`) reads 16 datasets built on the objects
-below. Column lists are the mock's, which match 07_M6 T6.4.
+below. Column lists are the mock's, which match 07_M6 T6.4. (The live dashboard reads the
+plot-ready tables of section 4a instead.)
 
 | Gold object | Feeds | Source today | Have it? |
 |---|---|---|---|
@@ -51,7 +52,7 @@ one snapshot), the road network (not loaded), precipitation type, road surface s
 |---|---|---|---|---|
 | B1 | Ingestion job has no schedule | history, trends, freshness, everything "live" | Sani | Schedule road weather and incidents every 10 min. Reference sources (NVDB, elevation, county) daily, as a separate job, to stay inside the Free Edition quota |
 | B2 | Silver road weather keeps only the newest bronze snapshot | history, `temperature_change_1h` and `_3h`, 24 h charts | Sani | In `datex_road_weather`: drop `.limit(1)`, parse every bronze row, keep the existing dedup on `(station_id, event_time)`. Same change for `datex_incidents`, deduping on `(incident_id, incident_version)`. Bronze already appends every snapshot (about 440 KB each, about 63 MB/day), so history back to the first load comes for free. Later: process only bronze rows newer than the last run and `MERGE` |
-| B3 | No road segments, road points or station-to-segment lookup in silver | map, road detail, every join from station to segment | Rayhan (05_M4 T4.5, T4.6) | Interim: load the NVDB reference data already committed in `tools/mock_dashboards/nvdb_seed.sql` (real NVDB roads, segments and stations, NLOD) into `silver.nvdb_seed_roads`, `_road_points`, `_segments`, `_stations`. The names say what they are; when the reference job lands, only the gold views move to its tables |
+| B3 | No road segments, road points or station-to-segment lookup in silver | map, road detail, every join from station to segment | Rayhan (05_M4 T4.5, T4.6) | Interim: load the NVDB reference data already committed in `tools/mock_dashboards/nvdb_seed.sql` (real NVDB roads, segments and stations, NLOD) into `silver.nvdb_seed_roads`, `_road_points`, `_segments`, `_stations`. The names say what they are; when the reference job lands, only the plot-ready table SQL (`frostsight.serving`) moves to its tables |
 | B4 | `precipitation_type` is `UNKNOWN` on every row | precipitation factor: a flat 0.2 x 0.20 = +0.04 on every segment | Safiul | Infer it in gold when the source says `UNKNOWN`: intensity 0 → `NONE`; else air ≤ 0.5 °C → `SNOW`, ≤ 1.5 °C → `SLEET`, else `RAIN`. Keep the source value when it is known. Mark inferred rows (`precipitation_type_inferred = true`). Needs your yes, because it changes the v0 model inputs (04_M3 T3.4) |
 | B5 | No road surface state in DATEX `WeatherSimple_v2` | one row in the road detail "Readings" table | Safiul | The row reads "Pending Live Data". No guessing |
 | B6 | `is_active` always false; one situation = several rows; severity has `HIGHEST`; no segment | incident table, `incident_summary` | Safiul | In gold: active = `start_time <= now AND (end_time IS NULL OR end_time > now)`; count situations, not rows; rank `HIGHEST > HIGH > LOW > NONE/UNKNOWN`; map to the nearest lookup segment on the same road (`E8` ↔ `E8`, `F91` ↔ `Fv91`) within 5 km, otherwise `road_segment_id` NULL (still listed, not on a segment). Troms only |
@@ -80,7 +81,7 @@ silver.nvdb_seed_stations ────────┼─ build_gold (every 4 h, 
 silver.datex_incidents_silver ────┤   Fetch now), Troms, risk v0  ├─ gold.road_segment_risk_history     (insert-only on segment, event_time, _batch_id)
 silver.met_locationforecast ──────┘                              ├─ gold.road_incidents, incident_summary (overwrite)
                                                                  └─ gold.data_quality_summary (+ _history)
-silver.nvdb_seed_* + gold tables ── gold views (v_segments, v_road_network, v_road_points, v_stations, v_observations, v_incidents)
+silver.nvdb_seed_* + the gold tables above ── plot-ready gold tables (section 4a), rebuilt last in every run
 ```
 
 - **Risk** is v0 exactly as 06_M5 T5.1 and T5.3 define it, and exactly what the mock computes: weights
@@ -99,6 +100,29 @@ silver.nvdb_seed_* + gold tables ── gold views (v_segments, v_road_network, 
   have no reading in their band, so the trend factor scores 0 and the dashboard says "Pending Live Data" for it.
   A station is "reporting" if it was in the newest fetch (within 30 min of its newest reading), not by the clock.
 - **Station names** come from the NVDB seed (they match the DATEX `location_description` minus the road prefix).
+
+## 4a. Plot-ready gold tables
+
+Decision (8 Oct 2026): the dashboard does no joins or aggregation at read time. After every fetch the gold job
+rebuilds one small table per widget group (`src/frostsight/serving.py`, `CREATE OR REPLACE TABLE ... AS
+SELECT`, atomic), and each live dataset is a select on one table. Only what depends on the viewer's clock stays
+in the dashboard query: minutes ago, data age, whether an incident is still active, freshness delay and status
+(so a stopped job shows STALE). `tests/unit/test_serving.py` fails if a live dataset reads more than one table.
+
+| Table | Feeds | Grain |
+|---|---|---|
+| `station_status` | station list, station dots, station counters | one row per NVDB station |
+| `map_points` | risk map (road points coloured by the covering station within 5 km on its own road, plus stations) | one row per point |
+| `segment_detail` | road detail header, segment filter | one row per segment with a current risk |
+| `segment_drivers`, `segment_risk_types`, `segment_readings` | road detail bar and tables | rows per segment |
+| `segment_history` | road detail 24 h lines | one row per segment and reading |
+| `segment_incidents` | incidents on the segment's road | one row per segment and incident |
+| `priority_list` | gritting priority bar, filters and table | one row per segment, ranked |
+| `kpi_summary` | risk-map counters, latency | one row |
+
+`road_incidents`, `data_quality_summary` and `_history` are read as they are; they already have one row per
+plotted item. These tables go beyond the gold list of the spec (section 7.3); they are the dashboard's serving
+layer and can be rebuilt from the core gold tables at any time. The `v_*` gold views of 07_M6 T6.4 are not used.
 
 ## 5. Tasks (as built)
 
@@ -126,11 +150,10 @@ clustered as in the 06_M5 decision table.
 Verified on 8 Oct: log 24, current 20, history 22, incidents 26 rows after the first run; after a full run
 (ingestion, then gold) log 46 and history 42; a gold-only rerun on the same snapshot left both unchanged.
 
-### G4 Gold views
-Done: `src/sql/002_gold_views.sql`: `v_segments`, `v_road_network`, `v_road_points`, `v_stations` (with `road` and
-`road_segment_id`, so stations without risk still show on the map), `v_observations` (over the log,
-`road_surface_state` NULL), `v_incidents` (active by time). No `v_quarantine` or `v_dq_events`: their widgets
-say "Pending Live Data".
+### G4 Plot-ready gold tables
+Done: `src/frostsight/serving.py` (section 4a), built last by `build_gold`. They replaced the `v_*` gold views
+of the first version, which were dropped. Verified: the old live map, priority and station queries and the new
+tables return the same rows (EXCEPT ALL both ways, 0 rows).
 
 ### G5 Bundle job
 Done: `resources/gold.job.yml`, job `gold`, task `build_gold` (serverless, wheel), cron `0 0 0/4 * * ?` UTC,
@@ -141,8 +164,8 @@ longer set it (00_README section 2 updated).
 
 ### G6 Dashboard on gold
 Done: `build_dashboard.py` writes `frostsight_live.lvdash.json` next to the demo JSON (demo unchanged byte for
-byte); `deploy.py --dashboard live` creates the views, sets the Fetch now link, tests every dataset and publishes
-"FrostSight (live)".
+byte); `deploy.py --dashboard live` checks the plot-ready tables exist, sets the Fetch now link, tests every dataset and
+publishes "FrostSight (live)". Each live dataset is a single-table select (section 4a).
 
 ### G7 Ask the silver owner (B1, B2)
 Open: a note to Sani with the two notebook changes. The gold job now runs the ingestion job every 4 h, which
@@ -176,7 +199,7 @@ covers B1 for the sources it fetches.
 |---|---|
 | Gold job `[dev safiul_kabir] frostsight-gold` | `databricks bundle deploy -t free`; tasks `ingest` (the team's job) then `build_gold`; cron `0 0 0/4 * * ?` UTC |
 | Reference seed | `uv run python tools/mock_dashboards/deploy.py --profile frostsight-free --dashboard live --load-reference` (once) |
-| Gold views | `src/sql/002_gold_views.sql`, run by the same `deploy.py --dashboard live` |
+| Plot-ready tables | built by the gold job after every fetch (`frostsight.serving`) |
 | Live dashboard | `deploy.py --profile frostsight-free --dashboard live --share users`; id in `.dashboard_id.frostsight-free.live` |
 | First full run (Fetch now path) | 8 Oct 16:14 UTC: ingestion 14 min, gold 1 min, both SUCCESS; road weather FRESH (19 min), incidents STALE (B9) |
 | Spark versus Python check | every `road_segment_current_risk` row recomputed with `frostsight.risk` in Python: 20 of 20 equal on 8 Oct |

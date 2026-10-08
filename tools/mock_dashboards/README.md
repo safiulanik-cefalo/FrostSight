@@ -12,7 +12,7 @@ timestamp is relative to now, so the dashboard always looks live.
 | `nvdb_seed.sql` | Generated: road lines and points every 300 m, stations, their nearest segment, mock incidents |
 | `mock_data.sql` | Synthetic readings, the v0 risk, freshness and quality numbers, and the views the dashboard reads |
 | `build_dashboard.py` | Writes `frostsight_demo.lvdash.json` and the live variant `frostsight_live.lvdash.json`; edit this, not the JSON |
-| `deploy.py` | Loads the mock (or, with `--dashboard live`, the gold views), tests every dataset, creates or updates the dashboard and publishes it |
+| `deploy.py` | Loads the mock (demo) or checks the plot-ready gold tables (live), tests every dataset, creates or updates the dashboard and publishes it |
 
 ## Run
 
@@ -32,7 +32,9 @@ dashboard (the id is kept per profile in `.dashboard_id.<profile>`). For the tea
 "FrostSight (live)" is the same four pages on `frostsight.gold`, built by the `gold` job from the team's silver
 tables (`docs/gold-from-team-silver.md`). Differences from the demo: a station is stale if it was not in the
 newest fetch (fetches are 4 h apart); every widget without a real source yet reads "Pending Live Data"; each page
-header has a "⟳ Fetch now" link to the gold job, whose "Run now" fetches the sources and rebuilds gold.
+header has a "⟳ Fetch now" link to the gold job, whose "Run now" fetches the sources and rebuilds gold. Each live
+dataset is a select on one plot-ready gold table (`src/frostsight/serving.py`), rebuilt after every fetch; only
+"minutes ago", data age, freshness and "still active" are computed at query time.
 
 ```bash
 databricks bundle deploy -t free                      # the gold job, every 4 h

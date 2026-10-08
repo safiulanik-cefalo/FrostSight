@@ -3,7 +3,8 @@
 Reads the Troms rows of silver.datex_road_weather_silver and silver.datex_incidents_silver, which hold only
 the newest snapshot (B2), so gold keeps its own append-only copy of every reading it sees
 (gold.road_weather_observation_log) until silver keeps history. Then: trends, risk v0, current risk per
-segment, insert-only risk history, incidents on the monitored roads, freshness.
+segment, insert-only risk history, incidents on the monitored roads, freshness, and last the plot-ready
+tables the live dashboard reads (frostsight.serving), so its datasets are single-table selects.
 
 The road network and the station-to-segment lookup are the interim silver.nvdb_seed_* tables (B3), loaded by
 tools/mock_dashboards/deploy.py --dashboard live --load-reference.
@@ -21,6 +22,7 @@ from frostsight.config import risk_config
 from frostsight.freshness import freshness_status_expr
 from frostsight.incidents import place_incidents, severity_rank_expr
 from frostsight.risk import infer_precipitation_expr, with_risk
+from frostsight.serving import serving_tables
 from frostsight.windows import with_trends
 
 spark = SparkSession.builder.getOrCreate()
@@ -55,7 +57,8 @@ GOLD_DDL = {
     "road_segment_risk_history": CURRENT_DDL + ", _batch_id STRING",
     "road_incidents": """
         incident_id STRING, incident_version STRING, situation_id STRING, incident_type STRING,
-        severity STRING, road_ref STRING, road_number STRING, road_segment_id STRING, start_time TIMESTAMP,
+        severity STRING, road_ref STRING, road_key STRING, road_number STRING, road_segment_id STRING,
+        start_time TIMESTAMP,
         end_time TIMESTAMP, description STRING, latitude DOUBLE, longitude DOUBLE, snapshot_time TIMESTAMP""",
     "incident_summary": """
         road_segment_id STRING, active_incidents INT, incident_types ARRAY<STRING>, max_severity STRING,
@@ -88,10 +91,12 @@ def merge(df: DataFrame, table: str, keys: list[str], insert_only: bool = False)
 
 
 def overwrite(df: DataFrame, table: str) -> None:
-    """INSERT OVERWRITE keeps the table's CLUSTER BY, unlike an overwrite saveAsTable."""
-    view = "_overwrite_" + table.rsplit(".", 1)[-1]
-    df.createOrReplaceTempView(view)
-    spark.sql(f"INSERT OVERWRITE {table} SELECT * FROM {view}")
+    """Replace a table rebuilt on every run, keeping its CLUSTER BY; a new column needs no migration."""
+    name = table.rsplit(".", 1)[-1]
+    df.createOrReplaceTempView(f"_overwrite_{name}")
+    spark.sql(
+        f"CREATE OR REPLACE TABLE {table} CLUSTER BY ({CLUSTER[name]}) AS SELECT * FROM _overwrite_{name}"
+    )
 
 
 def log_snapshot(catalog: str, cfg: dict) -> DataFrame:
@@ -162,6 +167,7 @@ def build_incidents(catalog: str) -> None:
     )
     placed = place_incidents(inc, points, segments, STATION_COVERAGE_M).select(
         "incident_id", "incident_version", "situation_id", "incident_type", "severity", "road_ref",
+        "road_key",
         F.regexp_extract("road_ref", r"(\d+)", 1).alias("road_number"), "road_segment_id", "start_time",
         "end_time", "description", F.col("lat").alias("latitude"), F.col("lon").alias("longitude"),
         F.col("bronze_ingestion_timestamp").alias("snapshot_time"),
@@ -240,6 +246,16 @@ def build_freshness(catalog: str, stale_after_min: int, forecast_threshold_min: 
     )
 
 
+def build_serving(catalog: str, current_window_min: int) -> list[str]:
+    """The plot-ready tables, in order (each may read the ones before it). CREATE OR REPLACE is atomic, so the
+    dashboard sees the previous fetch or the new one, never a half-built table."""
+    names = []
+    for name, select in serving_tables(catalog, current_window_min, STATION_COVERAGE_M / 1000):
+        spark.sql(f"CREATE OR REPLACE TABLE {catalog}.gold.{name} AS {select}")
+        names.append(name)
+    return names
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--catalog", default="frostsight")
@@ -265,8 +281,9 @@ def main() -> None:
     build_risk(a.catalog, cfg, a.current_window_min)
     build_incidents(a.catalog)
     build_freshness(a.catalog, a.stale_after_min, a.forecast_threshold_min)
+    serving = build_serving(a.catalog, a.current_window_min)
     for t in ("road_weather_observation_log", "road_segment_current_risk", "road_segment_risk_history",
-              "road_incidents", "incident_summary"):  # fmt: skip
+              "road_incidents", "incident_summary", *serving):  # fmt: skip
         print(f"gold.{t}: {spark.read.table(f'{a.catalog}.gold.{t}').count()} rows")
 
 

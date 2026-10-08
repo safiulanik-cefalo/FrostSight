@@ -4,208 +4,96 @@
    "name": "ds_kpi",
    "displayName": "KPIs",
    "queryLines": [
-    "WITH risk AS (\n",
-    "  SELECT count(*) AS segments_total,\n",
-    "         sum(CASE WHEN risk_level IN ('HIGH', 'VERY_HIGH') THEN 1 ELSE 0 END) AS segments_high,\n",
-    "         sum(CASE WHEN risk_level = 'VERY_HIGH' THEN 1 ELSE 0 END) AS segments_very_high,\n",
-    "         timestampdiff(MINUTE, max(risk_updated_at), current_timestamp()) AS data_age_minutes\n",
-    "  FROM road_segment_current_risk),\n",
-    "inc AS (SELECT coalesce(sum(active_incidents), 0) AS active_incidents FROM incident_summary),\n",
-    "st AS (\n",
-    "  SELECT count(*) AS stations_total,\n",
-    "         sum(CASE WHEN last_event_time >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations)) THEN 1 ELSE 0 END)\n",
-    "           AS stations_reporting\n",
-    "  FROM (SELECT s.station_id, max(o.event_time) AS last_event_time\n",
-    "        FROM v_stations s\n",
-    "        LEFT JOIN v_observations o\n",
-    "          ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
-    "        GROUP BY s.station_id))\n",
-    "SELECT * FROM risk, inc, st\n"
+    "SELECT *, timestampdiff(MINUTE, risk_updated_at, current_timestamp()) AS data_age_minutes FROM kpi_summary\n"
    ]
   },
   {
    "name": "ds_map",
    "displayName": "Road risk",
    "queryLines": [
-    "WITH risk AS (\n",
-    "  SELECT s.road, st.name AS place, st.latitude AS st_lat, st.longitude AS st_lon,\n",
-    "         r.risk_level, round(r.icing_score, 2) AS icing_score\n",
-    "  FROM road_segment_current_risk r\n",
-    "  JOIN v_segments s USING (road_segment_id)\n",
-    "  JOIN v_stations st ON st.station_id = r.station_id),\n",
-    "nearest AS (\n",
-    "  SELECT p.road, p.line_no, p.seq, p.latitude AS lat, p.longitude AS lon,\n",
-    "         k.place, k.risk_level, k.icing_score,\n",
-    "         111.2 * sqrt(power(p.latitude - k.st_lat, 2)\n",
-    "                      + power((p.longitude - k.st_lon) * cos(radians(p.latitude)), 2)) AS station_km\n",
-    "  FROM v_road_points p\n",
-    "  LEFT JOIN risk k ON k.road = p.road\n",
-    "  QUALIFY row_number() OVER (PARTITION BY p.road, p.line_no, p.seq ORDER BY station_km) = 1)\n",
-    "SELECT road, lat, lon,\n",
-    "       CASE WHEN station_km <= 5 THEN risk_level ELSE 'Road' END AS layer,\n",
-    "       CASE WHEN station_km <= 5 THEN place END AS place,\n",
-    "       CASE WHEN station_km <= 5 THEN icing_score END AS icing_score,\n",
-    "       CASE WHEN station_km > 5 OR station_km IS NULL THEN 0\n",
-    "            WHEN risk_level = 'VERY_HIGH' THEN 4 WHEN risk_level = 'HIGH' THEN 3\n",
-    "            WHEN risk_level = 'MEDIUM' THEN 2 ELSE 1 END AS draw_order\n",
-    "FROM nearest\n",
-    "UNION ALL\n",
-    "SELECT st.road, st.latitude, st.longitude,\n",
-    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations)) THEN 'Station'\n",
-    "            ELSE 'Station (stale)' END,\n",
-    "       st.name, round(r.icing_score, 2), 9\n",
-    "FROM v_stations st\n",
-    "LEFT JOIN road_segment_current_risk r ON r.station_id = st.station_id\n",
-    "LEFT JOIN v_observations o\n",
-    "  ON o.station_id = st.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
-    "GROUP BY st.road, st.latitude, st.longitude, st.name, r.icing_score\n",
-    "ORDER BY draw_order\n"
+    "SELECT lat, lon, layer, road, place, icing_score FROM map_points ORDER BY draw_order\n"
    ]
   },
   {
    "name": "ds_stations",
    "displayName": "Stations",
    "queryLines": [
-    "SELECT s.station_id, s.name, s.latitude AS lat, s.longitude AS lon,\n",
-    "       max(o.event_time) AS last_event_time,\n",
-    "       timestampdiff(MINUTE, max(o.event_time), current_timestamp()) AS minutes_since,\n",
-    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations))\n",
-    "            THEN 'Reporting' ELSE 'Stale' END AS station_status,\n",
-    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations))\n",
-    "            THEN '🟢 Reporting' ELSE '⚪ Stale' END AS status_label\n",
-    "FROM v_stations s\n",
-    "LEFT JOIN v_observations o\n",
-    "  ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
-    "GROUP BY s.station_id, s.name, s.latitude, s.longitude\n",
-    "ORDER BY station_status DESC, s.name\n"
+    "SELECT name, status_label, station_status,\n",
+    "       timestampdiff(MINUTE, last_event_time, current_timestamp()) AS minutes_since\n",
+    "FROM station_status\n",
+    "ORDER BY station_status DESC, name\n"
    ]
   },
   {
    "name": "ds_incidents",
    "displayName": "Active incidents",
    "queryLines": [
-    "SELECT i.start_time, i.incident_type, i.severity, i.road_ref, i.description, i.road_segment_id\n",
-    "FROM v_incidents i\n",
-    "WHERE i.is_active\n",
-    "ORDER BY i.start_time DESC\n"
+    "SELECT start_time, incident_type, severity, road_ref, description\n",
+    "FROM road_incidents\n",
+    "WHERE start_time <= current_timestamp() AND (end_time IS NULL OR end_time > current_timestamp())\n",
+    "ORDER BY start_time DESC\n"
    ]
   },
   {
    "name": "ds_rd_header",
    "displayName": "Segment",
    "queryLines": [
-    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
-    "SELECT seg.segment, seg.road_segment_id, seg.station_name, r.risk_level,\n",
-    "       round(r.icing_score, 2) AS icing_score,\n",
-    "       r.road_surface_temperature_c AS surface_c, r.air_temperature_c AS air_c,\n",
-    "       r.temperature_change_1h AS change_1h_c,\n",
-    "       coalesce(concat(CASE WHEN r.temperature_change_1h > 0 THEN '+' ELSE '' END,\n",
-    "                       round(r.temperature_change_1h, 1), ' in 1 h'), 'trend: Pending Live Data') AS change_label,\n",
-    "       timestampdiff(MINUTE, r.risk_updated_at, current_timestamp()) AS updated_minutes_ago\n",
-    "FROM road_segment_current_risk r JOIN seg USING (road_segment_id)\n"
+    "SELECT segment, icing_score, risk_level, surface_c, change_label, air_c, station_name,\n",
+    "       timestampdiff(MINUTE, risk_updated_at, current_timestamp()) AS updated_minutes_ago\n",
+    "FROM segment_detail\n"
    ]
   },
   {
    "name": "ds_rd_drivers",
    "displayName": "Drivers",
    "queryLines": [
-    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id),\n",
-    "d AS (SELECT road_segment_id, explode(risk_drivers) AS drv FROM road_segment_current_risk)\n",
-    "SELECT seg.segment, CASE d.drv.factor WHEN 'surface_temp' THEN 'Surface temperature' WHEN 'air_temp' THEN 'Air temperature' WHEN 'dew_point_spread' THEN 'Close to dew point' WHEN 'precipitation' THEN 'Precipitation' WHEN 'temp_trend_1h' THEN 'Cooling, last hour' ELSE d.drv.factor END AS factor,\n",
-    "       round(d.drv.contribution, 3) AS contribution\n",
-    "FROM d JOIN seg USING (road_segment_id)\n",
-    "ORDER BY contribution DESC\n"
+    "SELECT segment, factor, contribution FROM segment_drivers ORDER BY contribution DESC\n"
    ]
   },
   {
    "name": "ds_rd_types",
    "displayName": "Risk per type",
    "queryLines": [
-    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
-    "SELECT seg.segment, 1 AS sort_key, 'Icing' AS risk_type, CASE r.risk_level WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END AS level,\n",
-    "       round(r.icing_score, 2) AS score,\n",
-    "       'live' AS note\n",
-    "FROM road_segment_current_risk r JOIN seg USING (road_segment_id)\n",
-    "UNION ALL SELECT segment, 2, 'Closure', NULL, NULL, 'Pending Live Data' FROM seg\n",
-    "UNION ALL SELECT segment, 3, 'Accident', NULL, NULL, 'Pending Live Data' FROM seg\n",
-    "ORDER BY sort_key\n"
+    "SELECT segment, risk_type, level, score, note FROM segment_risk_types ORDER BY sort_key\n"
    ]
   },
   {
    "name": "ds_rd_history",
    "displayName": "Last 24 hours",
    "queryLines": [
-    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
-    "SELECT seg.segment, h.event_time, h.icing_score, h.risk_level, h.road_surface_temperature_c AS surface_c,\n",
-    "       h.air_temperature_c AS air_c\n",
-    "FROM road_segment_risk_history h JOIN seg USING (road_segment_id)\n",
-    "WHERE h.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
-    "  AND coalesce(h._batch_id, '') NOT LIKE 'replay:%'\n",
-    "ORDER BY h.event_time\n"
+    "SELECT segment, event_time, icing_score, surface_c\n",
+    "FROM segment_history\n",
+    "WHERE event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "ORDER BY event_time\n"
    ]
   },
   {
    "name": "ds_rd_readings",
    "displayName": "Station readings",
    "queryLines": [
-    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id),\n",
-    "latest AS (\n",
-    "  SELECT seg.segment, o.*\n",
-    "  FROM seg\n",
-    "  JOIN road_segment_current_risk r USING (road_segment_id)\n",
-    "  JOIN v_observations o ON o.station_id = r.station_id\n",
-    "  QUALIFY row_number() OVER (PARTITION BY seg.segment ORDER BY o.event_time DESC) = 1)\n",
-    "SELECT segment, 1 AS sort_key, 'Surface' AS reading,\n",
-    "       concat(round(road_surface_temperature_c, 1), ' °C') AS value\n",
-    "FROM latest\n",
-    "UNION ALL SELECT segment, 2, 'Air', concat(round(air_temperature_c, 1), ' °C') FROM latest\n",
-    "UNION ALL SELECT segment, 3, 'Dew point', concat(round(dew_point_c, 1), ' °C') FROM latest\n",
-    "UNION ALL SELECT segment, 4, 'Precipitation',\n",
-    "                 concat(initcap(precipitation_type), ', ', round(precipitation_intensity_mm_h, 1), ' mm/h')\n",
-    "          FROM latest\n",
-    "UNION ALL SELECT segment, 5, 'Wind', concat(round(wind_speed_ms, 0), ' m/s') FROM latest\n",
-    "UNION ALL SELECT segment, 6, 'Road surface', coalesce(initcap(road_surface_state), 'Pending Live Data') FROM latest\n",
-    "UNION ALL SELECT segment, 7, 'Observed', concat(date_format(event_time, 'HH:mm'), ' UTC') FROM latest\n",
-    "ORDER BY sort_key\n"
+    "SELECT segment, reading, value FROM segment_readings ORDER BY sort_key\n"
    ]
   },
   {
    "name": "ds_rd_incidents",
    "displayName": "Incidents on this road",
    "queryLines": [
-    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
-    "SELECT seg.segment, i.start_time, i.end_time, i.incident_type, i.severity,\n",
-    "       CASE WHEN i.is_active THEN 'Active' ELSE 'Closed' END AS state, i.description\n",
-    "FROM seg JOIN v_incidents i ON i.road_number = seg.road_number\n",
-    "WHERE i.start_time >= timestampadd(HOUR, -48, current_timestamp())\n",
-    "ORDER BY i.start_time DESC\n"
+    "SELECT segment, start_time, incident_type, severity,\n",
+    "       CASE WHEN start_time <= current_timestamp() AND (end_time IS NULL OR end_time > current_timestamp())\n",
+    "            THEN 'Active' ELSE 'Closed' END AS state,\n",
+    "       description\n",
+    "FROM segment_incidents\n",
+    "WHERE start_time >= timestampadd(HOUR, -48, current_timestamp())\n",
+    "ORDER BY start_time DESC\n"
    ]
   },
   {
    "name": "ds_priority",
    "displayName": "Priority",
    "queryLines": [
-    "WITH obs AS (\n",
-    "  SELECT station_id,\n",
-    "         max_by(road_surface_temperature_c, event_time) AS surface_c,\n",
-    "         max_by(precipitation_type, event_time) AS precip\n",
-    "  FROM v_observations\n",
-    "  WHERE event_time >= timestampadd(HOUR, -3, (SELECT max(event_time) FROM v_observations))\n",
-    "  GROUP BY station_id),\n",
-    "ranked AS (\n",
-    "  SELECT r.road_segment_id, s.road, st.name AS place,\n",
-    "         round(r.icing_score, 2) AS icing_score, r.risk_level,\n",
-    "         CASE r.risk_level WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END AS level,\n",
-    "         o.surface_c, initcap(coalesce(o.precip, 'None')) AS precip,\n",
-    "         array_join(transform(r.risk_drivers, d -> CASE d.factor WHEN 'surface_temp' THEN 'Surface temperature' WHEN 'air_temp' THEN 'Air temperature' WHEN 'dew_point_spread' THEN 'Close to dew point' WHEN 'precipitation' THEN 'Precipitation' WHEN 'temp_trend_1h' THEN 'Cooling, last hour' ELSE d.factor END), ', ')\n",
-    "           AS main_drivers,\n",
-    "         timestampdiff(MINUTE, r.risk_updated_at, current_timestamp()) AS updated_minutes_ago\n",
-    "  FROM road_segment_current_risk r\n",
-    "  JOIN v_segments s USING (road_segment_id)\n",
-    "  LEFT JOIN v_stations st ON st.station_id = r.station_id\n",
-    "  LEFT JOIN obs o ON o.station_id = r.station_id)\n",
-    "SELECT row_number() OVER (ORDER BY icing_score DESC, road) AS rank, *\n",
-    "FROM ranked\n",
+    "SELECT rank, road, place, level, risk_level, icing_score, surface_c, precip, main_drivers,\n",
+    "       timestampdiff(MINUTE, risk_updated_at, current_timestamp()) AS updated_minutes_ago\n",
+    "FROM priority_list\n",
     "ORDER BY rank\n"
    ]
   },
@@ -214,22 +102,21 @@
    "displayName": "Freshness",
    "queryLines": [
     "SELECT source,\n",
-    "       CASE status WHEN 'STALE' THEN '🔴 STALE' WHEN 'NO_DATA' THEN '⚪ NO_DATA' ELSE '🟢 FRESH' END\n",
-    "         AS status_label,\n",
-    "       last_event_time, last_successful_ingestion, round(ingestion_delay_min) AS delay_min,\n",
-    "       threshold_min, status, rows_last_24h, coalesce(CAST(quarantined_last_24h AS STRING), 'Pending Live Data') AS quarantined_last_24h\n",
+    "       CASE WHEN last_event_time IS NULL THEN '⚪ NO_DATA'\n",
+    "            WHEN timestampdiff(MINUTE, last_event_time, current_timestamp()) > threshold_min THEN '🔴 STALE'\n",
+    "            ELSE '🟢 FRESH' END AS status_label,\n",
+    "       timestampdiff(MINUTE, last_event_time, current_timestamp()) AS delay_min, threshold_min, last_event_time,\n",
+    "       rows_last_24h,\n",
+    "       coalesce(CAST(quarantined_last_24h AS STRING), 'Pending Live Data') AS quarantined_last_24h\n",
     "FROM data_quality_summary\n",
-    "ORDER BY CASE status WHEN 'STALE' THEN 0 WHEN 'NO_DATA' THEN 1 ELSE 2 END, source\n"
+    "ORDER BY status_label, source\n"
    ]
   },
   {
    "name": "ds_health_kpi",
    "displayName": "Health KPIs",
    "queryLines": [
-    "SELECT median(timestampdiff(SECOND, event_time, risk_updated_at)) AS latency_median_s\n",
-    "FROM road_segment_risk_history\n",
-    "WHERE event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
-    "  AND coalesce(_batch_id, '') NOT LIKE 'replay:%'\n"
+    "SELECT latency_median_s FROM kpi_summary\n"
    ]
   },
   {
