@@ -1,16 +1,24 @@
-"""Load the mock gold layer into a workspace and publish the FrostSight demo dashboard on it.
+"""Publish a FrostSight dashboard: the demo on frostsight.mock, or the live one on frostsight.gold.
 
+Demo (default):
 1. Runs nvdb_seed.sql (real roads and stations) and mock_data.sql one statement at a time on a SQL warehouse
    (creates or replaces frostsight.mock).
-2. Runs every dataset of frostsight_demo.lvdash.json against frostsight.mock and prints its row count,
-   as the dashboard skill requires before a deploy.
-3. Creates the dashboard (or updates the one recorded in .dashboard_id.<profile>) and publishes it.
+Live (--dashboard live, docs/gold-from-team-silver.md):
+1. With --load-reference, loads the roads, segments, road points and stations of nvdb_seed.sql into
+   silver.nvdb_seed_* (the interim reference data, B3). Then creates the gold views
+   (src/sql/002_gold_views.sql); the gold job (resources/gold.job.yml) must have run once, because it
+   creates the gold tables.
+Both:
+2. Runs every dataset of the dashboard JSON against its schema and prints the row count, as the dashboard
+   skill requires before a deploy.
+3. Creates the dashboard (or updates the one recorded in .dashboard_id.<profile>[.live]) and publishes it.
+   The live JSON's "Fetch now" link is set to the gold job's page in this workspace.
 4. With --share GROUP, gives that workspace group CAN_RUN on the dashboard.
 
-Nothing outside frostsight.mock and the one dashboard is touched. Personal workspace by default.
+Personal workspace by default.
 
 Run: uv run python tools/mock_dashboards/deploy.py [--profile NAME] [--warehouse-id ID] [--setup]
-     [--share GROUP]
+     [--dashboard demo|live] [--load-reference] [--share GROUP]
 """
 
 from __future__ import annotations
@@ -29,9 +37,15 @@ REPO = HERE.parents[1]
 SEED_SQL = HERE / "nvdb_seed.sql"  # written by fetch_nvdb.py
 MOCK_SQL = HERE / "mock_data.sql"
 SETUP_SQL = REPO / "sql" / "001_catalog_schemas_volume.sql"
-DASHBOARD_JSON = HERE / "frostsight_demo.lvdash.json"
-CATALOG, SCHEMA = "frostsight", "mock"
-DISPLAY_NAME = "FrostSight demo (mock data)"
+VIEWS_SQL = REPO / "src" / "sql" / "002_gold_views.sql"
+CATALOG = "frostsight"
+# variant: (dashboard JSON, schema, display name, state-file suffix)
+VARIANTS = {
+    "demo": (HERE / "frostsight_demo.lvdash.json", "mock", "FrostSight demo (mock data)", ""),
+    "live": (HERE / "frostsight_live.lvdash.json", "gold", "FrostSight (live)", ".live"),
+}
+GOLD_JOB = "frostsight-gold"  # resources/gold.job.yml; development mode may prefix the name
+REFERENCE_TABLES = ("roads", "road_points", "segments", "stations")
 WAREHOUSE_NAME = "Serverless Starter Warehouse"  # databricks.yml default for warehouse_name
 
 
@@ -123,13 +137,58 @@ def load_mock(profile: str, wh: str, setup: bool) -> None:
                     sys.exit(f"{path.name} statement {i} failed:\n{s[:300]}\n{error(res)}")
         finally:
             tmp.unlink(missing_ok=True)
-    print(f"loaded {CATALOG}.{SCHEMA}")
+    print(f"loaded {CATALOG}.mock")
 
 
-def test_datasets(profile: str, wh: str, dashboard: dict[str, Any]) -> None:
+def run_script(path: Path, profile: str, wh: str, rewrite: Any = None) -> None:
+    for i, s in enumerate(statements(path), 1):
+        s = rewrite(s) if rewrite else s
+        if s is None:
+            continue
+        res = run_sql(s, profile, wh)
+        if not ok(res):
+            sys.exit(f"{path.name} statement {i} failed:\n{s[:300]}\n{error(res)}")
+
+
+def load_reference(profile: str, wh: str) -> None:
+    """The real NVDB roads, segments, points and stations of nvdb_seed.sql into silver.nvdb_seed_* (B3)."""
+
+    def to_silver(stmt: str) -> str | None:
+        if "seed_incidents" in stmt or "CREATE SCHEMA" in stmt:  # mock incidents are not reference data
+            return None
+        return stmt.replace(f"{CATALOG}.mock.seed_", f"{CATALOG}.silver.nvdb_seed_")
+
+    run_script(SEED_SQL, profile, wh, to_silver)
+    for t in REFERENCE_TABLES:
+        comment = (
+            "Interim reference data: real NVDB data (NLOD) from tools/mock_dashboards/nvdb_seed.sql; "
+            "replaced by the reference job (05_M4 T4.6). docs/gold-from-team-silver.md B3"
+        )
+        run_sql(f"COMMENT ON TABLE {CATALOG}.silver.nvdb_seed_{t} IS '{comment}'", profile, wh)
+    print(f"loaded {CATALOG}.silver.nvdb_seed_{{{','.join(REFERENCE_TABLES)}}}")
+
+
+def create_gold_views(profile: str, wh: str) -> None:
+    if not ok(run_sql(f"DESCRIBE TABLE {CATALOG}.gold.road_weather_observation_log", profile, wh)):
+        sys.exit("gold tables are missing: run the gold job once (databricks bundle run gold -t <target>).")
+    run_script(VIEWS_SQL, profile, wh)
+    print(f"created the gold views ({VIEWS_SQL.relative_to(REPO)})")
+
+
+def fetch_url(profile: str, host: str) -> str:
+    """The gold job's page: its "Run now" fetches the sources and rebuilds gold."""
+    jobs = [j for j in cli(["jobs", "list"], profile) if j["settings"]["name"].endswith(GOLD_JOB)]
+    if not jobs:
+        sys.exit(
+            f"job '{GOLD_JOB}' not found: deploy the bundle first (databricks bundle deploy -t <target>)."
+        )
+    return f"{host}/jobs/{jobs[0]['job_id']}"
+
+
+def test_datasets(profile: str, wh: str, dashboard: dict[str, Any], schema: str) -> None:
     failed = []
     for ds in dashboard["datasets"]:
-        res = run_sql("".join(ds["queryLines"]), profile, wh, schema=SCHEMA)
+        res = run_sql("".join(ds["queryLines"]), profile, wh, schema=schema)
         if ok(res):
             rows = res.get("manifest", {}).get("total_row_count", 0)
             print(f"  {ds['name']:<22} {rows:>5} rows{'   <- empty' if rows == 0 else ''}")
@@ -140,8 +199,9 @@ def test_datasets(profile: str, wh: str, dashboard: dict[str, Any]) -> None:
         sys.exit(f"{len(failed)} dataset(s) failed; fix them before deploying: {', '.join(failed)}")
 
 
-def deploy(profile: str, wh: str, dashboard: dict[str, Any]) -> str:
-    state = HERE / f".dashboard_id.{profile}"  # one dashboard per workspace
+def deploy(profile: str, wh: str, dashboard: dict[str, Any], variant: str) -> str:
+    _, schema, display_name, suffix = VARIANTS[variant]
+    state = HERE / f".dashboard_id.{profile}{suffix}"  # one dashboard per workspace and variant
     serialized = json.dumps(dashboard)
     common = [
         "--warehouse-id",
@@ -149,9 +209,9 @@ def deploy(profile: str, wh: str, dashboard: dict[str, Any]) -> str:
         "--dataset-catalog",
         CATALOG,
         "--dataset-schema",
-        SCHEMA,
+        schema,
         "--display-name",
-        DISPLAY_NAME,
+        display_name,
         "--serialized-dashboard",
         serialized,
     ]
@@ -195,22 +255,31 @@ def main() -> None:
     p.add_argument("--profile", default="frostsight-personal")
     p.add_argument("--warehouse-id", default=None)
     p.add_argument("--setup", action="store_true", help="run sql/001_catalog_schemas_volume.sql first")
-    p.add_argument("--skip-load", action="store_true", help="keep frostsight.mock as it is")
+    p.add_argument("--skip-load", action="store_true", help="demo: keep frostsight.mock as it is")
+    p.add_argument("--dashboard", choices=sorted(VARIANTS), default="demo")
+    p.add_argument("--load-reference", action="store_true", help="live: load silver.nvdb_seed_* first")
     p.add_argument("--share", metavar="GROUP", help="give this workspace group CAN_RUN, e.g. users")
     a = p.parse_args()
 
     wh = pick_warehouse(a.profile, a.warehouse_id)
-    if not a.skip_load:
-        load_mock(a.profile, wh, a.setup)
-    dashboard = json.loads(DASHBOARD_JSON.read_text())
-    print("datasets against frostsight.mock:")
-    test_datasets(a.profile, wh, dashboard)
-    dashboard_id = deploy(a.profile, wh, dashboard)
-    if a.share:
-        share(a.profile, dashboard_id, a.share)
     host = (
         cli(["auth", "env"], a.profile).get("env", {}).get("DATABRICKS_HOST", "<workspace host>").rstrip("/")
     )
+    path, schema, _, _ = VARIANTS[a.dashboard]
+    text = path.read_text()
+    if a.dashboard == "live":
+        if a.load_reference:
+            load_reference(a.profile, wh)
+        create_gold_views(a.profile, wh)
+        text = text.replace("{{FETCH_URL}}", fetch_url(a.profile, host))
+    elif not a.skip_load:
+        load_mock(a.profile, wh, a.setup)
+    dashboard = json.loads(text)
+    print(f"datasets against {CATALOG}.{schema}:")
+    test_datasets(a.profile, wh, dashboard, schema)
+    dashboard_id = deploy(a.profile, wh, dashboard, a.dashboard)
+    if a.share:
+        share(a.profile, dashboard_id, a.share)
     print(f"draft:     {host}/sql/dashboardsv3/{dashboard_id}")
     print(f"published: {host}/sql/dashboardsv3/{dashboard_id}/published")
 

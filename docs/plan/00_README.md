@@ -81,11 +81,13 @@ Rules that follow from the table:
 | `pipeline_development` | `true` | `true` | `true` | `false` |
 | `notification_email` | the team admin | | | |
 | `config_dir` | `${workspace.file_path}/config` | | | |
+| `ingest_job_id` | `""` | `lookup: job: "frostsight ingestion and transformation job"` (the team's notebook job, run first by `gold`; docs/gold-from-team-silver.md) | unused | unused |
 | `slack_destination_id` | `""` (S2 only, 11_S2 S2.2.3; used only if the workspace offers notification destinations) | the destination id | `""` | the destination id |
 
-Targets: all three use `mode: development`. `free` and `aws` set `presets: { name_prefix: "", trigger_pause_status: UNPAUSED }`
-so resource names are stable and schedules run; `personal` keeps the default `[dev <user>]` prefix and paused
-schedules. The collector job exists only on `aws`, declared under `targets.aws.resources.jobs`. Jobs import
+Targets: all three use `mode: development`. `free` and `aws` set `presets: { name_prefix: "" }`; every job sets
+`pause_status: ${var.schedule_pause_status}` on its schedule, so schedules run there and stay paused on `personal`.
+(`trigger_pause_status: UNPAUSED` is rejected with `mode: development` since CLI 1.19, and development mode still
+adds the `[dev <user>]` prefix when `name_prefix` is empty, checked 8 Oct 2026.) The collector job exists only on `aws`, declared under `targets.aws.resources.jobs`. Jobs import
 `frostsight` from a wheel built by the bundle `artifacts` block; the pipeline uses `root_path: ../src` (details in 05_M4).
 
 ## 3. Repository layout

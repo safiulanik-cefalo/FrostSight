@@ -1,0 +1,2154 @@
+{
+ "datasets": [
+  {
+   "name": "ds_kpi",
+   "displayName": "KPIs",
+   "queryLines": [
+    "WITH risk AS (\n",
+    "  SELECT count(*) AS segments_total,\n",
+    "         sum(CASE WHEN risk_level IN ('HIGH', 'VERY_HIGH') THEN 1 ELSE 0 END) AS segments_high,\n",
+    "         sum(CASE WHEN risk_level = 'VERY_HIGH' THEN 1 ELSE 0 END) AS segments_very_high,\n",
+    "         timestampdiff(MINUTE, max(risk_updated_at), current_timestamp()) AS data_age_minutes\n",
+    "  FROM road_segment_current_risk),\n",
+    "inc AS (SELECT coalesce(sum(active_incidents), 0) AS active_incidents FROM incident_summary),\n",
+    "st AS (\n",
+    "  SELECT count(*) AS stations_total,\n",
+    "         sum(CASE WHEN last_event_time >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations)) THEN 1 ELSE 0 END)\n",
+    "           AS stations_reporting\n",
+    "  FROM (SELECT s.station_id, max(o.event_time) AS last_event_time\n",
+    "        FROM v_stations s\n",
+    "        LEFT JOIN v_observations o\n",
+    "          ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "        GROUP BY s.station_id))\n",
+    "SELECT * FROM risk, inc, st\n"
+   ]
+  },
+  {
+   "name": "ds_map",
+   "displayName": "Road risk",
+   "queryLines": [
+    "WITH risk AS (\n",
+    "  SELECT s.road, st.name AS place, st.latitude AS st_lat, st.longitude AS st_lon,\n",
+    "         r.risk_level, round(r.icing_score, 2) AS icing_score\n",
+    "  FROM road_segment_current_risk r\n",
+    "  JOIN v_segments s USING (road_segment_id)\n",
+    "  JOIN v_stations st ON st.station_id = r.station_id),\n",
+    "nearest AS (\n",
+    "  SELECT p.road, p.line_no, p.seq, p.latitude AS lat, p.longitude AS lon,\n",
+    "         k.place, k.risk_level, k.icing_score,\n",
+    "         111.2 * sqrt(power(p.latitude - k.st_lat, 2)\n",
+    "                      + power((p.longitude - k.st_lon) * cos(radians(p.latitude)), 2)) AS station_km\n",
+    "  FROM v_road_points p\n",
+    "  LEFT JOIN risk k ON k.road = p.road\n",
+    "  QUALIFY row_number() OVER (PARTITION BY p.road, p.line_no, p.seq ORDER BY station_km) = 1)\n",
+    "SELECT road, lat, lon,\n",
+    "       CASE WHEN station_km <= 5 THEN risk_level ELSE 'Road' END AS layer,\n",
+    "       CASE WHEN station_km <= 5 THEN place END AS place,\n",
+    "       CASE WHEN station_km <= 5 THEN icing_score END AS icing_score,\n",
+    "       CASE WHEN station_km > 5 OR station_km IS NULL THEN 0\n",
+    "            WHEN risk_level = 'VERY_HIGH' THEN 4 WHEN risk_level = 'HIGH' THEN 3\n",
+    "            WHEN risk_level = 'MEDIUM' THEN 2 ELSE 1 END AS draw_order\n",
+    "FROM nearest\n",
+    "UNION ALL\n",
+    "SELECT st.road, st.latitude, st.longitude,\n",
+    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations)) THEN 'Station'\n",
+    "            ELSE 'Station (stale)' END,\n",
+    "       st.name, round(r.icing_score, 2), 9\n",
+    "FROM v_stations st\n",
+    "LEFT JOIN road_segment_current_risk r ON r.station_id = st.station_id\n",
+    "LEFT JOIN v_observations o\n",
+    "  ON o.station_id = st.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "GROUP BY st.road, st.latitude, st.longitude, st.name, r.icing_score\n",
+    "ORDER BY draw_order\n"
+   ]
+  },
+  {
+   "name": "ds_stations",
+   "displayName": "Stations",
+   "queryLines": [
+    "SELECT s.station_id, s.name, s.latitude AS lat, s.longitude AS lon,\n",
+    "       max(o.event_time) AS last_event_time,\n",
+    "       timestampdiff(MINUTE, max(o.event_time), current_timestamp()) AS minutes_since,\n",
+    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations))\n",
+    "            THEN 'Reporting' ELSE 'Stale' END AS station_status,\n",
+    "       CASE WHEN max(o.event_time) >= timestampadd(MINUTE, -30, (SELECT max(event_time) FROM v_observations))\n",
+    "            THEN '🟢 Reporting' ELSE '⚪ Stale' END AS status_label\n",
+    "FROM v_stations s\n",
+    "LEFT JOIN v_observations o\n",
+    "  ON o.station_id = s.station_id AND o.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "GROUP BY s.station_id, s.name, s.latitude, s.longitude\n",
+    "ORDER BY station_status DESC, s.name\n"
+   ]
+  },
+  {
+   "name": "ds_incidents",
+   "displayName": "Active incidents",
+   "queryLines": [
+    "SELECT i.start_time, i.incident_type, i.severity, i.road_ref, i.description, i.road_segment_id\n",
+    "FROM v_incidents i\n",
+    "WHERE i.is_active\n",
+    "ORDER BY i.start_time DESC\n"
+   ]
+  },
+  {
+   "name": "ds_rd_header",
+   "displayName": "Segment",
+   "queryLines": [
+    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
+    "SELECT seg.segment, seg.road_segment_id, seg.station_name, r.risk_level,\n",
+    "       round(r.icing_score, 2) AS icing_score,\n",
+    "       r.road_surface_temperature_c AS surface_c, r.air_temperature_c AS air_c,\n",
+    "       r.temperature_change_1h AS change_1h_c,\n",
+    "       coalesce(concat(CASE WHEN r.temperature_change_1h > 0 THEN '+' ELSE '' END,\n",
+    "                       round(r.temperature_change_1h, 1), ' in 1 h'), 'trend: Pending Live Data') AS change_label,\n",
+    "       timestampdiff(MINUTE, r.risk_updated_at, current_timestamp()) AS updated_minutes_ago\n",
+    "FROM road_segment_current_risk r JOIN seg USING (road_segment_id)\n"
+   ]
+  },
+  {
+   "name": "ds_rd_drivers",
+   "displayName": "Drivers",
+   "queryLines": [
+    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id),\n",
+    "d AS (SELECT road_segment_id, explode(risk_drivers) AS drv FROM road_segment_current_risk)\n",
+    "SELECT seg.segment, CASE d.drv.factor WHEN 'surface_temp' THEN 'Surface temperature' WHEN 'air_temp' THEN 'Air temperature' WHEN 'dew_point_spread' THEN 'Close to dew point' WHEN 'precipitation' THEN 'Precipitation' WHEN 'temp_trend_1h' THEN 'Cooling, last hour' ELSE d.drv.factor END AS factor,\n",
+    "       round(d.drv.contribution, 3) AS contribution\n",
+    "FROM d JOIN seg USING (road_segment_id)\n",
+    "ORDER BY contribution DESC\n"
+   ]
+  },
+  {
+   "name": "ds_rd_types",
+   "displayName": "Risk per type",
+   "queryLines": [
+    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
+    "SELECT seg.segment, 1 AS sort_key, 'Icing' AS risk_type, CASE r.risk_level WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END AS level,\n",
+    "       round(r.icing_score, 2) AS score,\n",
+    "       'live' AS note\n",
+    "FROM road_segment_current_risk r JOIN seg USING (road_segment_id)\n",
+    "UNION ALL SELECT segment, 2, 'Closure', NULL, NULL, 'Pending Live Data' FROM seg\n",
+    "UNION ALL SELECT segment, 3, 'Accident', NULL, NULL, 'Pending Live Data' FROM seg\n",
+    "ORDER BY sort_key\n"
+   ]
+  },
+  {
+   "name": "ds_rd_history",
+   "displayName": "Last 24 hours",
+   "queryLines": [
+    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
+    "SELECT seg.segment, h.event_time, h.icing_score, h.risk_level, h.road_surface_temperature_c AS surface_c,\n",
+    "       h.air_temperature_c AS air_c\n",
+    "FROM road_segment_risk_history h JOIN seg USING (road_segment_id)\n",
+    "WHERE h.event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "  AND coalesce(h._batch_id, '') NOT LIKE 'replay:%'\n",
+    "ORDER BY h.event_time\n"
+   ]
+  },
+  {
+   "name": "ds_rd_readings",
+   "displayName": "Station readings",
+   "queryLines": [
+    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id),\n",
+    "latest AS (\n",
+    "  SELECT seg.segment, o.*\n",
+    "  FROM seg\n",
+    "  JOIN road_segment_current_risk r USING (road_segment_id)\n",
+    "  JOIN v_observations o ON o.station_id = r.station_id\n",
+    "  QUALIFY row_number() OVER (PARTITION BY seg.segment ORDER BY o.event_time DESC) = 1)\n",
+    "SELECT segment, 1 AS sort_key, 'Surface' AS reading,\n",
+    "       concat(round(road_surface_temperature_c, 1), ' °C') AS value\n",
+    "FROM latest\n",
+    "UNION ALL SELECT segment, 2, 'Air', concat(round(air_temperature_c, 1), ' °C') FROM latest\n",
+    "UNION ALL SELECT segment, 3, 'Dew point', concat(round(dew_point_c, 1), ' °C') FROM latest\n",
+    "UNION ALL SELECT segment, 4, 'Precipitation',\n",
+    "                 concat(initcap(precipitation_type), ', ', round(precipitation_intensity_mm_h, 1), ' mm/h')\n",
+    "          FROM latest\n",
+    "UNION ALL SELECT segment, 5, 'Wind', concat(round(wind_speed_ms, 0), ' m/s') FROM latest\n",
+    "UNION ALL SELECT segment, 6, 'Road surface', coalesce(initcap(road_surface_state), 'Pending Live Data') FROM latest\n",
+    "UNION ALL SELECT segment, 7, 'Observed', concat(date_format(event_time, 'HH:mm'), ' UTC') FROM latest\n",
+    "ORDER BY sort_key\n"
+   ]
+  },
+  {
+   "name": "ds_rd_incidents",
+   "displayName": "Incidents on this road",
+   "queryLines": [
+    "WITH seg AS (SELECT r.road_segment_id, s.road, s.road_number, st.name AS station_name, concat(s.road, ' · ', coalesce(st.name, r.road_segment_id)) AS segment FROM road_segment_current_risk r JOIN v_segments s USING (road_segment_id) LEFT JOIN v_stations st ON st.station_id = r.station_id)\n",
+    "SELECT seg.segment, i.start_time, i.end_time, i.incident_type, i.severity,\n",
+    "       CASE WHEN i.is_active THEN 'Active' ELSE 'Closed' END AS state, i.description\n",
+    "FROM seg JOIN v_incidents i ON i.road_number = seg.road_number\n",
+    "WHERE i.start_time >= timestampadd(HOUR, -48, current_timestamp())\n",
+    "ORDER BY i.start_time DESC\n"
+   ]
+  },
+  {
+   "name": "ds_priority",
+   "displayName": "Priority",
+   "queryLines": [
+    "WITH obs AS (\n",
+    "  SELECT station_id,\n",
+    "         max_by(road_surface_temperature_c, event_time) AS surface_c,\n",
+    "         max_by(precipitation_type, event_time) AS precip\n",
+    "  FROM v_observations\n",
+    "  WHERE event_time >= timestampadd(HOUR, -3, (SELECT max(event_time) FROM v_observations))\n",
+    "  GROUP BY station_id),\n",
+    "ranked AS (\n",
+    "  SELECT r.road_segment_id, s.road, st.name AS place,\n",
+    "         round(r.icing_score, 2) AS icing_score, r.risk_level,\n",
+    "         CASE r.risk_level WHEN 'VERY_HIGH' THEN '🔴 VERY_HIGH' WHEN 'HIGH' THEN '🟠 HIGH' WHEN 'MEDIUM' THEN '🟡 MEDIUM' WHEN 'LOW' THEN '🟢 LOW' END AS level,\n",
+    "         o.surface_c, initcap(coalesce(o.precip, 'None')) AS precip,\n",
+    "         array_join(transform(r.risk_drivers, d -> CASE d.factor WHEN 'surface_temp' THEN 'Surface temperature' WHEN 'air_temp' THEN 'Air temperature' WHEN 'dew_point_spread' THEN 'Close to dew point' WHEN 'precipitation' THEN 'Precipitation' WHEN 'temp_trend_1h' THEN 'Cooling, last hour' ELSE d.factor END), ', ')\n",
+    "           AS main_drivers,\n",
+    "         timestampdiff(MINUTE, r.risk_updated_at, current_timestamp()) AS updated_minutes_ago\n",
+    "  FROM road_segment_current_risk r\n",
+    "  JOIN v_segments s USING (road_segment_id)\n",
+    "  LEFT JOIN v_stations st ON st.station_id = r.station_id\n",
+    "  LEFT JOIN obs o ON o.station_id = r.station_id)\n",
+    "SELECT row_number() OVER (ORDER BY icing_score DESC, road) AS rank, *\n",
+    "FROM ranked\n",
+    "ORDER BY rank\n"
+   ]
+  },
+  {
+   "name": "ds_freshness",
+   "displayName": "Freshness",
+   "queryLines": [
+    "SELECT source,\n",
+    "       CASE status WHEN 'STALE' THEN '🔴 STALE' WHEN 'NO_DATA' THEN '⚪ NO_DATA' ELSE '🟢 FRESH' END\n",
+    "         AS status_label,\n",
+    "       last_event_time, last_successful_ingestion, round(ingestion_delay_min) AS delay_min,\n",
+    "       threshold_min, status, rows_last_24h, coalesce(CAST(quarantined_last_24h AS STRING), 'Pending Live Data') AS quarantined_last_24h\n",
+    "FROM data_quality_summary\n",
+    "ORDER BY CASE status WHEN 'STALE' THEN 0 WHEN 'NO_DATA' THEN 1 ELSE 2 END, source\n"
+   ]
+  },
+  {
+   "name": "ds_health_kpi",
+   "displayName": "Health KPIs",
+   "queryLines": [
+    "SELECT median(timestampdiff(SECOND, event_time, risk_updated_at)) AS latency_median_s\n",
+    "FROM road_segment_risk_history\n",
+    "WHERE event_time >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "  AND coalesce(_batch_id, '') NOT LIKE 'replay:%'\n"
+   ]
+  },
+  {
+   "name": "ds_freshness_trend",
+   "displayName": "Road-weather delay",
+   "queryLines": [
+    "SELECT computed_at, ingestion_delay_min, threshold_min\n",
+    "FROM data_quality_summary_history\n",
+    "WHERE source = 'road_weather' AND computed_at >= timestampadd(HOUR, -24, current_timestamp())\n",
+    "ORDER BY computed_at\n"
+   ]
+  }
+ ],
+ "pages": [
+  {
+   "name": "risk_map",
+   "displayName": "Risk map",
+   "pageType": "PAGE_TYPE_CANVAS",
+   "layoutVersion": "GRID_V1",
+   "layout": [
+    {
+     "widget": {
+      "name": "map-title",
+      "multilineTextboxSpec": {
+       "lines": [
+        "## FrostSight · Risk map · Troms\n",
+        "\n",
+        "Icing risk per road segment from the newest road-weather readings, every 4 hours. *Live data from DATEX road weather, fetched every 4 hours or on demand.* [**⟳ Fetch now**]({{FETCH_URL}})\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-high",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_kpi",
+         "fields": [
+          {
+           "name": "segments_high",
+           "expression": "`segments_high`"
+          },
+          {
+           "name": "segments_total",
+           "expression": "`segments_total`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "segments_high",
+         "displayName": "Segments HIGH or above",
+         "formatTemplate": "{{@formatted}} of {{segments_total}}"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Segments HIGH or above"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 2,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-very-high",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_kpi",
+         "fields": [
+          {
+           "name": "segments_very_high",
+           "expression": "`segments_very_high`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "segments_very_high",
+         "displayName": "VERY_HIGH"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "VERY_HIGH"
+       }
+      }
+     },
+     "position": {
+      "x": 3,
+      "y": 2,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-stations",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_kpi",
+         "fields": [
+          {
+           "name": "stations_reporting",
+           "expression": "`stations_reporting`"
+          },
+          {
+           "name": "stations_total",
+           "expression": "`stations_total`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "stations_reporting",
+         "displayName": "Stations reporting",
+         "formatTemplate": "{{@formatted}} of {{stations_total}}"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Stations reporting"
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 2,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-age",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_kpi",
+         "fields": [
+          {
+           "name": "data_age_minutes",
+           "expression": "`data_age_minutes`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "data_age_minutes",
+         "displayName": "Data age",
+         "formatTemplate": "{{@formatted}} min",
+         "format": {
+          "type": "number-plain"
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Data age"
+       }
+      }
+     },
+     "position": {
+      "x": 9,
+      "y": 2,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "map-risk",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_map",
+         "fields": [
+          {
+           "name": "lat",
+           "expression": "`lat`"
+          },
+          {
+           "name": "lon",
+           "expression": "`lon`"
+          },
+          {
+           "name": "layer",
+           "expression": "`layer`"
+          },
+          {
+           "name": "road",
+           "expression": "`road`"
+          },
+          {
+           "name": "place",
+           "expression": "`place`"
+          },
+          {
+           "name": "icing_score",
+           "expression": "`icing_score`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "symbol-map",
+       "encodings": {
+        "coordinates": {
+         "latitude": {
+          "fieldName": "lat"
+         },
+         "longitude": {
+          "fieldName": "lon"
+         }
+        },
+        "color": {
+         "fieldName": "layer",
+         "displayName": "",
+         "scale": {
+          "type": "categorical",
+          "mappings": [
+           {
+            "value": "LOW",
+            "color": "#4C9A6A"
+           },
+           {
+            "value": "MEDIUM",
+            "color": "#E3B23C"
+           },
+           {
+            "value": "HIGH",
+            "color": "#E07A2F"
+           },
+           {
+            "value": "VERY_HIGH",
+            "color": "#B3261E"
+           },
+           {
+            "value": "Road",
+            "color": "#8A939C"
+           },
+           {
+            "value": "Station",
+            "color": "#2F9BFF"
+           },
+           {
+            "value": "Station (stale)",
+            "color": "#E9ECEF"
+           }
+          ],
+          "sort": {
+           "by": "custom-order",
+           "orderedValues": [
+            "VERY_HIGH",
+            "HIGH",
+            "MEDIUM",
+            "LOW",
+            "Road",
+            "Station",
+            "Station (stale)"
+           ]
+          }
+         }
+        },
+        "extra": [
+         {
+          "fieldName": "place",
+          "displayName": "Station"
+         },
+         {
+          "fieldName": "road",
+          "displayName": "Road"
+         },
+         {
+          "fieldName": "icing_score",
+          "displayName": "Icing score"
+         }
+        ]
+       },
+       "mark": {
+        "opacity": 0.9
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Icing risk on the road network",
+        "description": "Road within 5 km of a station takes its risk. Grey: none. Blue dot: station.",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 5,
+      "width": 8,
+      "height": 10
+     }
+    },
+    {
+     "widget": {
+      "name": "stations-table",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_stations",
+         "fields": [
+          {
+           "name": "name",
+           "expression": "`name`"
+          },
+          {
+           "name": "status_label",
+           "expression": "`status_label`"
+          },
+          {
+           "name": "minutes_since",
+           "expression": "`minutes_since`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "name",
+          "displayName": "Station"
+         },
+         {
+          "fieldName": "status_label",
+          "displayName": "Status"
+         },
+         {
+          "fieldName": "minutes_since",
+          "displayName": "Min ago"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Stations",
+        "description": "Stale: no reading in the last 30 min",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 8,
+      "y": 5,
+      "width": 4,
+      "height": 10
+     }
+    },
+    {
+     "widget": {
+      "name": "incidents-table",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_incidents",
+         "fields": [
+          {
+           "name": "start_time",
+           "expression": "`start_time`"
+          },
+          {
+           "name": "incident_type",
+           "expression": "`incident_type`"
+          },
+          {
+           "name": "severity",
+           "expression": "`severity`"
+          },
+          {
+           "name": "road_ref",
+           "expression": "`road_ref`"
+          },
+          {
+           "name": "description",
+           "expression": "`description`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "start_time",
+          "displayName": "Start (UTC)"
+         },
+         {
+          "fieldName": "incident_type",
+          "displayName": "Type"
+         },
+         {
+          "fieldName": "severity",
+          "displayName": "Severity"
+         },
+         {
+          "fieldName": "road_ref",
+          "displayName": "Road"
+         },
+         {
+          "fieldName": "description",
+          "displayName": "What"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Active incidents near the monitored roads (DATEX II)"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 15,
+      "width": 12,
+      "height": 4
+     }
+    },
+    {
+     "widget": {
+      "name": "map-footer",
+      "multilineTextboxSpec": {
+       "lines": [
+        "Legend: LOW green, MEDIUM yellow, HIGH orange, VERY_HIGH red. Next: **Road detail** for one segment, **Gritting priority** for the ranked list. Sources: Statens vegvesen (NLOD), MET Norway (CC BY 4.0). Not an official warning service.\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 19,
+      "width": 12,
+      "height": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "road_detail",
+   "displayName": "Road detail",
+   "pageType": "PAGE_TYPE_CANVAS",
+   "layoutVersion": "GRID_V1",
+   "layout": [
+    {
+     "widget": {
+      "name": "detail-title",
+      "multilineTextboxSpec": {
+       "lines": [
+        "## Road detail\n",
+        "\n",
+        "Pick a segment: its risk, why, and what the nearest station measures. *Live data from DATEX road weather, fetched every 4 hours or on demand.* [**⟳ Fetch now**]({{FETCH_URL}})\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "filter-segment",
+      "queries": [
+       {
+        "name": "q_ds_rd_header",
+        "query": {
+         "datasetName": "ds_rd_header",
+         "fields": [
+          {
+           "name": "segment",
+           "expression": "`segment`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "q_ds_rd_drivers",
+        "query": {
+         "datasetName": "ds_rd_drivers",
+         "fields": [
+          {
+           "name": "segment",
+           "expression": "`segment`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "q_ds_rd_types",
+        "query": {
+         "datasetName": "ds_rd_types",
+         "fields": [
+          {
+           "name": "segment",
+           "expression": "`segment`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "q_ds_rd_history",
+        "query": {
+         "datasetName": "ds_rd_history",
+         "fields": [
+          {
+           "name": "segment",
+           "expression": "`segment`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "q_ds_rd_readings",
+        "query": {
+         "datasetName": "ds_rd_readings",
+         "fields": [
+          {
+           "name": "segment",
+           "expression": "`segment`"
+          }
+         ],
+         "disaggregated": false
+        }
+       },
+       {
+        "name": "q_ds_rd_incidents",
+        "query": {
+         "datasetName": "ds_rd_incidents",
+         "fields": [
+          {
+           "name": "segment",
+           "expression": "`segment`"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-single-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "segment",
+          "displayName": "Segment",
+          "queryName": "q_ds_rd_header"
+         },
+         {
+          "fieldName": "segment",
+          "displayName": "Segment",
+          "queryName": "q_ds_rd_drivers"
+         },
+         {
+          "fieldName": "segment",
+          "displayName": "Segment",
+          "queryName": "q_ds_rd_types"
+         },
+         {
+          "fieldName": "segment",
+          "displayName": "Segment",
+          "queryName": "q_ds_rd_history"
+         },
+         {
+          "fieldName": "segment",
+          "displayName": "Segment",
+          "queryName": "q_ds_rd_readings"
+         },
+         {
+          "fieldName": "segment",
+          "displayName": "Segment",
+          "queryName": "q_ds_rd_incidents"
+         }
+        ]
+       },
+       "selection": {
+        "defaultSelection": {
+         "values": {
+          "dataType": "STRING",
+          "values": [
+           {
+            "value": "E8 · Bossovarri"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Segment"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 2,
+      "width": 4,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "detail-hint",
+      "multilineTextboxSpec": {
+       "lines": [
+        "Levels: LOW < 0.25 ≤ MEDIUM < 0.5 ≤ HIGH < 0.75 ≤ VERY_HIGH. Times are UTC. The risk is recomputed after every fetch: every 4 hours, or on **Fetch now**.\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 4,
+      "y": 2,
+      "width": 8,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-icing",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_header",
+         "fields": [
+          {
+           "name": "icing_score",
+           "expression": "`icing_score`"
+          },
+          {
+           "name": "risk_level",
+           "expression": "`risk_level`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "icing_score",
+         "displayName": "Icing score",
+         "formatTemplate": "{{@formatted}} · {{risk_level}}"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Icing score"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-surface",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_header",
+         "fields": [
+          {
+           "name": "surface_c",
+           "expression": "`surface_c`"
+          },
+          {
+           "name": "change_label",
+           "expression": "`change_label`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "surface_c",
+         "displayName": "Surface temperature",
+         "formatTemplate": "{{@formatted}} °C ({{change_label}})"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Surface temperature"
+       }
+      }
+     },
+     "position": {
+      "x": 3,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-air",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_header",
+         "fields": [
+          {
+           "name": "air_c",
+           "expression": "`air_c`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "air_c",
+         "displayName": "Air temperature",
+         "formatTemplate": "{{@formatted}} °C"
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Air temperature"
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-updated",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_header",
+         "fields": [
+          {
+           "name": "updated_minutes_ago",
+           "expression": "`updated_minutes_ago`"
+          },
+          {
+           "name": "station_name",
+           "expression": "`station_name`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "updated_minutes_ago",
+         "displayName": "Updated",
+         "formatTemplate": "{{@formatted}} min ago · {{station_name}}",
+         "format": {
+          "type": "number-plain"
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Updated"
+       }
+      }
+     },
+     "position": {
+      "x": 9,
+      "y": 4,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "drivers-bar",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_drivers",
+         "fields": [
+          {
+           "name": "factor",
+           "expression": "`factor`"
+          },
+          {
+           "name": "contribution",
+           "expression": "`contribution`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "contribution",
+         "displayName": "Share of the score",
+         "scale": {
+          "type": "quantitative"
+         }
+        },
+        "y": {
+         "fieldName": "factor",
+         "displayName": "Driver",
+         "scale": {
+          "type": "categorical"
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Why this level",
+        "description": "Top three factors, weighted (config/risk_weights.yml)",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 7,
+      "width": 6,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "types-table",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_types",
+         "fields": [
+          {
+           "name": "risk_type",
+           "expression": "`risk_type`"
+          },
+          {
+           "name": "level",
+           "expression": "`level`"
+          },
+          {
+           "name": "score",
+           "expression": "`score`"
+          },
+          {
+           "name": "note",
+           "expression": "`note`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "risk_type",
+          "displayName": "Risk"
+         },
+         {
+          "fieldName": "level",
+          "displayName": "Level"
+         },
+         {
+          "fieldName": "score",
+          "displayName": "Score"
+         },
+         {
+          "fieldName": "note",
+          "displayName": "Note"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Risk per type"
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 7,
+      "width": 6,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "history-icing",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_history",
+         "fields": [
+          {
+           "name": "event_time",
+           "expression": "`event_time`"
+          },
+          {
+           "name": "icing_score",
+           "expression": "`icing_score`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "line",
+       "encodings": {
+        "x": {
+         "fieldName": "event_time",
+         "displayName": "Time (UTC)",
+         "scale": {
+          "type": "temporal"
+         }
+        },
+        "y": {
+         "fieldName": "icing_score",
+         "displayName": "Icing score, last 24 h",
+         "scale": {
+          "type": "quantitative"
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Icing score, last 24 h",
+        "description": "0.5 is HIGH, 0.75 VERY_HIGH",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 12,
+      "width": 6,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "history-surface",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_history",
+         "fields": [
+          {
+           "name": "event_time",
+           "expression": "`event_time`"
+          },
+          {
+           "name": "surface_c",
+           "expression": "`surface_c`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "line",
+       "encodings": {
+        "x": {
+         "fieldName": "event_time",
+         "displayName": "Time (UTC)",
+         "scale": {
+          "type": "temporal"
+         }
+        },
+        "y": {
+         "fieldName": "surface_c",
+         "displayName": "Surface temperature, last 24 h",
+         "scale": {
+          "type": "quantitative"
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Surface temperature, last 24 h",
+        "description": "°C at the nearest station",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 12,
+      "width": 6,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "readings-table",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_readings",
+         "fields": [
+          {
+           "name": "reading",
+           "expression": "`reading`"
+          },
+          {
+           "name": "value",
+           "expression": "`value`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "reading",
+          "displayName": "Reading"
+         },
+         {
+          "fieldName": "value",
+          "displayName": "Value"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Nearest station, newest reading"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 17,
+      "width": 4,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "detail-incidents",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_rd_incidents",
+         "fields": [
+          {
+           "name": "start_time",
+           "expression": "`start_time`"
+          },
+          {
+           "name": "incident_type",
+           "expression": "`incident_type`"
+          },
+          {
+           "name": "severity",
+           "expression": "`severity`"
+          },
+          {
+           "name": "state",
+           "expression": "`state`"
+          },
+          {
+           "name": "description",
+           "expression": "`description`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "start_time",
+          "displayName": "Start (UTC)"
+         },
+         {
+          "fieldName": "incident_type",
+          "displayName": "Type"
+         },
+         {
+          "fieldName": "severity",
+          "displayName": "Severity"
+         },
+         {
+          "fieldName": "state",
+          "displayName": "State"
+         },
+         {
+          "fieldName": "description",
+          "displayName": "What"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Incidents on this road, last 48 h"
+       }
+      }
+     },
+     "position": {
+      "x": 4,
+      "y": 17,
+      "width": 8,
+      "height": 5
+     }
+    }
+   ]
+  },
+  {
+   "name": "priority",
+   "displayName": "Gritting priority",
+   "pageType": "PAGE_TYPE_CANVAS",
+   "layoutVersion": "GRID_V1",
+   "layout": [
+    {
+     "widget": {
+      "name": "priority-title",
+      "multilineTextboxSpec": {
+       "lines": [
+        "## Gritting priority\n",
+        "\n",
+        "Ranked by icing score, then road. Filter to the roads in your contract. *Live data from DATEX road weather, fetched every 4 hours or on demand.* [**⟳ Fetch now**]({{FETCH_URL}})\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "filter-road",
+      "queries": [
+       {
+        "name": "q_road",
+        "query": {
+         "datasetName": "ds_priority",
+         "fields": [
+          {
+           "name": "road",
+           "expression": "`road`"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "filter-multi-select",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "road",
+          "displayName": "Road",
+          "queryName": "q_road"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Roads"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 2,
+      "width": 4,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "filter-surface",
+      "queries": [
+       {
+        "name": "q_surface",
+        "query": {
+         "datasetName": "ds_priority",
+         "fields": [
+          {
+           "name": "min(surface_c)",
+           "expression": "MIN(`surface_c`)"
+          },
+          {
+           "name": "max(surface_c)",
+           "expression": "MAX(`surface_c`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "range-slider",
+       "encodings": {
+        "fields": [
+         {
+          "fieldName": "surface_c",
+          "queryName": "q_surface"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Surface temperature (°C)"
+       }
+      }
+     },
+     "position": {
+      "x": 4,
+      "y": 2,
+      "width": 4,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "priority-hint",
+      "multilineTextboxSpec": {
+       "lines": [
+        "Rank is county-wide, so a filtered list keeps its gaps. Surface is the newest reading of the last 3 h.\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 8,
+      "y": 2,
+      "width": 4,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "by-road-bar",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_priority",
+         "fields": [
+          {
+           "name": "road",
+           "expression": "`road`"
+          },
+          {
+           "name": "risk_level",
+           "expression": "`risk_level`"
+          },
+          {
+           "name": "count(rank)",
+           "expression": "COUNT(`rank`)"
+          }
+         ],
+         "disaggregated": false
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "bar",
+       "encodings": {
+        "x": {
+         "fieldName": "road",
+         "displayName": "Road",
+         "scale": {
+          "type": "categorical"
+         }
+        },
+        "y": {
+         "fieldName": "count(rank)",
+         "displayName": "Segments",
+         "scale": {
+          "type": "quantitative"
+         }
+        },
+        "color": {
+         "fieldName": "risk_level",
+         "displayName": "Risk level",
+         "scale": {
+          "type": "categorical",
+          "mappings": [
+           {
+            "value": "LOW",
+            "color": "#4C9A6A"
+           },
+           {
+            "value": "MEDIUM",
+            "color": "#E3B23C"
+           },
+           {
+            "value": "HIGH",
+            "color": "#E07A2F"
+           },
+           {
+            "value": "VERY_HIGH",
+            "color": "#B3261E"
+           }
+          ]
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Segments per road and level",
+        "description": "Click a bar to filter the list",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 4,
+      "width": 12,
+      "height": 4
+     }
+    },
+    {
+     "widget": {
+      "name": "priority-table",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_priority",
+         "fields": [
+          {
+           "name": "rank",
+           "expression": "`rank`"
+          },
+          {
+           "name": "road",
+           "expression": "`road`"
+          },
+          {
+           "name": "place",
+           "expression": "`place`"
+          },
+          {
+           "name": "level",
+           "expression": "`level`"
+          },
+          {
+           "name": "icing_score",
+           "expression": "`icing_score`"
+          },
+          {
+           "name": "surface_c",
+           "expression": "`surface_c`"
+          },
+          {
+           "name": "precip",
+           "expression": "`precip`"
+          },
+          {
+           "name": "main_drivers",
+           "expression": "`main_drivers`"
+          },
+          {
+           "name": "updated_minutes_ago",
+           "expression": "`updated_minutes_ago`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "rank",
+          "displayName": "Rank"
+         },
+         {
+          "fieldName": "road",
+          "displayName": "Road"
+         },
+         {
+          "fieldName": "place",
+          "displayName": "Place"
+         },
+         {
+          "fieldName": "level",
+          "displayName": "Level"
+         },
+         {
+          "fieldName": "icing_score",
+          "displayName": "Icing"
+         },
+         {
+          "fieldName": "surface_c",
+          "displayName": "Surface °C"
+         },
+         {
+          "fieldName": "precip",
+          "displayName": "Precipitation"
+         },
+         {
+          "fieldName": "main_drivers",
+          "displayName": "Main drivers"
+         },
+         {
+          "fieldName": "updated_minutes_ago",
+          "displayName": "Min ago"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Segments to grit first"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 8,
+      "width": 12,
+      "height": 10
+     }
+    }
+   ]
+  },
+  {
+   "name": "health",
+   "displayName": "Platform health",
+   "pageType": "PAGE_TYPE_CANVAS",
+   "layoutVersion": "GRID_V1",
+   "layout": [
+    {
+     "widget": {
+      "name": "health-title",
+      "multilineTextboxSpec": {
+       "lines": [
+        "## Platform health\n",
+        "\n",
+        "Is the data fresh, and what did the rules catch today? *Live data from DATEX road weather, fetched every 4 hours or on demand.* [**⟳ Fetch now**]({{FETCH_URL}})\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 2
+     }
+    },
+    {
+     "widget": {
+      "name": "freshness-table",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_freshness",
+         "fields": [
+          {
+           "name": "source",
+           "expression": "`source`"
+          },
+          {
+           "name": "status_label",
+           "expression": "`status_label`"
+          },
+          {
+           "name": "delay_min",
+           "expression": "`delay_min`"
+          },
+          {
+           "name": "threshold_min",
+           "expression": "`threshold_min`"
+          },
+          {
+           "name": "last_event_time",
+           "expression": "`last_event_time`"
+          },
+          {
+           "name": "rows_last_24h",
+           "expression": "`rows_last_24h`"
+          },
+          {
+           "name": "quarantined_last_24h",
+           "expression": "`quarantined_last_24h`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "table",
+       "encodings": {
+        "columns": [
+         {
+          "fieldName": "source",
+          "displayName": "Source"
+         },
+         {
+          "fieldName": "status_label",
+          "displayName": "Status"
+         },
+         {
+          "fieldName": "delay_min",
+          "displayName": "Delay (min)"
+         },
+         {
+          "fieldName": "threshold_min",
+          "displayName": "Threshold (min)"
+         },
+         {
+          "fieldName": "last_event_time",
+          "displayName": "Newest event (UTC)"
+         },
+         {
+          "fieldName": "rows_last_24h",
+          "displayName": "Rows 24 h"
+         },
+         {
+          "fieldName": "quarantined_last_24h",
+          "displayName": "Quarantined 24 h"
+         }
+        ]
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Freshness per source"
+       }
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 2,
+      "width": 12,
+      "height": 4
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-quarantined",
+      "multilineTextboxSpec": {
+       "lines": [
+        "**Quarantined today**\n",
+        "\n",
+        "⏳ Pending Live Data\n",
+        "\n",
+        "*no quarantine tables yet*\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 6,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-unmapped",
+      "multilineTextboxSpec": {
+       "lines": [
+        "**Unmapped observations**\n",
+        "\n",
+        "⏳ Pending Live Data\n",
+        "\n",
+        "*no quarantine tables yet*\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 3,
+      "y": 6,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-latency",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_health_kpi",
+         "fields": [
+          {
+           "name": "latency_median_s",
+           "expression": "`latency_median_s`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 2,
+       "widgetType": "counter",
+       "encodings": {
+        "value": {
+         "fieldName": "latency_median_s",
+         "displayName": "Latency, median",
+         "formatTemplate": "{{@formatted}} s",
+         "format": {
+          "type": "number-plain"
+         }
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Latency, median",
+        "description": "Measurement to risk row, last 24 h",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 6,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "kpi-runs",
+      "multilineTextboxSpec": {
+       "lines": [
+        "**Pipeline runs today**\n",
+        "\n",
+        "⏳ Pending Live Data\n",
+        "\n",
+        "*no pipeline run events yet*\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 9,
+      "y": 6,
+      "width": 3,
+      "height": 3
+     }
+    },
+    {
+     "widget": {
+      "name": "quarantine-bar",
+      "multilineTextboxSpec": {
+       "lines": [
+        "**Quarantined rows today, by rule**\n",
+        "\n",
+        "⏳ Pending Live Data\n",
+        "\n",
+        "*no quarantine tables yet*\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 9,
+      "width": 6,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "freshness-line",
+      "queries": [
+       {
+        "name": "main_query",
+        "query": {
+         "datasetName": "ds_freshness_trend",
+         "fields": [
+          {
+           "name": "computed_at",
+           "expression": "`computed_at`"
+          },
+          {
+           "name": "ingestion_delay_min",
+           "expression": "`ingestion_delay_min`"
+          },
+          {
+           "name": "threshold_min",
+           "expression": "`threshold_min`"
+          }
+         ],
+         "disaggregated": true
+        }
+       }
+      ],
+      "spec": {
+       "version": 3,
+       "widgetType": "line",
+       "encodings": {
+        "x": {
+         "fieldName": "computed_at",
+         "displayName": "Time (UTC)",
+         "scale": {
+          "type": "temporal"
+         }
+        },
+        "y": {
+         "scale": {
+          "type": "quantitative"
+         },
+         "fields": [
+          {
+           "fieldName": "ingestion_delay_min",
+           "displayName": "Delay (min)"
+          },
+          {
+           "fieldName": "threshold_min",
+           "displayName": "Threshold"
+          }
+         ]
+        }
+       },
+       "frame": {
+        "showTitle": true,
+        "title": "Road-weather delay, last 24 h",
+        "description": "Above the threshold the source turns STALE",
+        "showDescription": true
+       }
+      }
+     },
+     "position": {
+      "x": 6,
+      "y": 9,
+      "width": 6,
+      "height": 5
+     }
+    },
+    {
+     "widget": {
+      "name": "rules-table",
+      "multilineTextboxSpec": {
+       "lines": [
+        "**Expectations today**\n",
+        "\n",
+        "⏳ Pending Live Data\n",
+        "\n",
+        "*no data-quality rules in silver yet*\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 14,
+      "width": 12,
+      "height": 4
+     }
+    },
+    {
+     "widget": {
+      "name": "health-footer",
+      "multilineTextboxSpec": {
+       "lines": [
+        "Thresholds: 5 h road weather and incidents (a fetch every 4 h while in development), 1 day forecast. Quarantine and rule counts arrive with the silver data-quality rules.\n"
+       ]
+      }
+     },
+     "position": {
+      "x": 0,
+      "y": 18,
+      "width": 12,
+      "height": 1
+     }
+    }
+   ]
+  }
+ ],
+ "uiSettings": {
+  "theme": {
+   "canvasBackgroundColor": {
+    "light": "#F4F6F8",
+    "dark": "#1F272D"
+   },
+   "widgetBackgroundColor": {
+    "light": "#FBFCFD",
+    "dark": "#11171C"
+   },
+   "widgetBorderColor": {
+    "light": "#FBFCFD",
+    "dark": "#11171C"
+   },
+   "fontColor": {
+    "light": "#12233A",
+    "dark": "#E8ECF0"
+   },
+   "selectionColor": {
+    "light": "#2272B4",
+    "dark": "#8ACAFF"
+   },
+   "visualizationColors": [
+    "#2272B4",
+    "#4E5185",
+    "#7FA7C9",
+    "#9AA3AD",
+    "#6C8EAD"
+   ],
+   "widgetHeaderAlignment": "LEFT"
+  }
+ }
+}

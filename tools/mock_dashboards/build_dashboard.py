@@ -1,8 +1,11 @@
-"""Build the FrostSight demo dashboard: one AI/BI dashboard with four pages, as JSON next to this file.
+"""Build the FrostSight dashboards: one AI/BI dashboard with four pages, as JSON next to this file.
 
-The datasets use bare table names, so the same JSON reads `frostsight.mock` (deploy.py) or `frostsight.gold`
-once M6 data exists. Widget shapes follow the databricks-aibi-dashboards skill: counter, table and map v2,
-bar and line v3, filters v2, text as multilineTextboxSpec, every page GRID_V1 with rows that sum to 12.
+Two variants from one definition: the demo on `frostsight.mock` (frostsight_demo.lvdash.json) and the live
+one on `frostsight.gold` (frostsight_live.lvdash.json, docs/gold-from-team-silver.md). The datasets use bare
+table names; deploy.py sets the schema. The live variant changes only what live data needs: staleness relative
+to the newest fetch, "Pending Live Data" where no source exists yet, and a "Fetch now" link to the gold job.
+Widget shapes follow the databricks-aibi-dashboards skill: counter, table and map v2, bar and line v3,
+filters v2, text as multilineTextboxSpec, every page GRID_V1 with rows that sum to 12.
 
 Run: uv run python tools/mock_dashboards/build_dashboard.py
 """
@@ -14,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 OUT = Path(__file__).resolve().parent / "frostsight_demo.lvdash.json"
+LIVE_OUT = Path(__file__).resolve().parent / "frostsight_live.lvdash.json"
 
 LEVEL_COLOURS = {"LOW": "#4C9A6A", "MEDIUM": "#E3B23C", "HIGH": "#E07A2F", "VERY_HIGH": "#B3261E"}
 GREY = "#9AA3AD"
@@ -1045,8 +1049,160 @@ def check(d: dict[str, Any]) -> None:
             cells |= cover
 
 
-if __name__ == "__main__":
+# ---------- live variant ----------
+
+FETCH_URL = (
+    "{{FETCH_URL}}"  # deploy.py puts the gold job's page here; its "Run now" fetches and rebuilds gold
+)
+PENDING = "Pending Live Data"
+LIVE_NOTE = "Live data from DATEX road weather, fetched every 4 hours or on demand."
+# A fetch every 4 h: "reporting" means the station was in the newest fetch, not in the clock's last 30 min
+NEWEST_FETCH = "(SELECT max(event_time) FROM v_observations)"
+
+# (widget name, title, why) of the widgets that have no real source yet (docs/gold-from-team-silver.md B7)
+PENDING_WIDGETS = {
+    "kpi-quarantined": ("Quarantined today", "no quarantine tables yet"),
+    "kpi-unmapped": ("Unmapped observations", "no quarantine tables yet"),
+    "kpi-runs": ("Pipeline runs today", "no pipeline run events yet"),
+    "quarantine-bar": ("Quarantined rows today, by rule", "no quarantine tables yet"),
+    "rules-table": ("Expectations today", "no data-quality rules in silver yet"),
+}
+
+
+def _swap(sql: str, old: str, new: str, count: int = 1) -> str:
+    assert sql.count(old) == count, (old, sql.count(old))
+    return sql.replace(old, new)
+
+
+def live_datasets() -> dict[str, tuple[str, str]]:
+    ds = dict(DATASETS)
+    recent = "timestampadd(MINUTE, -30, current_timestamp())"
+    for name, n in (("ds_kpi", 1), ("ds_map", 1), ("ds_stations", 2)):
+        title, sql = ds[name]
+        ds[name] = (title, _swap(sql, recent, f"timestampadd(MINUTE, -30, {NEWEST_FETCH})", n))
+    # every station on the map, also those without a risk row (silent, or not in DATEX): road from v_stations
+    title, sql = ds["ds_map"]
+    sql = _swap(
+        sql,
+        "SELECT s.road, st.latitude, st.longitude,",
+        "SELECT st.road, st.latitude, st.longitude,",
+    )
+    sql = _swap(
+        sql,
+        """JOIN road_segment_current_risk r ON r.station_id = st.station_id
+JOIN v_segments s ON s.road_segment_id = r.road_segment_id
+""",
+        "LEFT JOIN road_segment_current_risk r ON r.station_id = st.station_id\n",
+    )
+    ds["ds_map"] = (title, _swap(sql, "GROUP BY s.road, st.latitude", "GROUP BY st.road, st.latitude"))
+    title, sql = ds["ds_priority"]
+    ds["ds_priority"] = (
+        title,
+        _swap(sql, "timestampadd(HOUR, -3, current_timestamp())", f"timestampadd(HOUR, -3, {NEWEST_FETCH})"),
+    )
+    title, sql = ds["ds_rd_header"]
+    ds["ds_rd_header"] = (
+        title,
+        _swap(
+            sql,
+            "r.temperature_change_1h AS change_1h_c,",
+            "r.temperature_change_1h AS change_1h_c,\n"
+            "       coalesce(concat(CASE WHEN r.temperature_change_1h > 0 THEN '+' ELSE '' END,\n"
+            f"                       round(r.temperature_change_1h, 1), ' in 1 h'), 'trend: {PENDING}')"
+            " AS change_label,",
+        ),
+    )
+    title, sql = ds["ds_rd_types"]
+    ds["ds_rd_types"] = (title, _swap(sql, "'after the MVP'", f"'{PENDING}'", 2))
+    # x is the measurement time: the first gold run scores old readings too, all with the same risk_updated_at
+    title, sql = ds["ds_rd_history"]
+    sql = _swap(sql, "SELECT seg.segment, h.risk_updated_at,", "SELECT seg.segment, h.event_time,")
+    sql = _swap(sql, "WHERE h.risk_updated_at >= ", "WHERE h.event_time >= ")
+    ds["ds_rd_history"] = (title, _swap(sql, "ORDER BY h.risk_updated_at", "ORDER BY h.event_time"))
+    title, sql = ds["ds_rd_readings"]
+    ds["ds_rd_readings"] = (
+        title,
+        _swap(sql, "initcap(road_surface_state)", f"coalesce(initcap(road_surface_state), '{PENDING}')"),
+    )
+    title, sql = ds["ds_freshness"]
+    ds["ds_freshness"] = (
+        title,
+        _swap(
+            sql,
+            "rows_last_24h, quarantined_last_24h",
+            "rows_last_24h, "
+            f"coalesce(CAST(quarantined_last_24h AS STRING), '{PENDING}') AS quarantined_last_24h",
+        ),
+    )
+    ds["ds_health_kpi"] = (
+        "Health KPIs",
+        """SELECT median(timestampdiff(SECOND, event_time, risk_updated_at)) AS latency_median_s
+FROM road_segment_risk_history
+WHERE event_time >= timestampadd(HOUR, -24, current_timestamp())
+  AND coalesce(_batch_id, '') NOT LIKE 'replay:%'""",
+    )
+    del ds["ds_quarantine_today"], ds["ds_dq_rules"]
+    return ds
+
+
+def pending(name: str, title: str, why: str) -> dict[str, Any]:
+    return text(name, [f"**{title}**\n", "\n", f"⏳ {PENDING}\n", "\n", f"*{why}*\n"])
+
+
+def live_widget(w: dict[str, Any]) -> dict[str, Any]:
+    name = w["name"]
+    if name in PENDING_WIDGETS:
+        return pending(name, *PENDING_WIDGETS[name])
+    if name.endswith("-title"):
+        lines = [
+            line.replace(f"*{MOCK_NOTE}*", f"*{LIVE_NOTE}* [**⟳ Fetch now**]({FETCH_URL})")
+            for line in w["multilineTextboxSpec"]["lines"]
+        ]
+        return text(name, [line.replace("every 10 minutes", "every 4 hours") for line in lines])
+    if name == "detail-hint":
+        return text(
+            name,
+            [
+                "Levels: LOW < 0.25 ≤ MEDIUM < 0.5 ≤ HIGH < 0.75 ≤ VERY_HIGH. Times are UTC. The risk is "
+                "recomputed after every fetch: every 4 hours, or on **Fetch now**.\n"
+            ],
+        )
+    if name == "health-footer":
+        return text(
+            name,
+            [
+                "Thresholds: 5 h road weather and incidents (a fetch every 4 h while in development), "
+                "1 day forecast. Quarantine and rule counts arrive with the silver data-quality rules.\n"
+            ],
+        )
+    if name == "kpi-surface":
+        w = json.loads(json.dumps(w))
+        w["queries"][0]["query"]["fields"] = [field("surface_c"), field("change_label")]
+        w["spec"]["encodings"]["value"]["formatTemplate"] = "{{@formatted}} °C ({{change_label}})"
+        return w
+    if name in ("history-icing", "history-surface"):
+        return json.loads(json.dumps(w).replace("risk_updated_at", "event_time"))
+    if name == "incidents-table":
+        w = json.loads(json.dumps(w))
+        w["spec"]["frame"]["title"] = "Active incidents near the monitored roads (DATEX II)"
+        return w
+    return w
+
+
+def live_dashboard() -> dict[str, Any]:
     d = dashboard()
-    check(d)
-    OUT.write_text(json.dumps(d, indent=1, ensure_ascii=False) + "\n")
-    print(f"wrote {OUT.relative_to(Path.cwd()) if OUT.is_relative_to(Path.cwd()) else OUT}")
+    d["datasets"] = [
+        {"name": name, "displayName": display, "queryLines": [line + "\n" for line in sql.splitlines()]}
+        for name, (display, sql) in live_datasets().items()
+    ]
+    for p in d["pages"]:
+        for item in p["layout"]:
+            item["widget"] = live_widget(item["widget"])
+    return d
+
+
+if __name__ == "__main__":
+    for out, d in ((OUT, dashboard()), (LIVE_OUT, live_dashboard())):
+        check(d)
+        out.write_text(json.dumps(d, indent=1, ensure_ascii=False) + "\n")
+        print(f"wrote {out.relative_to(Path.cwd()) if out.is_relative_to(Path.cwd()) else out}")

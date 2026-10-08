@@ -11,8 +11,8 @@ timestamp is relative to now, so the dashboard always looks live.
 | `fetch_nvdb.py` | Fetches the roads that have a station and the stations themselves from NVDB; writes `nvdb_seed.sql` and `nvdb_seed.json`. Run it again only to refresh them |
 | `nvdb_seed.sql` | Generated: road lines and points every 300 m, stations, their nearest segment, mock incidents |
 | `mock_data.sql` | Synthetic readings, the v0 risk, freshness and quality numbers, and the views the dashboard reads |
-| `build_dashboard.py` | Writes `frostsight_demo.lvdash.json`; edit this, not the JSON |
-| `deploy.py` | Loads the mock, tests every dataset, creates or updates the dashboard and publishes it |
+| `build_dashboard.py` | Writes `frostsight_demo.lvdash.json` and the live variant `frostsight_live.lvdash.json`; edit this, not the JSON |
+| `deploy.py` | Loads the mock (or, with `--dashboard live`, the gold views), tests every dataset, creates or updates the dashboard and publishes it |
 
 ## Run
 
@@ -26,6 +26,23 @@ uv run python tools/mock_dashboards/deploy.py --setup   # --setup runs sql/001 f
 `deploy.py` prints the draft and published links. Run it again after any change; it updates the same
 dashboard (the id is kept per profile in `.dashboard_id.<profile>`). For the team workspace, add
 `--profile frostsight-free --share users` so every workspace user can open it. Remove everything with `DROP SCHEMA frostsight.mock CASCADE` and `databricks lakeview trash <id>`.
+
+## Live dashboard on gold
+
+"FrostSight (live)" is the same four pages on `frostsight.gold`, built by the `gold` job from the team's silver
+tables (`docs/gold-from-team-silver.md`). Differences from the demo: a station is stale if it was not in the
+newest fetch (fetches are 4 h apart); every widget without a real source yet reads "Pending Live Data"; each page
+header has a "⟳ Fetch now" link to the gold job, whose "Run now" fetches the sources and rebuilds gold.
+
+```bash
+databricks bundle deploy -t free                      # the gold job, every 4 h
+uv run python tools/mock_dashboards/deploy.py --profile frostsight-free --dashboard live --load-reference
+databricks bundle run gold -t free                    # once, creates the gold tables
+uv run python tools/mock_dashboards/deploy.py --profile frostsight-free --dashboard live --share users
+```
+
+`--load-reference` (once per workspace) puts the real NVDB roads, segments and stations of `nvdb_seed.sql` into
+`silver.nvdb_seed_*`, the interim reference data until the reference job exists.
 
 ## Demo path (08_M7 T7.8, on mock data)
 

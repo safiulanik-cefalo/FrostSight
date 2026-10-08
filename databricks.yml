@@ -39,6 +39,9 @@ variables:
   config_dir:
     description: Where config/*.yml lands in the workspace
     default: ${workspace.file_path}/config
+  ingest_job_id:
+    description: The team's ingestion job that the gold job runs first; looked up on `free` only
+    default: ""
 
 artifacts:
   frostsight:
@@ -61,7 +64,21 @@ targets:
       profile: frostsight-free
     presets:
       name_prefix: ""
-      trigger_pause_status: UNPAUSED
+      # trigger_pause_status: UNPAUSED is rejected with mode: development (CLI 1.19); every job sets
+      # pause_status: ${var.schedule_pause_status} on its schedule instead, which development mode keeps.
+    variables:
+      ingest_job_id:
+        lookup:
+          job: "frostsight ingestion and transformation job"
+    resources:
+      jobs:
+        gold:                 # resources/gold.job.yml; fetch first, then build gold
+          tasks:
+            - task_key: ingest
+              run_job_task:
+                job_id: ${var.ingest_job_id}
+            - task_key: build_gold
+              depends_on: [ { task_key: ingest } ]
 
   aws:
     mode: development
@@ -69,7 +86,8 @@ targets:
       profile: frostsight-aws
     presets:
       name_prefix: ""
-      trigger_pause_status: UNPAUSED
+      # trigger_pause_status: UNPAUSED is rejected with mode: development (CLI 1.19); every job sets
+      # pause_status: ${var.schedule_pause_status} on its schedule instead, which development mode keeps.
     variables:
       pipeline_development: false
     # The aws-only collector job is added here at M4 (docs/plan/03_M2_foundation.md T2.5).
