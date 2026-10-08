@@ -103,7 +103,7 @@ silver.nvdb_seed_* + the gold tables above ── plot-ready gold tables (sectio
 
 ## 4a. Plot-ready gold tables
 
-Decision (8 Oct 2026): the dashboard does no joins or aggregation at read time. After every fetch the gold job
+Decision (8 Oct 2026, recorded as ADR-0009): the dashboard does no joins or aggregation at read time. After every fetch the gold job
 rebuilds one small table per widget group (`src/frostsight/serving.py`, `CREATE OR REPLACE TABLE ... AS
 SELECT`, atomic), and each live dataset is a select on one table. Only what depends on the viewer's clock stays
 in the dashboard query: minutes ago, data age, whether an incident is still active, freshness delay and status

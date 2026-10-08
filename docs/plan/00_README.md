@@ -177,7 +177,7 @@ docs/adr/                        ADRs; 0001 to 0004 are in the scaffold, 0005 to
 | Silver road-weather flows | `silver.road_weather_observations` is one streaming table fed by two append flows, `road_weather_live` (`_batch_id NOT LIKE 'replay:%'`) and `road_weather_replay` (`LIKE 'replay:%'`), each with its own watermark and dedup state (05_M4 T4.4, 10_S1 D2) | event-log `origin.flow_name` |
 | Bronze tables | as in the spec section 7.1 | `bronze.road_weather_events`, `bronze.road_incident_events`, `bronze.road_network` |
 | Silver tables | as in the spec section 7.2, plus the lookup | `silver.road_weather_observations`, `silver.road_segments`, `silver.station_segment_lookup` |
-| Gold tables | as in the spec section 7.3 | `gold.road_segment_current_risk`, `gold.road_segment_risk_history`, `gold.data_quality_summary` |
+| Gold tables | as in the spec section 7.3, plus the plot-ready tables dashboards read (ADR-0009, `src/frostsight/serving.py`) | `gold.road_segment_current_risk`, `gold.road_segment_risk_history`, `gold.data_quality_summary`, `gold.map_points` |
 | Quarantine tables | `quarantine.invalid_<source>`, `quarantine.unmapped_observations`, `quarantine.schema_errors` | |
 | Metadata columns on every bronze row | `_ingested_at`, `_source`, `_source_file`, `_source_event_id`, `_batch_id`, `_schema_version` | |
 | Bundle resources | `ingest` (pipeline), `orchestrate`, `reference`, `collector` (jobs), `risk_map` etc. (dashboards) | |
