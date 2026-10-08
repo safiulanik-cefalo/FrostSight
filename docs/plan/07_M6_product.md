@@ -287,10 +287,10 @@ Why: the risk map shows the main road network, colours the road each station cov
 
 Do:
 1. Nothing new to compute in silver for the segments: `geometry_wkt_4326` (2D WGS84 line) and `centroid_lat`, `centroid_lon` are written by the reference job at load time (05_M4 T4.6, `build_road_segments`). If the table on your target predates the centroid change, run `databricks bundle run reference -t free --profile frostsight-free` once; the MERGE fills the two columns for every segment.
-2. `gold.v_segments` (T6.4 step 2) exposes `ST_GeomFromText(geometry_wkt_4326, 4326) AS geometry` beside the centroids, for the path map. It is cheap and only computed when a dataset selects the column.
+2. `gold.v_segments` (T6.4 step 2) exposes `ST_GeomFromText(geometry_wkt_4326, 4326) AS geometry` beside the centroids, for the path map. It is cheap and only computed when a dataset selects the column. (ADR-0009: for a live dashboard, the path-map geometry becomes a column of a plot-ready table in `src/frostsight/serving.py`, not a view.)
    verify: on the Free Edition serverless warehouse, `SELECT ST_AsText(ST_GeomFromText('LINESTRING(18.9 69.6, 19.0 69.7)', 4326))` returns the line. It did on a personal Free Edition workspace on 5 Oct 2026.
 3. Road points for the point map. Add `sample_points(wkt_4326: str, step_m: float = 300) -> list[tuple[int, float, float]]` to `frostsight.geo` (shapely: interpolate along the line every `step_m`, both ends included; `(seq, lat, lon)`), with a unit test. Add `build_road_points` to `src/jobs/load_reference.py`: explode the points of every `E`, `R` and `F` segment into `silver.road_points` (`road_segment_id, seq, latitude, longitude`), overwritten on each run. One point every 300 m reads as a line at county zoom; the mock uses the same spacing.
-4. Station coverage comes from `silver.segment_station_coverage` (05_M4 T4.5): segments within 5 km of a station on its own road, the nearer station winning. Do not recompute it in dashboard SQL.
+4. Station coverage comes from `silver.segment_station_coverage` (05_M4 T4.5): segments within 5 km of a station on its own road, the nearer station winning. Do not recompute it in dashboard SQL; `gold.map_points` (ADR-0009) is where it is applied to the road points.
 5. Decision recorded here: the risk map is one point map with three layers in one dataset (T6.4 `ds_map`): road points in grey, road points of covered segments in the covering station's risk colour, and the stations as dots (blue reporting, pale stale). Coloured rows sort last so they draw on top. The path map on `geometry` is the later upgrade (T6.5 step 2). The mock dashboards (`tools/mock_dashboards/`) show this layout on real NVDB roads.
 
 Expect: `SELECT count(*) FROM frostsight.gold.v_segments WHERE geometry IS NULL` returns 0; every centroid lat is between 68 and 71 and every lon between 15 and 22 for Troms; `silver.road_points` has one row per 300 m of `E`, `R` and `F` road (Troms: roughly 10,000 to 20,000 rows).
@@ -301,6 +301,14 @@ If it fails: NULL geometry or centroids for a few rows: `geometry_wkt_4326` is N
 
 ### T6.4 Dashboard SQL, tested through the CLI      owner: Safiul
 Why: each dataset is one query. The skill rule is that every query runs through the CLI before it goes into JSON.
+
+> **Superseded in part by ADR-0009 (9 Oct 2026).** Every live dashboard dataset is a select on one plot-ready
+> gold table; no joins, aggregation, window functions or distance maths in dashboard SQL. The gold job builds
+> those tables after every fetch (`src/frostsight/serving.py`); the live datasets are `LIVE_DATASETS` in
+> `tools/mock_dashboards/build_dashboard.py`, and `tests/unit/test_serving.py` enforces the rule. The `v_*`
+> views of step 2 are not created. The dataset SQL below stays as the derivation of each plot-ready table and as
+> the mock dashboard's SQL; do not copy it into a live dataset. Step 1 (test every query through the CLI) and
+> the naming rule for bare table names still apply.
 
 Do:
 1. Find the warehouse id once and keep it in your shell:
