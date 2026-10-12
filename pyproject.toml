@@ -23,6 +23,8 @@ dev = [
     "pyproj>=3.7",
     "shapely>=2.0",
     "h3>=4.1",
+    "numpy>=1.26",
+    "pillow>=10",
 ]
 
 [build-system]
