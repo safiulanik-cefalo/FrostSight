@@ -7,6 +7,10 @@ bundle:
 include:
   - resources/*.yml          # pipeline, jobs and dashboards are added by their owners from M2
 
+sync:
+  exclude:
+    - showcase/**              # the 3D showcase is a separate web app, not a workspace file
+
 variables:
   catalog:
     description: Unity Catalog catalog created by sql/001_catalog_schemas_volume.sql

@@ -1,0 +1,905 @@
+{
+ "id": "quiet-morning",
+ "title": "Quiet morning",
+ "blurb": "Every station low, dry roads and light traffic. The baseline.",
+ "duration_s": 30,
+ "steps": [
+  {
+   "at_s": 0,
+   "patch": {
+    "stations": [
+     {
+      "station_id": "1900113",
+      "name": "Hamn",
+      "road": "Fv86",
+      "lat": 69.41272,
+      "lon": 17.15316,
+      "road_segment_id": "1125839-31-10",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900123",
+      "name": "Senjahopen",
+      "road": "Fv862",
+      "lat": 69.49886,
+      "lon": 17.51101,
+      "road_segment_id": "1126346-21-12",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900163",
+      "name": "Gratangsfjellet",
+      "road": "E6",
+      "lat": 68.67548,
+      "lon": 17.9054,
+      "road_segment_id": "1125762-30-8",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900175",
+      "name": "Lavangsdalen",
+      "road": "E8",
+      "lat": 69.43376,
+      "lon": 19.26065,
+      "road_segment_id": "2429627-5-8",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900176",
+      "name": "Heia",
+      "road": "E6",
+      "lat": 69.14523,
+      "lon": 19.05055,
+      "road_segment_id": "1125769-28-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900177",
+      "name": "Nordnes",
+      "road": "E6",
+      "lat": 69.53758,
+      "lon": 20.37774,
+      "road_segment_id": "2678477-1-7",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900178",
+      "name": "Sandvikeidet",
+      "road": "E8",
+      "lat": 69.54629,
+      "lon": 19.00845,
+      "road_segment_id": "1126304-38-12",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900179",
+      "name": "Galgo",
+      "road": "E8",
+      "lat": 69.14675,
+      "lon": 20.74661,
+      "road_segment_id": "1125788-9-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900180",
+      "name": "Skattørsund",
+      "road": "Fv866",
+      "lat": 70.00346,
+      "lon": 20.89832,
+      "road_segment_id": "1125978-51-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900181",
+      "name": "Gamnes",
+      "road": "Fv863",
+      "lat": 69.90313,
+      "lon": 19.47368,
+      "road_segment_id": "1125961-24-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900182",
+      "name": "Maursund",
+      "road": "Fv866",
+      "lat": 69.93681,
+      "lon": 20.9139,
+      "road_segment_id": "1125977-6-11",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1900185",
+      "name": "Øse",
+      "road": "E6",
+      "lat": 68.61795,
+      "lon": 17.64264,
+      "road_segment_id": "1126283-14-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1901001",
+      "name": "Arnøya",
+      "road": "Fv7940",
+      "lat": 70.035,
+      "lon": 20.53976,
+      "road_segment_id": "1126205-6-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1929002",
+      "name": "Fornes",
+      "road": "Fv848",
+      "lat": 68.86913,
+      "lon": 17.47708,
+      "road_segment_id": "1126332-3-11",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1929003",
+      "name": "Gumpen",
+      "road": "Fv84",
+      "lat": 69.07201,
+      "lon": 17.9633,
+      "road_segment_id": "1126315-3-10",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1929004",
+      "name": "Andsvatnet",
+      "road": "Fv86",
+      "lat": 69.09185,
+      "lon": 18.29635,
+      "road_segment_id": "1125836-2-10",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "1929005",
+      "name": "Djupvik",
+      "road": "E6",
+      "lat": 69.75374,
+      "lon": 20.50605,
+      "road_segment_id": "1125779-18-7",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000014",
+      "name": "Bossovarri",
+      "road": "E8",
+      "lat": 69.1202,
+      "lon": 20.74511,
+      "road_segment_id": "1125788-27-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000015",
+      "name": "Halsebakkan nedre",
+      "road": "E8",
+      "lat": 69.28513,
+      "lon": 20.46572,
+      "road_segment_id": "2491853-2-8",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000016",
+      "name": "Gardeborri",
+      "road": "E8",
+      "lat": 69.18203,
+      "lon": 20.75035,
+      "road_segment_id": "1125788-25-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000017",
+      "name": "Breivikeidet",
+      "road": "Fv91",
+      "lat": 69.65625,
+      "lon": 19.56798,
+      "road_segment_id": "1125851-12-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000078",
+      "name": "Tverrforbindelsen øst",
+      "road": "E8",
+      "lat": 69.67681,
+      "lon": 18.96943,
+      "road_segment_id": "1125917-5-11",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000699",
+      "name": "Kaperskaret",
+      "road": "Fv7862",
+      "lat": 69.29716,
+      "lon": 17.29072,
+      "road_segment_id": "1126368-7-16",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000892",
+      "name": "Blomjoten",
+      "road": "Rv83",
+      "lat": 68.70616,
+      "lon": 16.52131,
+      "road_segment_id": "1126308-5-6",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     }
+    ],
+    "segments": [
+     {
+      "road_segment_id": "1125839-31-10",
+      "segment": "Fv86 · Hamn",
+      "road": "Fv86",
+      "station_id": "1900113",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126346-21-12",
+      "segment": "Fv862 · Senjahopen",
+      "road": "Fv862",
+      "station_id": "1900123",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125762-30-8",
+      "segment": "E6 · Gratangsfjellet",
+      "road": "E6",
+      "station_id": "1900163",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2429627-5-8",
+      "segment": "E8 · Lavangsdalen",
+      "road": "E8",
+      "station_id": "1900175",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125769-28-9",
+      "segment": "E6 · Heia",
+      "road": "E6",
+      "station_id": "1900176",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2678477-1-7",
+      "segment": "E6 · Nordnes",
+      "road": "E6",
+      "station_id": "1900177",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126304-38-12",
+      "segment": "E8 · Sandvikeidet",
+      "road": "E8",
+      "station_id": "1900178",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125788-9-9",
+      "segment": "E8 · Galgo",
+      "road": "E8",
+      "station_id": "1900179",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125978-51-9",
+      "segment": "Fv866 · Skattørsund",
+      "road": "Fv866",
+      "station_id": "1900180",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125961-24-9",
+      "segment": "Fv863 · Gamnes",
+      "road": "Fv863",
+      "station_id": "1900181",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125977-6-11",
+      "segment": "Fv866 · Maursund",
+      "road": "Fv866",
+      "station_id": "1900182",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126283-14-9",
+      "segment": "E6 · Øse",
+      "road": "E6",
+      "station_id": "1900185",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126205-6-9",
+      "segment": "Fv7940 · Arnøya",
+      "road": "Fv7940",
+      "station_id": "1901001",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126332-3-11",
+      "segment": "Fv848 · Fornes",
+      "road": "Fv848",
+      "station_id": "1929002",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126315-3-10",
+      "segment": "Fv84 · Gumpen",
+      "road": "Fv84",
+      "station_id": "1929003",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125836-2-10",
+      "segment": "Fv86 · Andsvatnet",
+      "road": "Fv86",
+      "station_id": "1929004",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125779-18-7",
+      "segment": "E6 · Djupvik",
+      "road": "E6",
+      "station_id": "1929005",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125788-27-9",
+      "segment": "E8 · Bossovarri",
+      "road": "E8",
+      "station_id": "3000014",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2491853-2-8",
+      "segment": "E8 · Halsebakkan nedre",
+      "road": "E8",
+      "station_id": "3000015",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125788-25-9",
+      "segment": "E8 · Gardeborri",
+      "road": "E8",
+      "station_id": "3000016",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125851-12-9",
+      "segment": "Fv91 · Breivikeidet",
+      "road": "Fv91",
+      "station_id": "3000017",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1125917-5-11",
+      "segment": "E8 · Tverrforbindelsen øst",
+      "road": "E8",
+      "station_id": "3000078",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126368-7-16",
+      "segment": "Fv7862 · Kaperskaret",
+      "road": "Fv7862",
+      "station_id": "3000699",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1126308-5-6",
+      "segment": "Rv83 · Blomjoten",
+      "road": "Rv83",
+      "station_id": "3000892",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     }
+    ]
+   }
+  }
+ ]
+}
