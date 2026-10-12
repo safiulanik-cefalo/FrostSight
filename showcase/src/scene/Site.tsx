@@ -5,6 +5,7 @@ import type { ScenarioClosure } from "../data/scenario";
 import { useCurrentState } from "../data/store";
 import { usePrefersReducedMotion } from "../hooks";
 import { Barrier } from "./Barrier";
+import { Cars } from "./Cars";
 import { CameraRig, type Pose } from "./CameraRig";
 import { isClosureIncident } from "./dressing";
 import { RiskBand } from "./RiskBand";
@@ -108,6 +109,7 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
           );
         }),
       )}
+      <Cars model={model} level={level ?? "NONE"} closures={closures} truck={(segment?.priority_rank ?? 99) <= 5} reduced={reduced} />
       <Weather precipType={segment?.readings.precip_type ?? null} mmH={segment?.readings.precip_mm_h ?? null} reduced={reduced} />
     </group>
   );

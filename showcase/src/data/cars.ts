@@ -32,3 +32,17 @@ export function advanceCar(posM: number, dir: 1 | -1, speedMps: number, dtS: num
   const next = posM + dir * speedMps * dtS - lo;
   return lo + (((next % span) + span) % span);
 }
+
+export type CarSlot = { pos: number; dir: 1 | -1; range: [number, number] };
+
+/** Evenly spaced cars in the longest open stretch of road, alternating direction. */
+export function placeCars(count: number, ranges: Array<[number, number]>): CarSlot[] {
+  if (ranges.length === 0 || count <= 0) return [];
+  const range = ranges.reduce((a, b) => (b[1] - b[0] > a[1] - a[0] ? b : a));
+  const span = range[1] - range[0];
+  return Array.from({ length: count }, (_, i) => ({
+    pos: range[0] + (span * (i + 0.5)) / count,
+    dir: (i % 2 === 0 ? 1 : -1) as 1 | -1,
+    range,
+  }));
+}

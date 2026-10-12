@@ -21,3 +21,18 @@ describe("cars", () => {
     expect(advanceCar(5, -1, 20, 1, [0, 4000])).toBeCloseTo(3985);
   });
 });
+
+import { placeCars } from "./cars";
+
+describe("placeCars", () => {
+  it("spreads cars over the longest open range in alternating directions", () => {
+    const cars = placeCars(3, [[0, 4000], [6000, 12000]]);
+    expect(cars.map((c) => c.dir)).toEqual([1, -1, 1]);
+    expect(cars.every((c) => c.range[0] === 6000 && c.range[1] === 12000)).toBe(true);
+    expect(cars.map((c) => c.pos)).toEqual([7000, 9000, 11000]);
+  });
+
+  it("places no cars when the whole corridor is closed", () => {
+    expect(placeCars(3, [])).toEqual([]);
+  });
+});
