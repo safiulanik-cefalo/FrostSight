@@ -8,7 +8,7 @@ A standalone, public web page that shows the FrostSight icing risk for Troms as 
 in the style of the WareTrack demo (`docs/wagetrack-ui-ux-demo.mov`): a diorama of a real road corridor
 with the road coloured by risk, a weather station that reports, cars that drive, snow that falls, and a
 barrier where the road is closed, surrounded by glass panels with the numbers. The approved design render
-is at https://claude.ai/artifact/Lptn3YcfGy2mnkPeT4Y3oj.
+is at <https://claude.ai/artifact/Lptn3YcfGy2mnkPeT4Y3oj>.
 
 It is a demo built in parallel with the MVP. It is not an MVP milestone, not in the Asset Bundle, and
 does not replace the four AI/BI dashboards (decision of 2026-10-05, `docs/plan/07_M6_product.md`). It
@@ -34,7 +34,7 @@ day. It runs on Cloudflare's free tier and costs nothing to keep up.
 
 ## 3. Architecture
 
-```
+```text
 Databricks (Free Edition)                     Cloudflare                              Browser
 gold.kpi_summary                              Worker  cron */15 min                   React + R3F app
 gold.station_status          SQL Statement    ├─ query 8 gold tables                  ├─ GET /api/state → live state
@@ -233,7 +233,7 @@ Scenario files are data, validated against the contract in a unit test.
 
 ## 9. Repo, toolchain, quality
 
-```
+```text
 showcase/
   README.md                 how to run, bake, deploy; attribution
   package.json              vite, react 18, typescript, three, @react-three/fiber, @react-three/drei, zustand, vitest, wrangler
@@ -290,7 +290,7 @@ not replace the AI/BI dashboards.
 Authentication, per-user settings, alerts, a mobile layout beyond "readable and not broken", real-time
 vehicle data, forecasts in gold, moving the showcase into the bundle, any change to pipelines or jobs.
 
-## 12. Open items for the user
+## 12. Answers from the user (2026-10-12)
 
-- Confirm the Worker may use your personal access token on the personal or free workspace for now.
-- Pick the Cloudflare account and a hostname (`*.workers.dev` is fine for the demo).
+- The Worker may use a personal access token on the personal workspace for now.
+- Develop locally first; the Cloudflare account and hostname are chosen after the local demo.
