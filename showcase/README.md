@@ -38,8 +38,8 @@ With the Worker on port 8787, `npm run dev` proxies `/api` to it and the chip tu
 
 ### Capture a real snapshot
 
-The committed `public/snapshot.json` starts as a two-station fixture. Replace it with real gold once the
-gold job has run on your workspace:
+The committed `public/snapshot.json` is real gold from the Free Edition workspace, captured 2026-10-12. Refresh it
+after a gold run:
 
 ```bash
 curl -s http://localhost:8787/api/state > public/snapshot.json
