@@ -1,0 +1,17 @@
+[
+ {
+  "id": "snowstorm-e8",
+  "title": "Snowstorm on E8",
+  "blurb": "Heavy snow over Skibotndalen: three E8 stations climb to very high and Gardeborri closes."
+ },
+ {
+  "id": "black-ice-lavangsdalen",
+  "title": "Black ice in Lavangsdalen",
+  "blurb": "A clear, still night: the road surface falls through 0 °C right at the dew point, with no snow."
+ },
+ {
+  "id": "quiet-morning",
+  "title": "Quiet morning",
+  "blurb": "Every station low, dry roads and light traffic. The baseline."
+ }
+]

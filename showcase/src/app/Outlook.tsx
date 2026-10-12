@@ -15,7 +15,7 @@ export function Outlook() {
   const steps = useMemo(() => {
     if (!state || !segment) return [];
     const history = state.history[segment.road_segment_id] ?? [];
-    return outlookSteps(history, new Date(), scenario?.outlook ?? []);
+    return outlookSteps(history, new Date(), scenario?.outlook ?? [], { level: segment.risk_level, score: segment.icing_score });
   }, [state, segment, scenario]);
   if (!siteId || !state) return null;
   return (
@@ -23,7 +23,7 @@ export function Outlook() {
       <div className="hd">
         <Icon.Trend />
         Risk outlook{segment ? ` · ${segment.road} ${name}` : ""}
-        <small>{scenario?.outlook ? "history from gold · future simulated" : "last 24 h from gold · no forecast yet"}</small>
+        <small>{scenario ? "simulated history and outlook" : "last 24 h from gold · no forecast yet"}</small>
       </div>
       {steps.length === 0 ? (
         <p className="empty">No readings in the last 24 h.</p>

@@ -45,11 +45,13 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
 
   // Live closures: an active closure incident on this station's segment, drawn 1 km either side of the
   // station because DATEX positions are not in the state. Scenario closures carry their own stretch.
-  const closures = useMemo<Closure[]>(() => {
+  const closuresRaw = useMemo<Closure[]>(() => {
     if (!model) return [];
     const segId = station?.road_segment_id;
     const now = Date.now();
     const live = (state?.incidents ?? [])
+      // sim- incidents come from a scenario, whose closures carry their own stretch below
+      .filter((i) => !i.incident_id.startsWith("sim-"))
       .filter((i) => segId && i.road_segment_id === segId && isClosureIncident(i.incident_type))
       .filter((i) => !i.end_time || new Date(i.end_time).getTime() > now)
       .map(() => ({
@@ -62,6 +64,9 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
       .map((c) => ({ start_m: c.start_m, end_m: Math.min(c.end_m, model.lengthM), simulated: true }));
     return [...live.slice(0, 1), ...sim];
   }, [model, state?.incidents, station?.road_segment_id, scenarioClosures, stationId]);
+  // the scenario state is rebuilt every second; compare by content so cars and the band are not rebuilt with it
+  const closuresKey = JSON.stringify(closuresRaw);
+  const closures = useMemo(() => JSON.parse(closuresKey) as Closure[], [closuresKey]);
 
   const strips = useMemo(
     () => (model ? cutStretches(model.lengthM, model.stationAtM, level, closures) : []),

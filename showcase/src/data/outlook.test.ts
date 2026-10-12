@@ -26,3 +26,11 @@ describe("outlookSteps", () => {
     expect(steps[3]).toEqual({ label: "+3 h", at: "2026-10-12T12:40:00.000Z", level: "HIGH", score: 0.78, simulated: true });
   });
 });
+
+describe("outlookSteps with a current reading", () => {
+  it("shows the current level at Now instead of the nearest history point", () => {
+    const steps = outlookSteps(history, now, [], { level: "VERY_HIGH", score: 0.86 });
+    expect(steps[2]).toMatchObject({ label: "Now", level: "VERY_HIGH", score: 0.86 });
+    expect(steps[0].level).toBe("MEDIUM");
+  });
+});

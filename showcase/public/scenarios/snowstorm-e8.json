@@ -1,0 +1,393 @@
+{
+ "id": "snowstorm-e8",
+ "title": "Snowstorm on E8",
+ "blurb": "Heavy snow over Skibotndalen: three E8 stations climb to very high and Gardeborri closes.",
+ "duration_s": 90,
+ "focus_station_id": "3000016",
+ "closures": [
+  {
+   "at_s": 60,
+   "station_id": "3000016",
+   "start_m": 5000,
+   "end_m": 7000
+  }
+ ],
+ "outlook": [
+  {
+   "at_h": 3,
+   "level": "HIGH",
+   "score": 0.78
+  },
+  {
+   "at_h": 6,
+   "level": "VERY_HIGH",
+   "score": 0.9
+  },
+  {
+   "at_h": 12,
+   "level": "MEDIUM",
+   "score": 0.5
+  }
+ ],
+ "history_rel": {
+  "1125788-27-9": [
+   {
+    "ago_h": 6,
+    "level": "LOW",
+    "score": 0.2
+   },
+   {
+    "ago_h": 3,
+    "level": "MEDIUM",
+    "score": 0.4
+   },
+   {
+    "ago_h": 0,
+    "level": "MEDIUM",
+    "score": 0.45
+   }
+  ],
+  "1125788-25-9": [
+   {
+    "ago_h": 6,
+    "level": "LOW",
+    "score": 0.2
+   },
+   {
+    "ago_h": 3,
+    "level": "MEDIUM",
+    "score": 0.4
+   },
+   {
+    "ago_h": 0,
+    "level": "MEDIUM",
+    "score": 0.45
+   }
+  ],
+  "1125788-9-9": [
+   {
+    "ago_h": 6,
+    "level": "LOW",
+    "score": 0.2
+   },
+   {
+    "ago_h": 3,
+    "level": "MEDIUM",
+    "score": 0.4
+   },
+   {
+    "ago_h": 0,
+    "level": "MEDIUM",
+    "score": 0.45
+   }
+  ]
+ },
+ "steps": [
+  {
+   "at_s": 0,
+   "patch": {
+    "stations": [
+     {
+      "station_id": "3000014",
+      "name": "Bossovarri",
+      "road": "E8",
+      "lat": 69.1202,
+      "lon": 20.74511,
+      "road_segment_id": "1125788-27-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "MEDIUM",
+      "icing_score": 0.45
+     },
+     {
+      "station_id": "3000016",
+      "name": "Gardeborri",
+      "road": "E8",
+      "lat": 69.18203,
+      "lon": 20.75035,
+      "road_segment_id": "1125788-25-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "MEDIUM",
+      "icing_score": 0.45
+     },
+     {
+      "station_id": "1900179",
+      "name": "Galgo",
+      "road": "E8",
+      "lat": 69.14675,
+      "lon": 20.74661,
+      "road_segment_id": "1125788-9-9",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "MEDIUM",
+      "icing_score": 0.45
+     }
+    ],
+    "segments": [
+     {
+      "road_segment_id": "1125788-27-9",
+      "segment": "E8 · Bossovarri",
+      "road": "E8",
+      "station_id": "3000014",
+      "risk_level": "MEDIUM",
+      "icing_score": 0.45,
+      "surface_c": -1.0,
+      "air_c": -2.0,
+      "change_1h_c": -0.4,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Precipitation",
+        "contribution": 0.38
+       },
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.3
+       },
+       {
+        "factor": "Close to dew point",
+        "contribution": 0.12
+       }
+      ],
+      "readings": {
+       "dew_point_c": -1.4,
+       "precip_type": "SNOW",
+       "precip_mm_h": 0.8,
+       "wind_ms": 8
+      }
+     },
+     {
+      "road_segment_id": "1125788-25-9",
+      "segment": "E8 · Gardeborri",
+      "road": "E8",
+      "station_id": "3000016",
+      "risk_level": "MEDIUM",
+      "icing_score": 0.45,
+      "surface_c": -1.0,
+      "air_c": -2.0,
+      "change_1h_c": -0.4,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Precipitation",
+        "contribution": 0.38
+       },
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.3
+       },
+       {
+        "factor": "Close to dew point",
+        "contribution": 0.12
+       }
+      ],
+      "readings": {
+       "dew_point_c": -1.4,
+       "precip_type": "SNOW",
+       "precip_mm_h": 0.8,
+       "wind_ms": 8
+      }
+     },
+     {
+      "road_segment_id": "1125788-9-9",
+      "segment": "E8 · Galgo",
+      "road": "E8",
+      "station_id": "1900179",
+      "risk_level": "MEDIUM",
+      "icing_score": 0.45,
+      "surface_c": -1.0,
+      "air_c": -2.0,
+      "change_1h_c": -0.4,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Precipitation",
+        "contribution": 0.38
+       },
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.3
+       },
+       {
+        "factor": "Close to dew point",
+        "contribution": 0.12
+       }
+      ],
+      "readings": {
+       "dew_point_c": -1.4,
+       "precip_type": "SNOW",
+       "precip_mm_h": 0.8,
+       "wind_ms": 8
+      }
+     }
+    ]
+   }
+  },
+  {
+   "at_s": 30,
+   "patch": {
+    "stations": [
+     {
+      "station_id": "3000014",
+      "risk_level": "HIGH",
+      "icing_score": 0.68
+     },
+     {
+      "station_id": "3000016",
+      "risk_level": "HIGH",
+      "icing_score": 0.68
+     },
+     {
+      "station_id": "1900179",
+      "risk_level": "HIGH",
+      "icing_score": 0.68
+     }
+    ],
+    "segments": [
+     {
+      "road_segment_id": "1125788-27-9",
+      "risk_level": "HIGH",
+      "icing_score": 0.68,
+      "surface_c": -3.0,
+      "priority_rank": 1,
+      "readings": {
+       "precip_mm_h": 2.4
+      }
+     },
+     {
+      "road_segment_id": "1125788-25-9",
+      "risk_level": "HIGH",
+      "icing_score": 0.68,
+      "surface_c": -3.0,
+      "priority_rank": 2,
+      "readings": {
+       "precip_mm_h": 2.4
+      }
+     },
+     {
+      "road_segment_id": "1125788-9-9",
+      "risk_level": "HIGH",
+      "icing_score": 0.68,
+      "surface_c": -3.0,
+      "priority_rank": 3,
+      "readings": {
+       "precip_mm_h": 2.4
+      }
+     }
+    ]
+   }
+  },
+  {
+   "at_s": 60,
+   "patch": {
+    "stations": [
+     {
+      "station_id": "3000014",
+      "risk_level": "VERY_HIGH",
+      "icing_score": 0.86
+     },
+     {
+      "station_id": "3000016",
+      "risk_level": "VERY_HIGH",
+      "icing_score": 0.86
+     },
+     {
+      "station_id": "1900179",
+      "risk_level": "VERY_HIGH",
+      "icing_score": 0.86
+     }
+    ],
+    "segments": [
+     {
+      "road_segment_id": "1125788-27-9",
+      "risk_level": "VERY_HIGH",
+      "icing_score": 0.86,
+      "surface_c": -5.0,
+      "readings": {
+       "precip_mm_h": 5.0
+      }
+     },
+     {
+      "road_segment_id": "1125788-25-9",
+      "risk_level": "VERY_HIGH",
+      "icing_score": 0.86,
+      "surface_c": -5.0,
+      "readings": {
+       "precip_mm_h": 5.0
+      }
+     },
+     {
+      "road_segment_id": "1125788-9-9",
+      "risk_level": "VERY_HIGH",
+      "icing_score": 0.86,
+      "surface_c": -5.0,
+      "readings": {
+       "precip_mm_h": 5.0
+      }
+     }
+    ],
+    "incidents": [
+     {
+      "incident_id": "sim-gardeborri-closed",
+      "road": "E8",
+      "road_segment_id": "1125788-25-9",
+      "incident_type": "roadClosed",
+      "severity": "high",
+      "start_time": "2026-10-12T00:00:00Z",
+      "end_time": null,
+      "description": "Simulated: E8 closed at Gardeborri, convoy driving"
+     }
+    ]
+   }
+  },
+  {
+   "at_s": 90,
+   "patch": {
+    "stations": [
+     {
+      "station_id": "3000014",
+      "icing_score": 0.93
+     },
+     {
+      "station_id": "3000016",
+      "icing_score": 0.93
+     },
+     {
+      "station_id": "1900179",
+      "icing_score": 0.93
+     }
+    ],
+    "segments": [
+     {
+      "road_segment_id": "1125788-27-9",
+      "icing_score": 0.93,
+      "readings": {
+       "precip_mm_h": 6.5,
+       "wind_ms": 14
+      }
+     },
+     {
+      "road_segment_id": "1125788-25-9",
+      "icing_score": 0.93,
+      "readings": {
+       "precip_mm_h": 6.5,
+       "wind_ms": 14
+      }
+     },
+     {
+      "road_segment_id": "1125788-9-9",
+      "icing_score": 0.93,
+      "readings": {
+       "precip_mm_h": 6.5,
+       "wind_ms": 14
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

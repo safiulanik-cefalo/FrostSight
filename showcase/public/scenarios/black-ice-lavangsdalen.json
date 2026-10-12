@@ -1,0 +1,144 @@
+{
+ "id": "black-ice-lavangsdalen",
+ "title": "Black ice in Lavangsdalen",
+ "blurb": "A clear, still night: the road surface falls through 0 °C right at the dew point, with no snow.",
+ "duration_s": 60,
+ "focus_station_id": "1900175",
+ "outlook": [
+  {
+   "at_h": 3,
+   "level": "HIGH",
+   "score": 0.74
+  },
+  {
+   "at_h": 6,
+   "level": "MEDIUM",
+   "score": 0.5
+  }
+ ],
+ "history_rel": {
+  "2429627-5-8": [
+   {
+    "ago_h": 6,
+    "level": "LOW",
+    "score": 0.15
+   },
+   {
+    "ago_h": 3,
+    "level": "LOW",
+    "score": 0.25
+   },
+   {
+    "ago_h": 0,
+    "level": "MEDIUM",
+    "score": 0.42
+   }
+  ]
+ },
+ "steps": [
+  {
+   "at_s": 0,
+   "patch": {
+    "stations": [
+     {
+      "station_id": "1900175",
+      "name": "Lavangsdalen",
+      "road": "E8",
+      "lat": 69.43376,
+      "lon": 19.26065,
+      "road_segment_id": "2429627-5-8",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "MEDIUM",
+      "icing_score": 0.42
+     }
+    ],
+    "segments": [
+     {
+      "road_segment_id": "2429627-5-8",
+      "segment": "E8 · Lavangsdalen",
+      "road": "E8",
+      "station_id": "1900175",
+      "risk_level": "MEDIUM",
+      "icing_score": 0.42,
+      "surface_c": 0.4,
+      "air_c": -1.5,
+      "change_1h_c": -0.6,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Close to dew point",
+        "contribution": 0.5
+       },
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.32
+       },
+       {
+        "factor": "Cooling, last hour",
+        "contribution": 0.12
+       }
+      ],
+      "readings": {
+       "dew_point_c": 0.2,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 1
+      }
+     }
+    ]
+   }
+  },
+  {
+   "at_s": 20,
+   "patch": {
+    "segments": [
+     {
+      "road_segment_id": "2429627-5-8",
+      "surface_c": -0.3,
+      "change_1h_c": -0.9,
+      "readings": {
+       "dew_point_c": -0.5
+      }
+     }
+    ]
+   }
+  },
+  {
+   "at_s": 30,
+   "patch": {
+    "stations": [
+     {
+      "station_id": "1900175",
+      "risk_level": "HIGH",
+      "icing_score": 0.71
+     }
+    ],
+    "segments": [
+     {
+      "road_segment_id": "2429627-5-8",
+      "risk_level": "HIGH",
+      "icing_score": 0.71,
+      "priority_rank": 1
+     }
+    ]
+   }
+  },
+  {
+   "at_s": 50,
+   "patch": {
+    "segments": [
+     {
+      "road_segment_id": "2429627-5-8",
+      "surface_c": -1.2,
+      "icing_score": 0.76,
+      "readings": {
+       "dew_point_c": -1.4
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

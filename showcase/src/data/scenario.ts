@@ -18,6 +18,8 @@ export const ScenarioSchema = z.object({
   title: z.string(),
   blurb: z.string(),
   duration_s: z.number().positive(),
+  focus_station_id: z.string().optional(),
+  history_rel: z.record(z.array(z.object({ ago_h: z.number().nonnegative(), level, score: z.number() }))).optional(),
   closures: z.array(z.object({ at_s: z.number(), station_id: z.string(), start_m: z.number(), end_m: z.number() })).optional(),
   outlook: z.array(z.object({ at_h: z.number(), level, score: z.number() })).optional(),
   steps: z.array(z.object({ at_s: z.number(), patch: z.record(z.unknown()) })),
@@ -57,10 +59,28 @@ export function applyPatch(base: State, patch: Patch): State {
   return merge(structuredClone(base), patch) as State;
 }
 
-export function stateAt(scenario: Scenario, base: State, tS: number): State {
+const HOUR = 3600_000;
+
+export function stateAt(scenario: Scenario, base: State, tS: number, now: Date = new Date()): State {
   const reached = scenario.steps.filter((s) => s.at_s <= tS).sort((a, b) => a.at_s - b.at_s);
-  const state = reached.reduce((acc, s) => applyPatch(acc, s.patch), base);
-  return { ...state, source: "scenario", scenario: { id: scenario.id, title: scenario.title, step_s: tS } };
+  const history: Record<string, HistoryPoint[]> = {};
+  for (const [seg, pts] of Object.entries(scenario.history_rel ?? {})) {
+    history[seg] = [...pts]
+      .sort((a, b) => b.ago_h - a.ago_h)
+      .map((p) => ({ t: new Date(now.getTime() - p.ago_h * HOUR).toISOString(), level: p.level, score: p.score }));
+  }
+  const withHistory = Object.keys(history).length ? applyPatch(base, { history }) : base;
+  const state = reached.reduce((acc, s) => applyPatch(acc, s.patch), withHistory);
+  // counters follow the simulated rows, so the KPI cards never disagree with the scene
+  const kpi = {
+    segments_total: state.segments.length,
+    segments_high: state.segments.filter((x) => x.risk_level === "HIGH" || x.risk_level === "VERY_HIGH").length,
+    segments_very_high: state.segments.filter((x) => x.risk_level === "VERY_HIGH").length,
+    stations_total: state.stations.length,
+    stations_reporting: state.stations.filter((x) => x.status === "Reporting").length,
+    active_incidents: state.incidents.filter((x) => !x.end_time || new Date(x.end_time).getTime() > now.getTime()).length,
+  };
+  return { ...state, kpi, source: "scenario", scenario: { id: scenario.id, title: scenario.title, step_s: tS } };
 }
 
 export function closuresAt(scenario: Scenario, tS: number): ScenarioClosure[] {

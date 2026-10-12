@@ -188,3 +188,19 @@ button.row:hover .nm { color: var(--accent-ink); }
   .lrows { max-height: 160px; }
   .legend { display: none; }
 }
+
+/* scenarios */
+.scenario-menu { width: 340px; left: 0; right: auto; }
+.scenario-item { grid-template-columns: 0 1fr 0; }
+.scenario-item b { display: block; }
+.scenario-item small { display: block; margin-top: 2px; line-height: 1.35; }
+.scenario-bar { position: fixed; left: 50%; transform: translateX(-50%); top: 72px; display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 999px; z-index: 20; max-width: calc(100% - 36px); box-sizing: border-box; }
+.scenario-bar b { white-space: nowrap; }
+.scenario-bar input { width: 200px; accent-color: var(--sim); }
+.scenario-bar .time { font-variant-numeric: tabular-nums; color: var(--fg-2); font-weight: 600; white-space: nowrap; }
+.scenario-bar button { width: 30px; height: 30px; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center; }
+.scenario-bar .play { background: var(--sim); color: #fff; font-size: 11px; }
+.scenario-bar .close { background: var(--sim-soft); color: var(--sim); font-size: 18px; }
+.scenario-on .kpis { top: 128px; }
+@media (max-width: 760px) { .scenario-bar input { width: 90px; } .scenario-bar b { display: none; } }

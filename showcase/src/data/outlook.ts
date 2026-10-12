@@ -8,6 +8,7 @@ export function outlookSteps(
   history: HistoryPoint[],
   now: Date,
   future: Array<{ at_h: number; level: Level; score: number }> = [],
+  current?: { level: Level; score: number },
 ): OutlookStep[] {
   if (history.length === 0) return [];
   const targets: Array<[string, number]> = [["6 h ago", 6], ["3 h ago", 3], ["Now", 0]];
@@ -16,6 +17,7 @@ export function outlookSteps(
     const p = history.reduce((best, x) =>
       Math.abs(new Date(x.t).getTime() - target) < Math.abs(new Date(best.t).getTime() - target) ? x : best,
     );
+    if (h === 0 && current) return { label, at: now.toISOString(), level: current.level, score: current.score, simulated: false };
     return { label, at: p.t, level: p.level, score: p.score, simulated: false };
   });
   const ahead = future.map((f) => ({
