@@ -8,6 +8,10 @@ export type SiteModel = {
   minM: number;
   /** ground height in scene units at scene (x, z) */
   ground: (x: number, z: number) => number;
+  /** ground height in metres above sea level at scene (x, z) */
+  groundM: (x: number, z: number) => number;
+  /** distance in scene units from (x, z) to the road centre line, sampled every 50 m */
+  distToRoad: (x: number, z: number) => number;
   /** road centre line in scene units, one point per 25 m */
   road: [number, number][];
   /** road surface height in scene units per road point, smoothed */
@@ -23,7 +27,8 @@ export function siteModel({ road, heights }: SiteAssets): SiteModel {
   const upm = siteUnitsPerMetre(size_m);
   let minM = Infinity;
   for (const h of heights) minM = Math.min(minM, h);
-  const ground = (x: number, z: number) => (heightAt(heights, n, size_m, x / upm, z / upm) - minM) * SITE_EXAGGERATION * upm;
+  const groundM = (x: number, z: number) => heightAt(heights, n, size_m, x / upm, z / upm);
+  const ground = (x: number, z: number) => (groundM(x, z) - minM) * SITE_EXAGGERATION * upm;
   const pts = road.points.map(([x, z]) => [x * upm, z * upm] as [number, number]);
   const raw = pts.map(([x, z]) => ground(x, z));
   const roadY = raw.map((_, i) => {
@@ -55,5 +60,10 @@ export function siteModel({ road, heights }: SiteAssets): SiteModel {
       tz: (z1 - z0) / len,
     };
   };
-  return { upm, minM, ground, road: pts, roadY, at, lengthM: road.length_m, stationAtM: road.station_at_m };
+  const distToRoad = (x: number, z: number) => {
+    let best = Infinity;
+    for (let i = 0; i < pts.length; i += 2) best = Math.min(best, (pts[i][0] - x) ** 2 + (pts[i][1] - z) ** 2);
+    return Math.sqrt(best);
+  };
+  return { upm, minM, ground, groundM, distToRoad, road: pts, roadY, at, lengthM: road.length_m, stationAtM: road.station_at_m };
 }
