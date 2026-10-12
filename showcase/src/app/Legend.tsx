@@ -5,10 +5,10 @@ export const ATTRIBUTION =
   "Road data Statens vegvesen (NLOD). Weather MET Norway and Open-Meteo (CC BY 4.0). Elevation Mapzen terrain tiles.";
 const VAR: Record<string, string> = { LOW: "--low", MEDIUM: "--medium", HIGH: "--high", VERY_HIGH: "--very-high" };
 
-export function Legend({ simulated }: { simulated: boolean }) {
+export function Legend({ simulated, raised }: { simulated: boolean; raised: boolean }) {
   const [credits, setCredits] = useState(false);
   return (
-    <div className="glass legend" title={ATTRIBUTION}>
+    <div className={`glass legend${raised ? " raised" : ""}`} title={ATTRIBUTION}>
       {LEVELS.map((l) => (
         <span key={l}>
           <i style={{ background: `var(${VAR[l]})` }} />

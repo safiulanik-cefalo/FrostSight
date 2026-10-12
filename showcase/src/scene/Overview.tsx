@@ -45,7 +45,7 @@ export function Overview() {
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position-y={0.2}>
         <planeGeometry args={[OVERVIEW_SIZE * 3, OVERVIEW_SIZE * 3]} />
-        <meshStandardMaterial color="#c3d6ee" roughness={0.9} />
+        <meshBasicMaterial color="#cbdcf2" />
       </mesh>
       {scene.border.map((pts, i) => (
         <Line key={`b${i}`} points={pts} color={PALETTE.accent} lineWidth={1.5} dashed dashSize={4} gapSize={3} transparent opacity={0.7} />
