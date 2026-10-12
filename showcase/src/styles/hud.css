@@ -4,8 +4,8 @@
 .glass { background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); }
 
-/* header */
-.top { position: fixed; left: 0; right: 0; top: 0; min-height: 60px; display: flex; align-items: center; gap: 14px;
+/* header: stacked above the panels below it, so its search and site menus open over them */
+.top { position: fixed; left: 0; right: 0; top: 0; z-index: 40; min-height: 60px; display: flex; align-items: center; gap: 14px;
   padding: env(safe-area-inset-top, 0px) 18px 0; background: var(--surface); backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -0.01em;

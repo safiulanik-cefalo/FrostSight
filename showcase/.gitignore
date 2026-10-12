@@ -4,3 +4,4 @@ dist
 .wrangler
 .cache
 !/src/data/
+.vite
