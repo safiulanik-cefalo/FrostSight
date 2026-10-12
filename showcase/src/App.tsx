@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Hud } from "./app/Hud";
 import { useShowcase } from "./data/store";
 import { Overview } from "./scene/Overview";
 import { SceneCanvas } from "./scene/SceneCanvas";
@@ -41,5 +42,10 @@ export default function App() {
     boot();
   }, [boot]);
   useHashRoute();
-  return <SceneCanvas wide={view === "overview"}>{view === "site" && siteId ? <Site key={siteId} stationId={siteId} /> : <Overview />}</SceneCanvas>;
+  return (
+    <>
+      <SceneCanvas wide={view === "overview"}>{view === "site" && siteId ? <Site key={siteId} stationId={siteId} /> : <Overview />}</SceneCanvas>
+      <Hud />
+    </>
+  );
 }

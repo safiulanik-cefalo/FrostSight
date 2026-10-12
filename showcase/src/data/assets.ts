@@ -18,7 +18,7 @@ export type SiteAssets = { road: RoadJson; heights: Float32Array };
 export type OverviewAssets = {
   county: { origin: { lat: number; lon: number }; rings: [number, number][][]; terrain: RoadJson["terrain"] };
   roads: Array<{ road: string; points: [number, number][] }>;
-  stations: Array<{ station_id: string; name: string; climate: string; xz: [number, number] }>;
+  stations: Array<{ station_id: string; name: string; climate: string; road: string; xz: [number, number] }>;
   heights: Float32Array;
 };
 

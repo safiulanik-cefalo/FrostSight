@@ -1,0 +1,46 @@
+/* FrostSight showcase tokens: a pale winter daylight theme and a polar-night dark theme. Risk colours are
+   semantic and validated (dataviz checker); the accent is the cobalt of the station cabinets. */
+:root {
+  --bg: #dfe8f6;
+  --surface: rgba(255, 255, 255, 0.84);
+  --surface-solid: #ffffff;
+  --line: rgba(28, 44, 74, 0.1);
+  --fg: #15213a;
+  --fg-2: #56637d;
+  --fg-3: #8a95ab;
+  --accent: #2f62e6;
+  --accent-soft: rgba(47, 98, 230, 0.12);
+  --accent-ink: #2452c4;
+  --low: #2e9e5b;
+  --medium: #c98a12;
+  --high: #e0532f;
+  --very-high: #8e2f9c;
+  --none: #8a95ab;
+  --low-soft: rgba(46, 158, 91, 0.14);
+  --medium-soft: rgba(201, 138, 18, 0.16);
+  --high-soft: rgba(224, 83, 47, 0.14);
+  --very-high-soft: rgba(142, 47, 156, 0.14);
+  --none-soft: rgba(138, 149, 171, 0.16);
+  --sim: #5b4bd6;
+  --sim-soft: rgba(91, 75, 214, 0.14);
+  --track: rgba(21, 33, 58, 0.08);
+  --shadow: 0 10px 30px rgba(31, 52, 96, 0.14), 0 1px 2px rgba(31, 52, 96, 0.08);
+  --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1626; --surface: rgba(22, 30, 48, 0.84); --surface-solid: #1a2338; --line: rgba(190, 205, 235, 0.12);
+    --fg: #e9eefb; --fg-2: #aab5cc; --fg-3: #73809a; --accent: #7a9cff; --accent-soft: rgba(122, 156, 255, 0.16);
+    --accent-ink: #a9bfff; --low: #4fc27d; --medium: #e2a63a; --high: #f0714f; --very-high: #c56bd2; --none: #73809a;
+    --sim: #9a8cff; --sim-soft: rgba(154, 140, 255, 0.16); --track: rgba(233, 238, 251, 0.1);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1626; --surface: rgba(22, 30, 48, 0.84); --surface-solid: #1a2338; --line: rgba(190, 205, 235, 0.12);
+  --fg: #e9eefb; --fg-2: #aab5cc; --fg-3: #73809a; --accent: #7a9cff; --accent-soft: rgba(122, 156, 255, 0.16);
+  --accent-ink: #a9bfff; --low: #4fc27d; --medium: #e2a63a; --high: #f0714f; --very-high: #c56bd2; --none: #73809a;
+  --sim: #9a8cff; --sim-soft: rgba(154, 140, 255, 0.16); --track: rgba(233, 238, 251, 0.1);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3); color-scheme: dark;
+}

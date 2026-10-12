@@ -378,6 +378,7 @@ def bake_overview(roads: list[Road], stations: list[Station], out: Path) -> None
             "station_id": s.station_id,
             "name": s.name,
             "climate": s.climate,
+            "road": road_label(s.road_category, s.road_number),
             "xz": [round(v) for v in project_local(s.lon, s.lat, lon0, lat0)],
         }
         for s in stations
