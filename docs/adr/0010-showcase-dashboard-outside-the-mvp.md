@@ -34,9 +34,12 @@ snapshot. Scripted scenarios play over the snapshot and everything they show is 
 - On Free Edition the Worker uses a personal access token of the deploying user, stored only as a Worker
   secret and in a gitignored `.dev.vars`. On the paid workspace it becomes a service principal with the
   read grants from `sql/001_catalog_schemas_volume.sql`.
-- No pipeline, job, table or grant changes. `databricks.yml` excludes `showcase/**` from sync.
+- No pipeline, job or grant changes. `databricks.yml` excludes `showcase/**` from sync. Amended 2026-10-12:
+  the incident list and map need each incident's own position, so `gold.incident_list` was added to
+  `src/frostsight/serving.py`, as the last consequence below prescribes.
 - The showcase does not replace the AI/BI dashboards. Road colours follow the same 5 km coverage rule as
   `gold.map_points`, so the two agree.
 - Cars on the page are ambience, not traffic data, and the page says so.
 - Joins in the Worker are lookups between small serving tables for one consumer. If the showcase needs
   more, the fix is a new plot-ready gold table, not more logic in the Worker.
+- Architecture and design record: `docs/showcase/architecture.md`.
