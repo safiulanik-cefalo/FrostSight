@@ -2,13 +2,15 @@ import { ageLabel, dataAgeMinutes } from "../../shared/contract";
 import { useCurrentState, useShowcase } from "../data/store";
 import { kpiNarrow } from "./format";
 import { Icon } from "./icons";
+import { useSites } from "./useSites";
 
 export function KpiCards() {
   const state = useCurrentState();
   const siteId = useShowcase((s) => s.siteId);
+  const bakedRoad = useSites().find((s) => s.station_id === siteId)?.road;
   if (!state) return null;
   const { kpi } = state;
-  const narrow = siteId ? kpiNarrow(state, siteId) : null;
+  const narrow = siteId ? kpiNarrow(state, siteId, bakedRoad) : null;
   const at = state.gold.risk_updated_at ?? state.generated_at;
   const age = Math.max(0, dataAgeMinutes(at, new Date()));
   const ageText = ageLabel(age).replace(" old", "");

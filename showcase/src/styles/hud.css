@@ -204,3 +204,4 @@ button.row:hover .nm { color: var(--accent-ink); }
 .scenario-bar .close { background: var(--sim-soft); color: var(--sim); font-size: 18px; }
 .scenario-on .kpis { top: 128px; }
 @media (max-width: 760px) { .scenario-bar input { width: 90px; } .scenario-bar b { display: none; } }
+.notice { position: fixed; left: 50%; transform: translateX(-50%); top: 76px; padding: 10px 14px; color: var(--high); font-weight: 600; z-index: 25; max-width: calc(100% - 36px); box-sizing: border-box; }

@@ -36,10 +36,15 @@ export function loadSiteAssets(stationId: string, fetchFn: typeof fetch = fetch)
   let p = siteCache.get(stationId);
   if (!p) {
     p = (async () => {
-      const road = (await (await fetchFn(`/sites/${stationId}/road.json`)).json()) as RoadJson;
-      const buf = await (await fetchFn(`/sites/${stationId}/terrain.bin`)).arrayBuffer();
-      return { road, heights: decodeHeights(buf, road.terrain.min_m, road.terrain.max_m) };
+      // the static host answers unknown paths with index.html and 200, so check the type, not only the status
+      const r = await fetchFn(`/sites/${stationId}/road.json`);
+      if (!r.ok || !(r.headers.get("content-type") ?? "").includes("json")) throw new Error(`Unknown station ${stationId}`);
+      const road = (await r.json()) as RoadJson;
+      const t = await fetchFn(`/sites/${stationId}/terrain.bin`);
+      if (!t.ok) throw new Error(`Terrain missing for station ${stationId}`);
+      return { road, heights: decodeHeights(await t.arrayBuffer(), road.terrain.min_m, road.terrain.max_m) };
     })();
+    p.catch(() => siteCache.delete(stationId));
     siteCache.set(stationId, p);
   }
   return p;

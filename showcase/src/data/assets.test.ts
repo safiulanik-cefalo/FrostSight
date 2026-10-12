@@ -10,3 +10,18 @@ describe("decodeHeights", () => {
     expect(h[2]).toBeCloseTo(200, 0);
   });
 });
+
+import { loadSiteAssets } from "./assets";
+
+describe("loadSiteAssets", () => {
+  it("rejects an unknown station and does not cache the failure", async () => {
+    let calls = 0;
+    const html = (async () => {
+      calls++;
+      return new Response("<!doctype html>", { status: 200, headers: { "content-type": "text/html" } });
+    }) as typeof fetch;
+    await expect(loadSiteAssets("nope", html)).rejects.toThrow(/Unknown station nope/);
+    await expect(loadSiteAssets("nope", html)).rejects.toThrow();
+    expect(calls).toBeGreaterThanOrEqual(2);
+  });
+});

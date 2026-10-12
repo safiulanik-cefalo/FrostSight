@@ -42,3 +42,16 @@ describe("isClosureIncident", () => {
     expect(isClosureIncident("accident")).toBe(false);
   });
 });
+
+import { closureLabel, isSimulatedIncident } from "./dressing";
+
+describe("closureLabel", () => {
+  it("states a scenario's stretch but never invents one for a live closure", () => {
+    expect(closureLabel({ start_m: 5000, end_m: 7000, simulated: true }, "Gardeborri")).toBe("Road closed · km 5 to 7");
+    expect(closureLabel({ start_m: 0, end_m: 2000, simulated: false }, "Bossovarri")).toBe("Road closed near Bossovarri · position approximate");
+  });
+  it("recognises scenario incidents by one rule", () => {
+    expect(isSimulatedIncident("sim-gardeborri-closed")).toBe(true);
+    expect(isSimulatedIncident("NPRA_HBT_123")).toBe(false);
+  });
+});

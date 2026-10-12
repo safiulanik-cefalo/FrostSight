@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { loadSiteAssets, type SiteAssets } from "../data/assets";
 import { stretches as cutStretches, type Closure } from "../data/corridor";
 import type { ScenarioClosure } from "../data/scenario";
-import { useCurrentState } from "../data/store";
+import { useCurrentState, useShowcase } from "../data/store";
 import { usePrefersReducedMotion } from "../hooks";
 import { Barrier } from "./Barrier";
 import { Cars } from "./Cars";
 import { CameraRig, type Pose } from "./CameraRig";
-import { isClosureIncident } from "./dressing";
+import { closureLabel, isClosureIncident, isSimulatedIncident } from "./dressing";
 import { RiskBand } from "./RiskBand";
 import { Road } from "./Road";
 import { ROAD } from "./scale";
@@ -22,7 +22,9 @@ export function useSiteAssets(stationId: string): SiteAssets | null {
   useEffect(() => {
     let live = true;
     setAssets(null);
-    loadSiteAssets(stationId).then((a) => live && setAssets(a));
+    loadSiteAssets(stationId)
+      .then((a) => live && setAssets(a))
+      .catch((e: Error) => live && useShowcase.setState({ error: `${e.message}. Pick a station from the list.` }));
     return () => {
       live = false;
     };
@@ -51,7 +53,7 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
     const now = Date.now();
     const live = (state?.incidents ?? [])
       // sim- incidents come from a scenario, whose closures carry their own stretch below
-      .filter((i) => !i.incident_id.startsWith("sim-"))
+      .filter((i) => !isSimulatedIncident(i.incident_id))
       .filter((i) => segId && i.road_segment_id === segId && isClosureIncident(i.incident_type))
       .filter((i) => !i.end_time || new Date(i.end_time).getTime() > now)
       .map(() => ({
@@ -114,7 +116,7 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
               y={p.y + ROAD.lift}
               z={p.z}
               angle={Math.atan2(p.tx, p.tz) + Math.PI / 2}
-              label={j === 0 ? `Road closed · km ${(c.start_m / 1000).toFixed(0)} to ${(c.end_m / 1000).toFixed(0)}` : undefined}
+              label={j === 0 ? closureLabel(c, assets.road.name) : undefined}
               simulated={c.simulated}
             />
           );

@@ -14,8 +14,8 @@ export function siteSummary(state: State, stationId: string): string {
   return seg ? `${levelLabel(seg.risk_level)} · icing ${seg.icing_score.toFixed(2)}` : "No current risk";
 }
 
-export function kpiNarrow(state: State, stationId: string): { road: string; high: number; total: number } {
-  const road = state.stations.find((s) => s.station_id === stationId)?.road ?? "";
+export function kpiNarrow(state: State, stationId: string, fallbackRoad = ""): { road: string; high: number; total: number } {
+  const road = state.stations.find((s) => s.station_id === stationId)?.road ?? fallbackRoad;
   const onRoad = state.segments.filter((s) => s.road === road);
   return { road, high: onRoad.filter((s) => s.risk_level === "HIGH" || s.risk_level === "VERY_HIGH").length, total: onRoad.length };
 }

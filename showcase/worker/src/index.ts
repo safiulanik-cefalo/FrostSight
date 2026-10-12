@@ -4,6 +4,7 @@ import { runStatement, type Row } from "./databricks";
 import type { Env } from "./env";
 import { QUERIES, TABLE_KEYS, type TableKey } from "./queries";
 import { shapeState, type GoldRows } from "./shape";
+import { parseState } from "../../shared/contract";
 
 const CURRENT = "state:current";
 const LAST_ERROR = "state:last_error";
@@ -22,7 +23,9 @@ export async function refresh(env: Env, now: Date, fetchFn: typeof fetch = fetch
     const rest = TABLE_KEYS.filter((k) => k !== "kpi_summary");
     const results = await Promise.all(rest.map((k) => runStatement(env, QUERIES[k](env.CATALOG), fetchFn)));
     const rows = Object.fromEntries([["kpi_summary", kpi] as [TableKey, Row[]], ...rest.map((k, i) => [k, results[i]] as [TableKey, Row[]])]) as GoldRows;
-    await env.STATE.put(CURRENT, JSON.stringify(shapeState(rows, at)));
+    // validate against the same contract the app uses, so a bad row never replaces a good document
+    const doc = parseState(shapeState(rows, at));
+    await env.STATE.put(CURRENT, JSON.stringify(doc));
     return "updated";
   } catch (e) {
     await env.STATE.put(LAST_ERROR, JSON.stringify({ at, message: e instanceof Error ? e.message : String(e) }));

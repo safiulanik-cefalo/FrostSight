@@ -54,3 +54,19 @@ describe("driverChip", () => {
     expect(driverChip(0.05)).toBe("Minor");
   });
 });
+
+describe("rows for a site the state does not list", () => {
+  it("shows nothing instead of the whole county, or uses the baked road when given", () => {
+    expect(segmentRows(richer(), "1900113", now)).toEqual([]);
+    expect(stationRows(richer(), "1900113")).toEqual([]);
+    expect(incidentRows(richer(), "1900113", now)).toEqual([]);
+    expect(segmentRows(richer(), "1900113", now, "E6").map((r) => r.id)).toEqual(["e6-vh"]);
+  });
+  it("marks scenario incidents as simulated", () => {
+    const s = richer();
+    s.incidents.push({ ...s.incidents[0], incident_id: "sim-x" });
+    const rows = incidentRows(s, null, now);
+    expect(rows.find((r) => r.id === "sim-x")?.simulated).toBe(true);
+    expect(rows.find((r) => r.id === "a")?.simulated).toBe(false);
+  });
+});

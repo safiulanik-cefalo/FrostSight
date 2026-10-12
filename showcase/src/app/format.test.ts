@@ -42,3 +42,9 @@ describe("liveChip", () => {
     expect(liveChip(sim, "live", now)).toEqual({ tone: "simulated", text: "Simulated · Snowstorm on E8" });
   });
 });
+
+describe("kpiNarrow for a station the state does not list", () => {
+  it("uses the baked road", () => {
+    expect(kpiNarrow(baseState(), "1900113", "Fv86")).toEqual({ road: "Fv86", high: 0, total: 0 });
+  });
+});

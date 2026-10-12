@@ -2,6 +2,7 @@ import { useCurrentState, useShowcase, type Tab } from "../data/store";
 import { Icon } from "./icons";
 import { incidentRows, segmentRows, stationRows } from "./listRows";
 import { LevelPill, ScoreBar, TonePill } from "./Pill";
+import { useSites } from "./useSites";
 
 export function ListPanel() {
   const state = useCurrentState();
@@ -10,12 +11,13 @@ export function ListPanel() {
   const setTab = useShowcase((s) => s.setTab);
   const select = useShowcase((s) => s.select);
   const goSite = useShowcase((s) => s.goSite);
+  const bakedRoad = useSites().find((s) => s.station_id === siteId)?.road;
   if (!state) return null;
   const now = new Date();
-  const segs = segmentRows(state, siteId, now);
-  const stations = stationRows(state, siteId);
-  const incidents = incidentRows(state, siteId, now);
-  const road = siteId ? state.stations.find((s) => s.station_id === siteId)?.road : "Troms";
+  const segs = segmentRows(state, siteId, now, bakedRoad);
+  const stations = stationRows(state, siteId, bakedRoad);
+  const incidents = incidentRows(state, siteId, now, bakedRoad);
+  const road = siteId ? state.stations.find((s) => s.station_id === siteId)?.road ?? bakedRoad : "Troms";
   const tabs: Array<[Tab, string, string, boolean]> = [
     ["segments", "Segments", `${segs.filter((s) => s.level === "HIGH" || s.level === "VERY_HIGH").length}/${segs.length}`, false],
     ["stations", "Stations", `${stations.filter((s) => s.reporting).length}/${stations.length}`, false],

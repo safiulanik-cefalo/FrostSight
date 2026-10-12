@@ -3,6 +3,7 @@ import type { State } from "../../shared/contract";
 import { Icon } from "./icons";
 import { driverChip, incidentRows } from "./listRows";
 import { LevelPill, ScoreBar, TonePill } from "./Pill";
+import { useSites } from "./useSites";
 
 const fmt = (v: number | null, unit: string, digits = 1) => (v === null ? "not reported" : `${v.toFixed(digits)} ${unit}`);
 const CHIP_TONE = { Driver: "high", Rising: "medium", Minor: "none" } as const;
@@ -38,6 +39,7 @@ export function DetailPanel() {
   const state = useCurrentState();
   const siteId = useShowcase((s) => s.siteId);
   const segmentId = useShowcase((s) => s.segmentId);
+  const baked = useSites().find((s) => s.station_id === siteId);
   if (!state) return null;
   if (!siteId) {
     return (
@@ -49,17 +51,20 @@ export function DetailPanel() {
   const station = state.stations.find((s) => s.station_id === siteId) ?? null;
   const segment =
     state.segments.find((s) => s.road_segment_id === segmentId) ?? state.segments.find((s) => s.station_id === siteId) ?? null;
-  const closure = incidentRows(state, siteId, new Date()).find((i) => i.active && i.closure && i.segmentId === segment?.road_segment_id);
+  const closure = incidentRows(state, siteId, new Date(), baked?.road).find((i) => i.active && i.closure && i.segmentId === segment?.road_segment_id);
   const simulated = state.source === "scenario";
+  const name = station?.name ?? baked?.name ?? siteId;
   return (
     <aside className="glass panel" aria-label="Segment detail">
       <div className="phead">
         <div className="ic"><Icon.Road /></div>
         <div>
-          <div className="eyebrow">Segment · {segment?.road ?? station?.road}</div>
-          <h2>{segment ? state.stations.find((s) => s.station_id === segment.station_id)?.name ?? segment.segment : station?.name}</h2>
+          <div className="eyebrow">Segment · {segment?.road ?? station?.road ?? baked?.road}</div>
+          <h2>{segment ? state.stations.find((s) => s.station_id === segment.station_id)?.name ?? segment.segment : name}</h2>
           <div className="addr">
-            {segment?.road_segment_id ?? station?.road_segment_id} · {station ? `${station.lat.toFixed(3)} N ${station.lon.toFixed(3)} E` : ""}
+            {[segment?.road_segment_id ?? station?.road_segment_id, station && `${station.lat.toFixed(3)} N ${station.lon.toFixed(3)} E`]
+              .filter(Boolean)
+              .join(" · ")}
           </div>
         </div>
       </div>
@@ -67,8 +72,9 @@ export function DetailPanel() {
         <>
           <div className="status"><LevelPill level="NONE" /> No current risk for this station</div>
           <p className="empty">
-            The station {station?.status === "Stale" ? "has not reported in the newest fetch" : "has no scored segment yet"}, so its road shows
-            no coverage.
+            {name}{" "}
+            {!station ? "is not in the current data" : station.status === "Stale" ? "has not reported in the newest fetch" : "has no scored segment yet"}, so its
+            road shows no coverage.
           </p>
         </>
       ) : (
@@ -124,7 +130,7 @@ export function DetailPanel() {
             <div className="rows">
               <div className="row static">
                 <span className="nm">{closure.title}<small>{closure.subtitle}</small></span>
-                <TonePill tone={simulated ? "sim" : "high"}>{simulated ? "Simulated" : "Active"}</TonePill>
+                <TonePill tone={closure.simulated ? "sim" : "high"}>{closure.simulated ? "Simulated" : "Active"}</TonePill>
               </div>
             </div>
           )}

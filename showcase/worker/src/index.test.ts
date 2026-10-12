@@ -82,3 +82,20 @@ describe("fetch", () => {
     expect(await res.text()).toBe("asset");
   });
 });
+
+describe("refresh validation", () => {
+  it("keeps the previous document when gold yields a state the app would reject", async () => {
+    const env = makeEnv(memoryKV({ "state:current": '{"keep":true}' }));
+    const bad = JSON.parse(JSON.stringify(rows)) as Rows;
+    bad.segment_detail[0].risk_level = "EXTREME";
+    const answers = TABLE_KEYS.map((t) => {
+      const list = bad[t];
+      const names = Object.keys(list[0] ?? { x: null });
+      return { statement_id: t, status: { state: "SUCCEEDED" }, manifest: { schema: { columns: names.map((name) => ({ name })) } },
+        result: { data_array: list.map((r) => names.map((n) => r[n])) } };
+    });
+    expect(await refresh(env, now, scriptedFetch(answers).fetchFn)).toBe("failed");
+    expect(env.STATE.data.get("state:current")).toBe('{"keep":true}');
+    expect(JSON.parse(env.STATE.data.get("state:last_error")!).message).toMatch(/risk_level|invalid/i);
+  });
+});

@@ -79,10 +79,10 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
     set({ playing: !playing, clockS: !playing && clockS >= scenario.duration_s ? 0 : clockS });
   },
   goOverview() {
-    set({ view: "overview", siteId: null, segmentId: null });
+    set({ view: "overview", siteId: null, segmentId: null, error: null });
   },
   goSite(stationId) {
-    set({ view: "site", siteId: stationId, segmentId: null });
+    set({ view: "site", siteId: stationId, segmentId: null, error: null });
   },
   select(segmentId) {
     set({ segmentId });

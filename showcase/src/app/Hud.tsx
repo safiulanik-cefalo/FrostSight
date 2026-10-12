@@ -23,7 +23,8 @@ export function Hud() {
       <Outlook />
       <ListPanel />
       <Legend simulated={state?.source === "scenario"} raised={view === "site"} />
-      {!state && <div className={`boot${error ? " error" : ""}`}>{error ?? "Loading Troms…"}</div>}
+      {!state && !error && <div className="boot">Loading Troms…</div>}
+      {error && <div className="glass notice" role="alert">{error}</div>}
     </div>
   );
 }

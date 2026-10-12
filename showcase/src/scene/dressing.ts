@@ -47,3 +47,14 @@ export function treePlacements(
 export function isClosureIncident(incidentType: string): boolean {
   return /clos(ed|ure)/i.test(incidentType);
 }
+
+/** Scenario incidents carry ids starting "sim-" (written by tools/make_scenarios.py). */
+export function isSimulatedIncident(incidentId: string): boolean {
+  return incidentId.startsWith("sim-");
+}
+
+/** A scenario closure has a known stretch; a live one is placed near the station because DATEX positions are not in the state. */
+export function closureLabel(c: { start_m: number; end_m: number; simulated: boolean }, stationName: string): string {
+  if (!c.simulated) return `Road closed near ${stationName} · position approximate`;
+  return `Road closed · km ${(c.start_m / 1000).toFixed(0)} to ${(c.end_m / 1000).toFixed(0)}`;
+}
