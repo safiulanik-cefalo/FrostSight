@@ -6,7 +6,7 @@ export type TableKey =
   | "segment_detail"
   | "segment_drivers"
   | "segment_history"
-  | "segment_incidents"
+  | "incident_list"
   | "priority_list"
   | "latest_readings";
 
@@ -16,7 +16,7 @@ export const TABLE_KEYS: TableKey[] = [
   "segment_detail",
   "segment_drivers",
   "segment_history",
-  "segment_incidents",
+  "incident_list",
   "priority_list",
   "latest_readings",
 ];
@@ -28,7 +28,7 @@ export const QUERIES: Record<TableKey, (catalog: string) => string> = {
   segment_drivers: (c) => `SELECT * FROM ${c}.gold.segment_drivers`,
   segment_history: (c) =>
     `SELECT * FROM ${c}.gold.segment_history WHERE event_time >= current_timestamp() - INTERVAL 24 HOURS`,
-  segment_incidents: (c) => `SELECT * FROM ${c}.gold.segment_incidents`,
+  incident_list: (c) => `SELECT * FROM ${c}.gold.incident_list`,
   priority_list: (c) => `SELECT * FROM ${c}.gold.priority_list`,
   latest_readings: (c) =>
     `SELECT station_id, dew_point_c, precipitation_type, precipitation_intensity_mm_h, wind_speed_ms ` +

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { treePlacements, isClosureIncident, TREELINE_M } from "./dressing";
+import { treePlacements, isClosureIncident, TREELINE_M, liveClosure } from "./dressing";
 
 const low = () => 100;
 const far = () => 50;
@@ -53,5 +53,20 @@ describe("closureLabel", () => {
   it("recognises scenario incidents by one rule", () => {
     expect(isSimulatedIncident("sim-gardeborri-closed")).toBe(true);
     expect(isSimulatedIncident("NPRA_HBT_123")).toBe(false);
+  });
+});
+
+describe("liveClosure", () => {
+  it("closes 250 m either side of the incident's own spot on the road", () => {
+    expect(liveClosure(6000, 3000, { atM: 4100, offsetM: 40 })).toEqual({ start_m: 3850, end_m: 4350, simulated: false, approximate: false });
+    expect(liveClosure(6000, 3000, { atM: 100, offsetM: 40 })).toMatchObject({ start_m: 0, end_m: 350 });
+  });
+  it("falls back to 1 km either side of the station when the spot is unknown or off this road", () => {
+    expect(liveClosure(6000, 3000, null)).toEqual({ start_m: 2000, end_m: 4000, simulated: false, approximate: true });
+    expect(liveClosure(6000, 3000, { atM: 4100, offsetM: 1500 }).approximate).toBe(true);
+  });
+  it("labels an exact closure without the approximate warning", () => {
+    expect(closureLabel({ start_m: 3850, end_m: 4350, simulated: false, approximate: false }, "Bossovarri")).toBe("Road closed here");
+    expect(closureLabel({ start_m: 2000, end_m: 4000, simulated: false, approximate: true }, "Bossovarri")).toBe("Road closed near Bossovarri · position approximate");
   });
 });

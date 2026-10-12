@@ -59,10 +59,17 @@ const SegmentSchema = z.object({
   }),
 });
 
+// Live incidents come from gold.incident_list with their own position and the nearest monitored station on
+// their road within coverage; scenario incidents have neither, so these fields are optional.
 const IncidentSchema = z.object({
   incident_id: z.string(),
+  situation_id: z.string().nullable().optional(),
   road: z.string(),
   road_segment_id: z.string().nullable(),
+  station_id: z.string().nullable().optional(),
+  station_km: num.nullable().optional(),
+  lat: num.nullable().optional(),
+  lon: num.nullable().optional(),
   incident_type: z.string(),
   severity: z.string().nullable(),
   start_time: iso,

@@ -1,38 +1,140 @@
 {
   "kpi_summary": [
-    { "segments_total": "1", "segments_high": "1", "segments_very_high": "0", "risk_updated_at": "2026-10-12T09:20:00.000Z",
-      "stations_total": "2", "stations_reporting": "1", "active_incidents": "1", "latency_median_s": "540", "computed_at": "2026-10-12T09:28:00.000Z" }
+    {
+      "segments_total": "1",
+      "segments_high": "1",
+      "segments_very_high": "0",
+      "risk_updated_at": "2026-10-12T09:20:00.000Z",
+      "stations_total": "2",
+      "stations_reporting": "1",
+      "active_incidents": "1",
+      "latency_median_s": "540",
+      "computed_at": "2026-10-12T09:28:00.000Z"
+    }
   ],
   "station_status": [
-    { "station_id": "3000014", "name": "Bossovarri", "lat": "69.1202", "lon": "20.74511", "road": "E8", "road_segment_id": "1125788-27-9",
-      "last_event_time": "2026-10-12T09:20:00.000Z", "station_status": "Reporting", "status_label": "🟢 Reporting", "risk_level": "HIGH", "icing_score": "0.72" },
-    { "station_id": "3000016", "name": "Gardeborri", "lat": "69.18203", "lon": "20.75035", "road": "E8", "road_segment_id": "1125788-25-9",
-      "last_event_time": "2026-10-12T04:10:00.000Z", "station_status": "Stale", "status_label": "⚪ Stale", "risk_level": null, "icing_score": null }
+    {
+      "station_id": "3000014",
+      "name": "Bossovarri",
+      "lat": "69.1202",
+      "lon": "20.74511",
+      "road": "E8",
+      "road_segment_id": "1125788-27-9",
+      "last_event_time": "2026-10-12T09:20:00.000Z",
+      "station_status": "Reporting",
+      "status_label": "🟢 Reporting",
+      "risk_level": "HIGH",
+      "icing_score": "0.72"
+    },
+    {
+      "station_id": "3000016",
+      "name": "Gardeborri",
+      "lat": "69.18203",
+      "lon": "20.75035",
+      "road": "E8",
+      "road_segment_id": "1125788-25-9",
+      "last_event_time": "2026-10-12T04:10:00.000Z",
+      "station_status": "Stale",
+      "status_label": "⚪ Stale",
+      "risk_level": null,
+      "icing_score": null
+    }
   ],
   "segment_detail": [
-    { "segment": "E8 · Bossovarri", "road_segment_id": "1125788-27-9", "road": "E8", "road_key": "E8", "station_id": "3000014",
-      "station_name": "Bossovarri", "risk_level": "HIGH", "icing_score": "0.72", "surface_c": "-3.1", "air_c": "-2.4",
-      "change_1h_c": "-0.8", "change_label": "-0.8 in 1 h", "risk_drivers": "[]", "event_time": "2026-10-12T09:20:00.000Z",
-      "risk_updated_at": "2026-10-12T09:20:00.000Z" }
+    {
+      "segment": "E8 · Bossovarri",
+      "road_segment_id": "1125788-27-9",
+      "road": "E8",
+      "road_key": "E8",
+      "station_id": "3000014",
+      "station_name": "Bossovarri",
+      "risk_level": "HIGH",
+      "icing_score": "0.72",
+      "surface_c": "-3.1",
+      "air_c": "-2.4",
+      "change_1h_c": "-0.8",
+      "change_label": "-0.8 in 1 h",
+      "risk_drivers": "[]",
+      "event_time": "2026-10-12T09:20:00.000Z",
+      "risk_updated_at": "2026-10-12T09:20:00.000Z"
+    }
   ],
   "segment_drivers": [
-    { "segment": "E8 · Bossovarri", "factor": "Precipitation", "contribution": "0.41" },
-    { "segment": "E8 · Bossovarri", "factor": "Surface temperature", "contribution": "0.31" }
+    {
+      "segment": "E8 · Bossovarri",
+      "factor": "Precipitation",
+      "contribution": "0.41"
+    },
+    {
+      "segment": "E8 · Bossovarri",
+      "factor": "Surface temperature",
+      "contribution": "0.31"
+    }
   ],
   "segment_history": [
-    { "segment": "E8 · Bossovarri", "event_time": "2026-10-12T09:20:00.000Z", "icing_score": "0.72", "risk_level": "HIGH", "surface_c": "-3.1", "air_c": "-2.4" },
-    { "segment": "E8 · Bossovarri", "event_time": "2026-10-12T06:00:00.000Z", "icing_score": "0.48", "risk_level": "MEDIUM", "surface_c": "-1.0", "air_c": "-0.5" }
-  ],
-  "segment_incidents": [
-    { "segment": "E8 · Bossovarri", "incident_id": "NPRA_HBT_123", "start_time": "2026-10-12T08:00:00.000Z", "end_time": null,
-      "incident_type": "roadClosed", "severity": "high", "description": "E8 closed at Gardeborri, convoy driving" }
+    {
+      "segment": "E8 · Bossovarri",
+      "event_time": "2026-10-12T09:20:00.000Z",
+      "icing_score": "0.72",
+      "risk_level": "HIGH",
+      "surface_c": "-3.1",
+      "air_c": "-2.4"
+    },
+    {
+      "segment": "E8 · Bossovarri",
+      "event_time": "2026-10-12T06:00:00.000Z",
+      "icing_score": "0.48",
+      "risk_level": "MEDIUM",
+      "surface_c": "-1.0",
+      "air_c": "-0.5"
+    }
   ],
   "priority_list": [
-    { "rank": "2", "road_segment_id": "1125788-27-9", "road": "E8", "place": "Bossovarri", "icing_score": "0.72", "risk_level": "HIGH",
-      "level": "🟠 HIGH", "surface_c": "-3.1", "precip": "Snow", "main_drivers": "Precipitation, Surface temperature", "risk_updated_at": "2026-10-12T09:20:00.000Z" }
+    {
+      "rank": "2",
+      "road_segment_id": "1125788-27-9",
+      "road": "E8",
+      "place": "Bossovarri",
+      "icing_score": "0.72",
+      "risk_level": "HIGH",
+      "level": "🟠 HIGH",
+      "surface_c": "-3.1",
+      "precip": "Snow",
+      "main_drivers": "Precipitation, Surface temperature",
+      "risk_updated_at": "2026-10-12T09:20:00.000Z"
+    }
   ],
   "latest_readings": [
-    { "station_id": "3000014", "dew_point_c": "-3.4", "precipitation_type": "SNOW", "precipitation_intensity_mm_h": "2.4", "wind_speed_ms": "11" },
-    { "station_id": "3000016", "dew_point_c": null, "precipitation_type": null, "precipitation_intensity_mm_h": null, "wind_speed_ms": null }
+    {
+      "station_id": "3000014",
+      "dew_point_c": "-3.4",
+      "precipitation_type": "SNOW",
+      "precipitation_intensity_mm_h": "2.4",
+      "wind_speed_ms": "11"
+    },
+    {
+      "station_id": "3000016",
+      "dew_point_c": null,
+      "precipitation_type": null,
+      "precipitation_intensity_mm_h": null,
+      "wind_speed_ms": null
+    }
+  ],
+  "incident_list": [
+    {
+      "incident_id": "NPRA_HBT_123_1",
+      "situation_id": "NPRA_HBT_123",
+      "road": "E8",
+      "road_segment_id": "1125788-27-9",
+      "station_id": "3000014",
+      "station_km": "0.8",
+      "latitude": "69.1265",
+      "longitude": "20.76",
+      "incident_type": "roadClosed",
+      "severity": "high",
+      "start_time": "2026-10-12T08:00:00.000Z",
+      "end_time": null,
+      "description": "E8 closed at Gardeborri, convoy driving"
+    }
   ]
 }
