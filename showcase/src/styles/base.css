@@ -7,3 +7,4 @@ body { background: #dfe8f6; overflow: hidden; }
 .tag3-alert { color: #e0532f; }
 .tag3 em { font-style: normal; color: #5b4bd6; }
 .tag3-level { font-weight: 800; }
+.tag3-muted { color: #8a95ab; font-weight: 600; }

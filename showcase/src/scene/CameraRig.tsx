@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
@@ -26,9 +26,28 @@ function poseToPosition(p: Pose): THREE.Vector3 {
   );
 }
 
-export function CameraRig({ home, minDistance, maxDistance }: { home: Pose; minDistance: number; maxDistance: number }) {
+const FLY_S = 1.2;
+const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+
+type Props = { home: Pose; minDistance: number; maxDistance: number; flyFrom?: Pose; reduced?: boolean };
+
+/** Orbit controls with a home pose; on mount it flies from flyFrom to home unless motion is reduced. */
+export function CameraRig({ home, minDistance, maxDistance, flyFrom, reduced = false }: Props) {
   const controls = useRef<OrbitControlsImpl>(null);
   const camera = useThree((s) => s.camera);
+  const fly = useRef<{ t: number; from: THREE.Vector3; fromTarget: THREE.Vector3; to: THREE.Vector3; toTarget: THREE.Vector3 } | null>(null);
+
+  useFrame((_, dt) => {
+    const f = fly.current;
+    const c = controls.current;
+    if (!f || !c) return;
+    f.t = Math.min(1, f.t + dt / FLY_S);
+    const k = ease(f.t);
+    camera.position.lerpVectors(f.from, f.to, k);
+    c.target.lerpVectors(f.fromTarget, f.toTarget, k);
+    c.update();
+    if (f.t >= 1) fly.current = null;
+  });
 
   useEffect(() => {
     const c = controls.current;
@@ -52,7 +71,17 @@ export function CameraRig({ home, minDistance, maxDistance }: { home: Pose; minD
       c.update();
     };
     cameraActions.home = goHome;
-    goHome();
+    if (flyFrom && !reduced) {
+      const from = poseToPosition(flyFrom);
+      camera.position.copy(from);
+      c.target.set(...flyFrom.target);
+      c.update();
+      fly.current = { t: 0, from, fromTarget: new THREE.Vector3(...flyFrom.target), to: poseToPosition(home), toTarget: new THREE.Vector3(...home.target) };
+    } else {
+      goHome();
+    }
+    // flyFrom only matters on mount; a new object with the same pose must not restart the flight
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camera, home, minDistance, maxDistance]);
 
   return (

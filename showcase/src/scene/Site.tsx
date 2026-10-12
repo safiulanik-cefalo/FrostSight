@@ -80,7 +80,13 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
   const sz = st.z + st.tx * 9;
   return (
     <group>
-      <CameraRig home={home} minDistance={40} maxDistance={420} />
+      <CameraRig
+        home={home}
+        minDistance={40}
+        maxDistance={420}
+        reduced={reduced}
+        flyFrom={{ target: home.target, azimuth: home.azimuth - 0.7, elevation: 1.15, distance: 560 }}
+      />
       <Terrain assets={assets} model={model} snowline={snowline} />
       <Road model={model} />
       <RiskBand model={model} stretches={strips} />
