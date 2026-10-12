@@ -1,0 +1,22 @@
+# FrostSight showcase Worker. Local: `npx wrangler dev --test-scheduled`, with DATABRICKS_TOKEN and any
+# overrides of the vars below in .dev.vars (gitignored). Cloudflare setup comes after the local demo.
+name = "frostsight-showcase"
+main = "worker/src/index.ts"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[kv_namespaces]]
+binding = "STATE"
+id = "local"          # replaced by `wrangler kv namespace create STATE` at Cloudflare setup
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+DATABRICKS_HOST = "https://REPLACE.cloud.databricks.com"
+DATABRICKS_WAREHOUSE_ID = "REPLACE"
+CATALOG = "frostsight"

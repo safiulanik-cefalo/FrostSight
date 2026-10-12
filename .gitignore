@@ -47,3 +47,8 @@ tools/mock_dashboards/.mock_data.resolved.sql
 
 # Local scratch notes, never committed
 temp/
+
+# Local media and tool output
+*.mov
+.playwright-mcp/
+.superpowers/
