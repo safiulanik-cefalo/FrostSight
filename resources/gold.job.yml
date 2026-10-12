@@ -1,0 +1,38 @@
+# Gold for the live dashboard, from the team's silver tables (docs/gold-from-team-silver.md).
+# Every 4 h while in development, or on demand: the dashboard's "Fetch now" link opens this job's page.
+# On `free` the job first runs the team's ingestion job (task `ingest`, added in databricks.yml targets.free),
+# so one run fetches, builds silver and builds gold.
+resources:
+  jobs:
+    gold:
+      name: frostsight-gold
+      description: "Every 4 h (development cadence) or on demand: ingestion, then gold. docs/gold-from-team-silver.md"
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      schedule:
+        quartz_cron_expression: "0 0 0/4 * * ?"
+        timezone_id: UTC
+        pause_status: ${var.schedule_pause_status}     # PAUSED on personal
+      email_notifications:
+        on_failure: [ "${var.notification_email}" ]
+        no_alert_for_skipped_runs: true
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+      environments:
+        - environment_key: gold
+          spec:
+            client: "4"                                 # serverless base environment, Python 3.12
+            dependencies:
+              - ../dist/*.whl                           # frostsight wheel from the bundle `artifacts` block
+      tasks:
+        - task_key: build_gold
+          environment_key: gold
+          timeout_seconds: 900
+          spark_python_task:
+            python_file: ../src/jobs/build_gold.py
+            parameters: [ "--catalog", "{{job.parameters.catalog}}", "--config-dir", "${var.config_dir}",
+                          "--stale-after-min", "300", "--current-window-min", "30" ]
+      permissions:
+        - group_name: users                             # anyone in the workspace can press "Run now"
+          level: CAN_MANAGE_RUN

@@ -1,0 +1,31 @@
+# Icing risk v0 (04_M3 T3.4, 06_M5 T5.1). Every number of the model lives here; the tests read this file too.
+version: v0
+weights:                  # must sum to 1.0
+  surface_temp: 0.35
+  air_temp: 0.15
+  dew_point_spread: 0.15
+  precipitation: 0.20
+  temp_trend_1h: 0.15
+breakpoints:              # [x, score] pairs; linear between, flat outside; null input scores 0
+  surface_temp:     [[-2.0, 1.0], [0.0, 0.5], [3.0, 0.0]]
+  air_temp:         [[-2.0, 1.0], [0.0, 0.5], [4.0, 0.0]]
+  dew_point_spread: [[0.5, 1.0], [3.0, 0.0]]          # air_temperature_c - dew_point_c
+  temp_trend_1h:    [[-3.0, 1.0], [-1.0, 0.5], [0.0, 0.0]]   # surface change over the last hour, °C
+precipitation_scores:
+  FREEZING_RAIN: 1.0
+  SNOW: 0.9
+  SLEET: 0.8
+  RAIN: 0.5
+  DRIZZLE: 0.4
+  UNKNOWN: 0.2
+  NONE: 0.0
+# Used only when the source reports UNKNOWN, which DATEX WeatherSimple_v2 always does
+# (docs/gold-from-team-silver.md B4): no intensity -> NONE, else by air temperature.
+precipitation_inference:
+  snow_max_air_c: 0.5
+  sleet_max_air_c: 1.5
+levels:                   # lower bound of each level; below MEDIUM is LOW
+  MEDIUM: 0.25
+  HIGH: 0.5
+  VERY_HIGH: 0.75
+drivers_top: 3

@@ -41,6 +41,8 @@ CLI profiles are `frostsight-personal`, `frostsight-free`, `frostsight-aws` (see
   Pure logic goes in `src/frostsight/` and gets a unit test in `tests/unit/`.
 - Timestamps are UTC; `event_time` is measurement time, `_ingested_at` is arrival. Units: °C, m/s, mm, metres.
 - Risk levels are `LOW`, `MEDIUM`, `HIGH`, `VERY_HIGH`.
+- Dashboards read plot-ready gold tables: every dataset is a select on one table, no read-time joins or
+  aggregation (ADR-0009, `.claude/rules/dashboards-and-gold.md`). The mock's SQL is not a pattern for live data.
 - Secrets never go in the repo or `config/*.yml`; `secret:` in `config/sources.yml` names the environment
   variable or secret-scope key to read.
 - Branches `feature/<milestone>-<short-name>`, PR into `main`, squash merge. Owners are in `.github/CODEOWNERS`.
