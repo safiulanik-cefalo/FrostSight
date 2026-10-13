@@ -161,7 +161,7 @@ history; counters are recounted from the simulated rows. Every simulated thing o
 | Warehouse cost from visitors | None: requests read KV only |
 | Dev server | Vite is told not to serve `.dev.vars` or `.env*` (`vite.config.ts`) |
 | Personal access token | **Open.** It carries the owner's full rights. Before a public launch, use a service principal with OAuth M2M, `SELECT` on the gold schema and `CAN USE` on one warehouse |
-| `/api/health` | **Open.** Returns the raw last error, which can include the workspace URL. Return a generic message publicly |
+| `/api/health` | Says when the last refresh failed, with a generic message. The reason, which can name the workspace, goes to the Worker log and KV `state:last_error` only |
 | Access to the page | Public by design (open data). Cloudflare Access can add a login without code |
 | Warehouse wake-ups | The 15-min check wakes the warehouse up to 96 times a day; align the cron to the gold schedule to cut cost |
 
@@ -217,6 +217,6 @@ Ideas:
 - Group DATEX records of one situation into one incident row.
 - Fly the camera to a picked incident on the overview.
 - Colder sky below −5 °C, hover tags on all objects, km marks along the road.
-- Service principal, generic health errors and Cloudflare Access before a public launch.
+- Service principal and Cloudflare Access before a public launch.
 - Per-county state and a national overview for the rest of Norway.
 - Deploy to Cloudflare (`showcase/README.md`, "Deploy to Cloudflare").

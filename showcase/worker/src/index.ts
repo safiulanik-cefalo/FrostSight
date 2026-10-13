@@ -8,6 +8,7 @@ import { parseState } from "../../shared/contract";
 
 const CURRENT = "state:current";
 const LAST_ERROR = "state:last_error";
+const PUBLIC_ERROR = "The last refresh failed. Details are in the Worker log.";
 
 export async function refresh(env: Env, now: Date, fetchFn: typeof fetch = fetch): Promise<"updated" | "unchanged" | "failed"> {
   const at = now.toISOString();
@@ -28,7 +29,10 @@ export async function refresh(env: Env, now: Date, fetchFn: typeof fetch = fetch
     await env.STATE.put(CURRENT, JSON.stringify(doc));
     return "updated";
   } catch (e) {
-    await env.STATE.put(LAST_ERROR, JSON.stringify({ at, message: e instanceof Error ? e.message : String(e) }));
+    // the full message stays private (KV and the Worker log): it can name the workspace host
+    const message = e instanceof Error ? e.message : String(e);
+    console.error(`refresh failed: ${message}`);
+    await env.STATE.put(LAST_ERROR, JSON.stringify({ at, message }));
     return "failed";
   }
 }
@@ -51,7 +55,8 @@ export default {
       return json({
         generated_at: parsed?.generated_at ?? null,
         risk_updated_at: parsed?.gold?.risk_updated_at ?? null,
-        last_error: err ? JSON.parse(err) : null,
+        // when it failed is public, why is not
+        last_error: err ? { at: (JSON.parse(err) as { at: string }).at, message: PUBLIC_ERROR } : null,
       });
     }
     return env.ASSETS.fetch(request);
