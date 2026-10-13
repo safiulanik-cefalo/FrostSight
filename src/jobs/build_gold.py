@@ -165,6 +165,12 @@ def build_risk(catalog: str, cfg: dict, current_window_min: int) -> None:
         .dropDuplicates(["road_segment_id"])
     )
     merge(current, f"{catalog}.gold.road_segment_current_risk", ["road_segment_id"])
+    # NVDB renumbers segments when a road is edited; after a seed reload the old ids would keep their rows
+    # beside the new ones, so a station shows twice. Keep only the segments the seed still monitors.
+    spark.sql(
+        f"DELETE FROM {catalog}.gold.road_segment_current_risk WHERE road_segment_id NOT IN "
+        f"(SELECT road_segment_id FROM {catalog}.silver.nvdb_seed_stations)"
+    )
 
 
 def build_incidents(catalog: str) -> None:
