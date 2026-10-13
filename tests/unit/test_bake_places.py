@@ -78,6 +78,11 @@ def test_main_name_prefers_norwegian_main_name():
     old = {"skrivemåte": "Tromsøe", "navnestatus": "historisk", "språk": "Norsk", "stedsnavnnummer": 3}
     assert bp.main_name(ssr("Tromsø", "By", 0, 0, others=[sami, old])) == "Tromsø"
     assert bp.main_name({"stedsnavn": [old]}) is None
+    side = [
+        {"skrivemåte": "Fossbergom", "navnestatus": "sidenavn", "språk": "Norsk", "stedsnavnnummer": 2},
+        {"skrivemåte": "Lom", "navnestatus": "sidenavn", "språk": "Norsk", "stedsnavnnummer": 1},
+    ]
+    assert bp.main_name({"stedsnavn": side}) == "Lom"
 
 
 def test_pick_labels_keeps_known_kinds_ranked_and_drops_the_rest():
@@ -90,6 +95,7 @@ def test_pick_labels_keeps_known_kinds_ranked_and_drops_the_rest():
         ssr("Tromsøysund 2", "Tunnel", 100, 100),
         ssr("Bispelokket, Rampe opp fra Festningstunnelen", "Bru", 1500, 300),
         ssr("Sentrumstangentens østre nedkjøringsrampe", "Tunnel", 900, 300),
+        ssr("Furuset påkjøringsrampe", "Bru", 1200, -400),
         ssr("Langt borte", "By", 6900, 0),  # inside the box but on its rim
     ]
     labels = bp.pick_labels(names, LON0, LAT0, 7000.0)

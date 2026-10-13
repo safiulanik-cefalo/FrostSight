@@ -119,8 +119,10 @@ MAX_LABELS = 45
 # Tromsøbrua, and the page lifts each kind to its own height and hides on-screen collisions.
 CROSS_KIND_MIN_M = 40.0
 NUMBERED = re.compile(r"\s\d+$")  # "Tromsøysund 2" is a second tunnel tube, not a place
-# Register names of ramps and lids ("Bispelokket, Rampe opp fra ...") are descriptions, not names people use
+# Register names of ramps ("Bispelokket, Rampe opp fra ...", "Furuset påkjøringsrampe") are descriptions,
+# not names people use
 MAX_NAME_CHARS = 28
+RAMP = re.compile(r"rampe", re.IGNORECASE)
 
 
 # ---------- land cover ----------
@@ -245,10 +247,16 @@ def _ssr_page(raw: bytes) -> None:
 
 
 def main_name(entry: dict) -> str | None:
-    """The approved main name, Norwegian first (Sami and Kven names are main names too)."""
-    cands = [s for s in entry.get("stedsnavn", []) if s.get("navnestatus") == "hovednavn"]
-    cands.sort(key=lambda s: (s.get("språk") != "Norsk", s.get("stedsnavnnummer", 9)))
-    return cands[0]["skrivemåte"] if cands else None
+    """The approved main name, Norwegian first (Sami and Kven names are main names too). Some places have only
+    side names (the village of Lom is "Lom" and "Fossbergom"); then the first side name. Never historic names.
+    """
+    names = entry.get("stedsnavn", [])
+    for status in ("hovednavn", "sidenavn"):
+        cands = [s for s in names if s.get("navnestatus") == status]
+        cands.sort(key=lambda s: (s.get("språk") != "Norsk", s.get("stedsnavnnummer", 9)))
+        if cands:
+            return cands[0]["skrivemåte"]
+    return None
 
 
 def pick_labels(names: list[dict], lon0: float, lat0: float, half_m: float) -> list[dict]:
@@ -259,7 +267,13 @@ def pick_labels(names: list[dict], lon0: float, lat0: float, half_m: float) -> l
         if not spec or e.get("stedstatus") != "aktiv":
             continue
         name = main_name(e)
-        if not name or NUMBERED.search(name) or "," in name or len(name) > MAX_NAME_CHARS:
+        if (
+            not name
+            or NUMBERED.search(name)
+            or RAMP.search(name)
+            or "," in name
+            or len(name) > MAX_NAME_CHARS
+        ):
             continue
         p = e["representasjonspunkt"]
         x, z = project_local(p["øst"], p["nord"], lon0, lat0)
