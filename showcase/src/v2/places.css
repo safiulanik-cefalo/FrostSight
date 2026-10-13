@@ -1,0 +1,18 @@
+/* SPIKE (throwaway): map lettering for place names on the v2 site view. */
+.place {
+  font: 600 11px/1 var(--font);
+  color: var(--fg);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-shadow: 0 0 3px var(--bg), 0 0 6px var(--bg), 0 0 10px var(--bg);
+}
+.place-town { font-size: 14px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.place-district, .place-village { font-weight: 500; color: var(--fg-2); }
+.place-island { font-size: 10px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); }
+.place-peak, .place-valley { font-style: italic; font-weight: 500; color: var(--fg-2); }
+.place-peak::before { content: "▲ "; font-style: normal; font-size: 8px; vertical-align: 1px; }
+.place-fjord, .place-sound, .place-lake, .place-river { font-style: italic; font-weight: 500; letter-spacing: 0.12em; color: #3a6cb8; }
+.place-bridge, .place-tunnel, .place-landmark { color: var(--accent-ink); }
+.perf { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 50; padding: 6px 10px; border-radius: 8px;
+  background: var(--surface-solid); color: var(--fg); font: 600 12px/1 var(--font); box-shadow: var(--shadow); }
+.place-cape { font-size: 10px; font-weight: 500; color: var(--fg-3); }
