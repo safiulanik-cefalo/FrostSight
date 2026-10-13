@@ -108,9 +108,9 @@ for county, bbox in county_bboxes(COUNTIES).items():
     for f in resp.json().get("features", []):
         features[f.get("id") or json.dumps(f, sort_keys=True)] = f  # bboxes overlap at county borders
 payload = {"type": "FeatureCollection", "features": list(features.values())}
-rows = [{"source": SOURCE, "request_url": " ".join(urls), "http_status": 200,
-         "raw_json_payload": json.dumps(payload, ensure_ascii=False)}]
-print(f"{len(features)} incident features from {len(COUNTIES)} counties")
+# The bronze table has two columns, raw_json_payload and ingestion_timestamp; keep to them so the append fits.
+rows = [{"raw_json_payload": json.dumps(payload, ensure_ascii=False)}]
+print(f"{len(features)} incident features from {len(COUNTIES)} counties: {' '.join(urls)}")
 
 # COMMAND ----------
 
