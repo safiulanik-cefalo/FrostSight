@@ -32,10 +32,13 @@ cp .dev.vars.example .dev.vars        # fill in a read-only token, the workspace
 npm run build                         # the Worker serves dist/ as static assets
 npx wrangler dev --test-scheduled     # http://localhost:8787
 curl "http://localhost:8787/__scheduled?cron=*/15+*+*+*+*"   # run the cron once
-curl -s http://localhost:8787/api/health
+curl -s http://localhost:8787/api/health   # when the last refresh failed; the reason stays private
 ```
 
 With the Worker on port 8787, `npm run dev` proxies `/api` to it and the chip turns to "Live".
+
+`/api/health` says when the last refresh failed but not why, since the reason can name the workspace. Read
+the reason in the Worker log (`npx wrangler tail` once deployed) or in KV under `state:last_error`.
 
 ### Capture a real snapshot
 

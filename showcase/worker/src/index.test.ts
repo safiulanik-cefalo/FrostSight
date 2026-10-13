@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import worker, { refresh } from "./index";
 import type { Env } from "./env";
 import { scriptedFetch, memoryKV } from "./testkit";
@@ -50,7 +50,10 @@ describe("refresh", () => {
   it("keeps the previous document and records the error on failure", async () => {
     const env = makeEnv(memoryKV({ "state:current": '{"keep":true}' }));
     const { fetchFn } = scriptedFetch([new Error("network down")]);
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(await refresh(env, now, fetchFn)).toBe("failed");
+    expect(log).toHaveBeenCalledWith("refresh failed: network down");
+    log.mockRestore();
     expect(env.STATE.data.get("state:current")).toBe('{"keep":true}');
     expect(JSON.parse(env.STATE.data.get("state:last_error")!)).toEqual({ at: "2026-10-12T09:30:00.000Z", message: "network down" });
   });
@@ -71,10 +74,13 @@ describe("fetch", () => {
   it("reports health without secrets", async () => {
     const env = makeEnv(memoryKV({
       "state:current": JSON.stringify({ generated_at: "g", gold: { risk_updated_at: "r" } }),
-      "state:last_error": JSON.stringify({ at: "t", message: "m" }),
+      "state:last_error": JSON.stringify({ at: "t", message: "Databricks 403 on https://dbc-0000.cloud.databricks.com/api/2.0/sql/statements/" }),
     }));
     const res = await worker.fetch(new Request("https://x/api/health"), env);
-    expect(await res.json()).toEqual({ generated_at: "g", risk_updated_at: "r", last_error: { at: "t", message: "m" } });
+    const body = await res.json();
+    // when it failed is public; why stays in KV and the Worker log, since it can name the workspace
+    expect(body).toEqual({ generated_at: "g", risk_updated_at: "r", last_error: { at: "t", message: "The last refresh failed. Details are in the Worker log." } });
+    expect(JSON.stringify(body)).not.toMatch(/databricks|dbc-|https?:/i);
   });
 
   it("hands every other path to the static assets", async () => {
