@@ -38,5 +38,11 @@
  },
  "closure_station": "Bossovarri",
  "stale_station": "Gardeborri",
- "stations": 24
+ "stations": 24,
+ "counties": {
+  "Troms": 24,
+  "Oslo": 3,
+  "Akershus": 30,
+  "Innlandet": 58
+ }
 }

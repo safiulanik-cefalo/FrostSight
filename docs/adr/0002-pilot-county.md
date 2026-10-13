@@ -36,3 +36,20 @@ smallest serverless warehouse.
   station ids in silver.
 - The ML stretch has fewer labels. If it needs more, the collector takes `--county 34` and the extract is
   rerun; nothing else changes.
+
+## Amendment, 2026-10-13: three more counties for variety
+
+Troms stays the pilot: its scoring, thresholds and AI/BI defaults are unchanged. To show the product on
+different roads and climates, the monitored area also takes Oslo (`fylke=3`, 3 road-weather stations),
+Akershus (`32`, 30) and Innlandet (`34`, 58), 115 stations in all.
+
+- The NVDB reference seed (`tools/mock_dashboards/fetch_nvdb.py`, loaded into `silver.nvdb_seed_*`) lists
+  the counties and gives every row a `county` column (the DATEX county name). Gold reads the counties from
+  the seed, so the seed alone decides the monitored area; `build_gold` has no county constant.
+- DATEX road weather was already national. Incidents are fetched per county bbox and merged into one bronze
+  row (`notebooks/bronze_layer_notebooks/09_datex_incidents.py`, widget `county` = `55,3,32,34`).
+- Gold serving tables the showcase splits by area carry `county`; `priority_list` ranks within a county.
+  `kpi_summary` stays one row for all counties.
+- The showcase shows three overview regions: Troms, Oslo and Akershus together (Oslo lies inside Akershus
+  and has three stations), and Innlandet.
+- The mock dashboard and its mock incidents stay on Troms.

@@ -7,16 +7,18 @@
 # MAGIC parsing here; see `notebooks/silver_layer_transformation/09_datex_incidents.py` for the parsed
 # MAGIC version of this source.
 # MAGIC
-# MAGIC Open Statens vegvesen WFS, layer `datex_3_1:SituationSimple_v2`, no auth, filtered to the county bbox from NVDB `omrader/fylker` (ADR-0008, docs/plan/02_M1_history_and_reference_data.md T1.5) -- national is 10 MB, the bbox is under 1 MB.
+# MAGIC Open Statens vegvesen WFS, layer `datex_3_1:SituationSimple_v2`, no auth, filtered to each monitored county's bbox from NVDB `omrader/fylker` (ADR-0008, docs/plan/02_M1_history_and_reference_data.md T1.5) -- national is 10 MB, one bbox is under 1 MB.
+# MAGIC
+# MAGIC One request per county; the features are merged into one FeatureCollection and written as **one** bronze row, because silver parses the newest bronze row only (B2).
 
 
 # COMMAND ----------
 
 dbutils.widgets.text("catalog", "frostsight", "Unity Catalog catalog")
-dbutils.widgets.text("county", "55", "NVDB fylke number (pilot: Troms, ADR-0002)")
+dbutils.widgets.text("county", "55,3,32,34", "NVDB fylke numbers, comma-separated (Troms, Oslo, Akershus, Innlandet)")
 
 CATALOG = dbutils.widgets.get("catalog")
-COUNTY = dbutils.widgets.get("county")
+COUNTIES = [c.strip() for c in dbutils.widgets.get("county").split(",") if c.strip()]
 BRONZE_TABLE = f"{CATALOG}.bronze.datex_incidents_bronze"
 
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.bronze")
@@ -76,12 +78,16 @@ NVDB_BASE = "https://nvdbapiles.atlas.vegvesen.no"
 LATLON = re.compile(r"POLYGON\(\((.*)\)\)")
 
 
-def county_bbox(county: str) -> str:
-    """WFS 2.0 bbox for an NVDB county's kartutsnitt, lat before lon, matching collector/datex.py's
-    county_bbox (ADR-0008)."""
+def county_bboxes(counties: list[str]) -> dict[str, str]:
+    """WFS 2.0 bbox per NVDB county's kartutsnitt, lat before lon, matching collector/datex.py's
+    county_bbox (ADR-0008). One NVDB call for all counties."""
     headers = {"Accept": "application/json", "X-Client": "frostsight"}
     resp = http_get(f"{NVDB_BASE}/omrader/fylker", headers=headers, params={"inkluder": "alle", "srid": 4326})
-    fylke = next(f for f in resp.json() if str(f["nummer"]) == str(county))
+    fylker = {str(f["nummer"]): f for f in resp.json()}
+    return {c: _bbox(fylker[str(int(c))]) for c in counties}
+
+
+def _bbox(fylke: dict) -> str:
     points = [tuple(map(float, p.split()))
               for p in LATLON.search(fylke["kartutsnitt"]["wkt"]).group(1).split(",")]
     lats, lons = [p[0] for p in points], [p[1] for p in points]
@@ -89,13 +95,22 @@ def county_bbox(county: str) -> str:
 
 # COMMAND ----------
 
+import json
+
 WFS_PARAMS = {"service": "WFS", "version": "2.0.0", "request": "GetFeature",
               "typeNames": "datex_3_1:SituationSimple_v2", "outputFormat": "application/json",
-              "srsName": "EPSG:4326", "bbox": county_bbox(COUNTY)}
+              "srsName": "EPSG:4326"}
 
-resp = http_get(DATEX_WFS_BASE, params=WFS_PARAMS)
-rows = [{"source": SOURCE, "request_url": resp.url, "http_status": resp.status_code,
-         "raw_json_payload": resp.text}]
+features, urls = {}, []
+for county, bbox in county_bboxes(COUNTIES).items():
+    resp = http_get(DATEX_WFS_BASE, params={**WFS_PARAMS, "bbox": bbox})
+    urls.append(resp.url)
+    for f in resp.json().get("features", []):
+        features[f.get("id") or json.dumps(f, sort_keys=True)] = f  # bboxes overlap at county borders
+payload = {"type": "FeatureCollection", "features": list(features.values())}
+rows = [{"source": SOURCE, "request_url": " ".join(urls), "http_status": 200,
+         "raw_json_payload": json.dumps(payload, ensure_ascii=False)}]
+print(f"{len(features)} incident features from {len(COUNTIES)} counties")
 
 # COMMAND ----------
 
