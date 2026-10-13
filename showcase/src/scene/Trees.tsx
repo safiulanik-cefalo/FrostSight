@@ -8,12 +8,12 @@ import type { SiteModel } from "./siteModel";
 const COUNT = 420;
 const TREE_SCALE = 1.5;
 
-export function Trees({ seed, climate, model }: { seed: string; climate: string; model: SiteModel }) {
+export function Trees({ seed, climate, lat, model }: { seed: string; climate: string; lat: number; model: SiteModel }) {
   const crowns = useRef<THREE.InstancedMesh>(null);
   const trunks = useRef<THREE.InstancedMesh>(null);
   const trees = useMemo(
-    () => treePlacements(seed, climate, model.groundM, model.distToRoad, SITE_SIZE * 0.96, COUNT),
-    [seed, climate, model],
+    () => treePlacements(seed, climate, model.groundM, model.distToRoad, SITE_SIZE * 0.96, COUNT, lat),
+    [seed, climate, lat, model],
   );
   useLayoutEffect(() => {
     const m = new THREE.Matrix4();

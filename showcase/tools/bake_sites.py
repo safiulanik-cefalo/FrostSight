@@ -5,7 +5,8 @@
 """Bake the showcase's static scene assets from reference data.
 
 Per station: the road corridor (6 km each side, every 25 m) and a 14 km terrain heightmap, in a local metre
-grid centred on the station (x east, z south). For the overview: the Troms outline and the seed roads.
+grid centred on the station (x east, z south). Per region (REGIONS): an overview with the county outlines,
+the seed roads and one pin per station.
 Run by hand from showcase/: `uv run tools/bake_sites.py --out public`. Outputs are committed.
 
 Sources: NVDB roads and stations from tools/mock_dashboards/nvdb_seed.sql (Statens vegvesen, NLOD),
@@ -39,7 +40,18 @@ KM_MARK_M = 2000.0
 M_PER_DEG_LAT = 110574.0
 M_PER_DEG_LON_EQ = 111320.0
 TERRARIUM = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
-COUNTY = "https://ws.geonorge.no/kommuneinfo/v1/fylker/55/omrade?utkoordsys=4326"
+COUNTY = "https://ws.geonorge.no/kommuneinfo/v1/fylker/{fylke}/omrade?utkoordsys=4326"
+# Overview regions: Oslo sits inside Akershus and has three stations, so the two share one overview
+REGIONS = [
+    {"id": "troms", "name": "Troms", "counties": ["Troms"], "fylker": ["55"]},
+    {
+        "id": "oslo-akershus",
+        "name": "Oslo and Akershus",
+        "counties": ["Oslo", "Akershus"],
+        "fylker": ["03", "32"],
+    },
+    {"id": "innlandet", "name": "Innlandet", "counties": ["Innlandet"], "fylker": ["34"]},
+]
 HERE = Path(__file__).resolve()
 SEED = HERE.parents[2] / "tools" / "mock_dashboards" / "nvdb_seed.sql"
 CACHE = HERE.parents[1] / ".cache"
@@ -53,6 +65,7 @@ class Road:
     road_number: str
     line_no: int
     points: list[tuple[float, float]]  # (lon, lat)
+    county: str = "Troms"  # seeds written before the county column were Troms only
 
 
 @dataclass
@@ -65,6 +78,7 @@ class Station:
     lon: float
     climate: str
     road_segment_id: str
+    county: str = "Troms"
 
 
 def road_label(category: str, number: str) -> str:
@@ -77,10 +91,12 @@ def parse_wkt_linestring(wkt: str) -> list[tuple[float, float]]:
     return [(float(a), float(b)) for a, b in (p.split() for p in body.split(","))]
 
 
-_ROAD_ROW = re.compile(r"\('([^']*)',\s*'([^']*)',\s*(-?\d+),\s*[-\d.]+,\s*'(LINESTRING[^']*)'\)")
+_ROAD_ROW = re.compile(
+    r"\('([^']*)',\s*'([^']*)',\s*(-?\d+),\s*[-\d.]+,\s*'(LINESTRING[^']*)'(?:,\s*'([^']*)')?\)"
+)
 _STATION_ROW = re.compile(
     r"\('([^']*)',\s*'((?:[^']|'')*)',\s*'([^']*)',\s*'([^']*)',\s*(-?[\d.]+),\s*(-?[\d.]+),\s*'([^']*)',"
-    r"\s*-?\d+,\s*'([^']*)'\)"
+    r"\s*-?\d+,\s*'([^']*)'(?:,\s*'([^']*)')?\)"
 )
 
 
@@ -96,15 +112,19 @@ def _blocks(sql_text: str, table: str) -> str:
 
 def load_seed(sql_text: str) -> tuple[list[Road], list[Station]]:
     roads = [
-        Road(c, n, int(line), parse_wkt_linestring(wkt))
-        for c, n, line, wkt in _ROAD_ROW.findall(_blocks(sql_text, "seed_roads"))
+        Road(c, n, int(line), parse_wkt_linestring(wkt), county or "Troms")
+        for c, n, line, wkt, county in _ROAD_ROW.findall(_blocks(sql_text, "seed_roads"))
     ]
     rows = _STATION_ROW.findall(_blocks(sql_text, "seed_stations"))
     stations = [
-        Station(sid, name.replace("''", "'"), c, n, float(lat), float(lon), climate, seg)
-        for sid, name, c, n, lat, lon, climate, seg in rows
+        Station(sid, name.replace("''", "'"), c, n, float(lat), float(lon), climate, seg, county or "Troms")
+        for sid, name, c, n, lat, lon, climate, seg, county in rows
     ]
     return roads, stations
+
+
+def region_of(county: str) -> str:
+    return next(r["id"] for r in REGIONS if county in r["counties"])
 
 
 def project_local(lon: float, lat: float, lon0: float, lat0: float) -> XZ:
@@ -309,6 +329,8 @@ def bake_site(station: Station, roads: list[Road], out: Path, terrain: bool) -> 
         "name": station.name,
         "road": road_label(station.road_category, station.road_number),
         "climate": station.climate,
+        "county": station.county,
+        "region": region_of(station.county),
         "road_segment_id": station.road_segment_id,
         "origin": {"lat": station.lat, "lon": station.lon},
         "points": [[round(x, 1), round(z, 1)] for x, z in pts],
@@ -337,9 +359,13 @@ def _densify(points: list[XZ], step: float) -> list[XZ]:
     return [_point_at(points, cum, float(s)) for s in np.arange(0.0, cum[-1], step)] + [points[-1]]
 
 
-def bake_overview(roads: list[Road], stations: list[Station], out: Path) -> None:
-    geo = json.loads(_get(COUNTY, "county55.json"))["omrade"]
-    polys = geo["coordinates"] if geo["type"] == "MultiPolygon" else [geo["coordinates"]]
+def bake_overview(region: dict, roads: list[Road], stations: list[Station], out: Path) -> None:
+    polys = []
+    for fylke in region["fylker"]:
+        geo = json.loads(_get(COUNTY.format(fylke=fylke), f"county{fylke}.json"))["omrade"]
+        polys += geo["coordinates"] if geo["type"] == "MultiPolygon" else [geo["coordinates"]]
+    roads = [r for r in roads if r.county in region["counties"]]
+    stations = [s for s in stations if s.county in region["counties"]]
     lons = [lon for poly in polys for lon, _ in poly[0]]
     lats = [lat for poly in polys for _, lat in poly[0]]
     lon0, lat0 = (min(lons) + max(lons)) / 2, (min(lats) + max(lats)) / 2
@@ -350,12 +376,12 @@ def bake_overview(roads: list[Road], stations: list[Station], out: Path) -> None
 
     # The county polygon includes its sea territory, so land and fjords come from a coarse elevation grid
     # (sea floored at 0 m) and the outline is drawn as a border line.
-    xs = [project_local(lo, la, lon0, lat0)[0] for lo, la in polys[0][0]]
-    zs = [project_local(lo, la, lon0, lat0)[1] for lo, la in polys[0][0]]
+    xs = [project_local(lo, la, lon0, lat0)[0] for poly in polys for lo, la in poly[0]]
+    zs = [project_local(lo, la, lon0, lat0)[1] for poly in polys for lo, la in poly[0]]
     size = math.ceil(max(max(xs) - min(xs), max(zs) - min(zs)) / 1000.0 + 10) * 1000.0
     hm = resample_box(_terrarium_sampler(OVERVIEW_ZOOM), (lon0, lat0), size_m=size, n=OVERVIEW_N)
     data, lo, hi = encode_heights(hm)
-    folder = out / "overview"
+    folder = out / "overview" / region["id"]
     folder.mkdir(parents=True, exist_ok=True)
     (folder / "terrain.bin").write_bytes(data)
     terrain = {"n": OVERVIEW_N, "size_m": size, "min_m": round(lo, 1), "max_m": round(hi, 1)}
@@ -404,8 +430,14 @@ def main() -> None:
             f"station at {doc['station_at_m']:6.0f} m  terrain {t['min_m']:.0f}-{t['max_m']:.0f} m"
         )
     if not a.skip_overview:
-        bake_overview(roads, stations, a.out)
-        print("overview written")
+        index = []
+        for region in REGIONS:
+            bake_overview(region, roads, stations, a.out)
+            ids = sorted(s.station_id for s in stations if s.county in region["counties"])
+            keep = {k: region[k] for k in ("id", "name", "counties")}
+            index.append({**keep, "stations": ids})
+            print(f"overview {region['id']} written ({len(ids)} stations)")
+        (a.out / "overview" / "index.json").write_text(json.dumps(index, ensure_ascii=False) + "\n")
     sites = sorted(p.name for p in (a.out / "sites").iterdir() if p.is_dir())
     (a.out / "sites" / "index.json").write_text(json.dumps(sites) + "\n")
 

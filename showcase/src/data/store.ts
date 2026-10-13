@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { create } from "zustand";
 import type { State } from "../../shared/contract";
 import { loadState } from "./live";
+import { DEFAULT_REGION, loadRegions, regionOfCounty, regionOfStation, type Region } from "./regions";
 import { stateAt, type Scenario } from "./scenario";
 
 export type View = "overview" | "site";
@@ -16,6 +17,9 @@ export type ShowcaseStore = {
   clockS: number;
   playing: boolean;
   view: View;
+  /** overview regions from the bake, and the one on screen (a site's region while on a site) */
+  regions: Region[];
+  regionId: string;
   siteId: string | null;
   segmentId: string | null;
   /** the incident marked on the map after a click in the list */
@@ -27,7 +31,7 @@ export type ShowcaseStore = {
   tick(dtS: number): void;
   seek(tS: number): void;
   togglePlay(): void;
-  goOverview(): void;
+  goOverview(regionId?: string): void;
   goSite(stationId: string): void;
   select(segmentId: string | null): void;
   focusIncident(incidentId: string): void;
@@ -46,6 +50,8 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
   clockS: 0,
   playing: false,
   view: "overview",
+  regions: [],
+  regionId: DEFAULT_REGION,
   siteId: null,
   segmentId: null,
   incidentId: null,
@@ -61,7 +67,8 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
         set({ error: e instanceof Error ? e.message : String(e) });
       }
     };
-    await load();
+    const [regions] = await Promise.all([loadRegions(), load()]);
+    set({ regions });
     polling ??= setInterval(load, POLL_MS);
   },
   setScenario(scenario) {
@@ -82,11 +89,12 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
     if (!scenario) return;
     set({ playing: !playing, clockS: !playing && clockS >= scenario.duration_s ? 0 : clockS });
   },
-  goOverview() {
-    set({ view: "overview", siteId: null, segmentId: null, incidentId: null, error: null });
+  goOverview(regionId) {
+    set({ view: "overview", regionId: regionId ?? get().regionId, siteId: null, segmentId: null, incidentId: null, error: null });
   },
   goSite(stationId) {
-    set({ view: "site", siteId: stationId, segmentId: null, incidentId: null, error: null });
+    const regionId = regionOfStation(get().regions, stationId)?.id ?? get().regionId;
+    set({ view: "site", siteId: stationId, regionId, segmentId: null, incidentId: null, error: null });
   },
   select(segmentId) {
     set({ segmentId });
@@ -100,11 +108,14 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
       incident.station_id ??
       (incident.lat == null ? state.segments.find((s) => s.road_segment_id === incident.road_segment_id)?.station_id : null) ??
       null;
+    const { regions, regionId } = get();
     if (stationId) {
       const segmentId = state.segments.find((s) => s.station_id === stationId)?.road_segment_id ?? null;
-      set({ view: "site", siteId: stationId, segmentId, incidentId, error: null });
+      const region = regionOfStation(regions, stationId)?.id ?? regionId;
+      set({ view: "site", siteId: stationId, regionId: region, segmentId, incidentId, error: null });
     } else {
-      set({ view: "overview", siteId: null, segmentId: null, incidentId, error: null });
+      const region = regionOfCounty(regions, incident.county)?.id ?? regionId;
+      set({ view: "overview", regionId: region, siteId: null, segmentId: null, incidentId, error: null });
     }
   },
   setTab(tab) {
