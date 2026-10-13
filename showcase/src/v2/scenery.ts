@@ -1,5 +1,5 @@
-// SPIKE (throwaway): pure placement and colour rules driven by the land-cover grid. Terrain vertex colours,
-// trees by forest type, houses in built-up cells. No Three.js objects here.
+// Rules driven by the land-cover grid: the ground colour per class, trees by forest and species, houses on
+// built-up land. Deterministic per station (seeded), so a site looks the same on every visit.
 import * as THREE from "three";
 import { PALETTE } from "../scene/geometry";
 import { rng, treelineAt } from "../scene/dressing";
@@ -66,11 +66,11 @@ export function applyCover(geometry: THREE.BufferGeometry, cover: CoverGrid, upm
 }
 
 export type TreeKind = "conifer" | "leaf";
-export type TreeV2 = { x: number; z: number; s: number; kind: TreeKind };
+export type CoverTree = { x: number; z: number; s: number; kind: TreeKind };
 
 /** Trees where the cover says forest (species from the cover), and at half density by the v1 treeline rule
  *  where AR5 has no mapping. Scene units in and out; the cover is read in metres. */
-export function treePlacementsV2(
+export function coverTreePlacements(
   seed: string,
   climate: string,
   lat: number,
@@ -80,11 +80,11 @@ export function treePlacementsV2(
   distToRoad: (x: number, z: number) => number,
   size: number,
   count: number,
-): TreeV2[] {
+): CoverTree[] {
   const rand = rng(`${seed}:trees`);
   const treeline = treelineAt(climate, lat);
   const fallback: TreeKind = climate === "inland" || climate === "warm" ? "conifer" : "leaf";
-  const out: TreeV2[] = [];
+  const out: CoverTree[] = [];
   for (let tries = 0; out.length < count && tries < count * 40; tries++) {
     const x = (rand() - 0.5) * size;
     const z = (rand() - 0.5) * size;
@@ -106,16 +106,23 @@ export function treePlacementsV2(
   return out;
 }
 
+/** How many houses a site gets: about one in nine built-up cells, at least 700 (so villages keep a house per
+ *  cell) and at most HOUSE_CAP (central Oslo has 30,000 built-up cells). */
+export const HOUSE_CAP = 1600;
+export function houseBudget(builtCells: number): number {
+  return Math.max(700, Math.min(HOUSE_CAP, Math.round(builtCells * 0.11)));
+}
+
 export type House = { x: number; z: number; yaw: number; w: number; d: number; h: number; wall: string; dense: boolean };
 const WALLS = [COVER_PALETTE.wallWhite, COVER_PALETTE.wallWhite, COVER_PALETTE.wallRed, COVER_PALETTE.wallOchre, COVER_PALETTE.wallBlue];
 
-/** Up to `cap` toy houses spread over the built-up cells; blocks grow where every neighbour is built too. */
-export function housePlacements(seed: string, cover: CoverGrid, upm: number, distToRoad: (x: number, z: number) => number, cap: number): House[] {
+/** About houseBudget() toy houses spread over the built-up cells; blocks grow where every neighbour is built too. */
+export function housePlacements(seed: string, cover: CoverGrid, upm: number, distToRoad: (x: number, z: number) => number): House[] {
   const rand = rng(`${seed}:houses`);
   let built = 0;
   for (const c of cover.cells) if (c === COVER.BUILT) built++;
   if (built === 0) return [];
-  const p = Math.min(1, cap / built);
+  const p = Math.min(1, houseBudget(built) / built);
   const cellM = cover.sizeM / (cover.n - 1);
   const out: House[] = [];
   for (let i = 0; i < cover.n; i++) {

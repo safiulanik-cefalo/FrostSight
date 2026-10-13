@@ -1,21 +1,21 @@
-// SPIKE (throwaway): trees placed by the cover grid; conifers as cones, birch as low-poly round crowns.
+// Trees where the land cover says forest: conifers as cones, birch and other leaf trees as round crowns.
 import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { PALETTE } from "../scene/geometry";
 import { SITE_SIZE } from "../scene/scale";
 import type { SiteModel } from "../scene/siteModel";
 import type { CoverGrid } from "./cover";
-import { COVER_PALETTE, treePlacementsV2 } from "./dressingV2";
+import { COVER_PALETTE, coverTreePlacements } from "./scenery";
 
 const COUNT = 600;
 const TREE_SCALE = 1.5;
 
-export function TreesV2({ seed, climate, lat, model, cover }: { seed: string; climate: string; lat: number; model: SiteModel; cover: CoverGrid }) {
+export function CoverTrees({ seed, climate, lat, model, cover }: { seed: string; climate: string; lat: number; model: SiteModel; cover: CoverGrid }) {
   const cones = useRef<THREE.InstancedMesh>(null);
   const crowns = useRef<THREE.InstancedMesh>(null);
   const trunks = useRef<THREE.InstancedMesh>(null);
   const trees = useMemo(
-    () => treePlacementsV2(seed, climate, lat, cover, model.upm, model.groundM, model.distToRoad, SITE_SIZE * 0.96, COUNT),
+    () => coverTreePlacements(seed, climate, lat, cover, model.upm, model.groundM, model.distToRoad, SITE_SIZE * 0.96, COUNT),
     [seed, climate, lat, cover, model],
   );
   useLayoutEffect(() => {

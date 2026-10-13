@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 // The Worker serves /api in production; locally `wrangler dev` runs on 8787 and Vite proxies to it.
 export default defineConfig({
   plugins: [react()],
-  // /v2/ is the land-cover and place-name spike; the root page is unchanged
+  // /v2/ adds land cover, houses and place names to each site (src/v2/); the root page is unchanged
   build: { rollupOptions: { input: { main: "index.html", v2: "v2/index.html" } } },
   server: {
     proxy: { "/api": "http://127.0.0.1:8787" },

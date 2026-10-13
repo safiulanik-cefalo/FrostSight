@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { loadSiteAssets, type SiteAssets } from "../data/assets";
 import { stretches as cutStretches, type Closure } from "../data/corridor";
 import type { ScenarioClosure } from "../data/scenario";
@@ -14,30 +14,47 @@ import { incidentLabel } from "../app/listRows";
 import { RiskBand } from "./RiskBand";
 import { Road } from "./Road";
 import { ROAD, SITE_SIZE, siteUnitsPerMetre } from "./scale";
-import { siteModel } from "./siteModel";
+import { siteModel, type SiteModel } from "./siteModel";
 import { Station } from "./Station";
-import { Terrain } from "./Terrain";
+import { Terrain, type PaintGround } from "./Terrain";
 import { Trees } from "./Trees";
 import { Weather } from "./Weather";
 
-export function useSiteAssets(stationId: string): SiteAssets | null {
+export type SceneryProps = { stationId: string; assets: SiteAssets; model: SiteModel };
+
+/** What a page variant changes about a site: which files it loads, how the ground is painted and the scenery
+ *  beside the road. Everything from the road and the station down is shared. */
+export type SiteVariant = {
+  load: (stationId: string) => Promise<SiteAssets>;
+  paintGround?: PaintGround;
+  Scenery: ComponentType<SceneryProps>;
+};
+
+function TreesScenery({ stationId, assets, model }: SceneryProps) {
+  return <Trees seed={stationId} climate={assets.road.climate} lat={assets.road.origin.lat} model={model} />;
+}
+
+export const BASE_SITE: SiteVariant = { load: (id) => loadSiteAssets(id), Scenery: TreesScenery };
+
+export type SiteProps = { stationId: string; scenarioClosures?: ScenarioClosure[]; variant?: SiteVariant };
+
+export function useSiteAssets(stationId: string, load: SiteVariant["load"] = BASE_SITE.load): SiteAssets | null {
   const [assets, setAssets] = useState<SiteAssets | null>(null);
   useEffect(() => {
     let live = true;
     setAssets(null);
-    loadSiteAssets(stationId)
+    load(stationId)
       .then((a) => live && setAssets(a))
       .catch((e: Error) => live && useShowcase.setState({ error: `${e.message}. Pick a station from the list.` }));
     return () => {
       live = false;
     };
-  }, [stationId]);
+  }, [stationId, load]);
   return assets;
 }
 
-
-export function Site({ stationId, scenarioClosures = [] }: { stationId: string; scenarioClosures?: ScenarioClosure[] }) {
-  const assets = useSiteAssets(stationId);
+export function Site({ stationId, scenarioClosures = [], variant = BASE_SITE }: SiteProps) {
+  const assets = useSiteAssets(stationId, variant.load);
   const state = useCurrentState();
   const reduced = usePrefersReducedMotion();
   const model = useMemo(() => (assets ? siteModel(assets) : null), [assets]);
@@ -107,10 +124,10 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
         reduced={reduced}
         flyFrom={{ target: home.target, azimuth: home.azimuth - 0.7, elevation: 1.15, distance: 560 }}
       />
-      <Terrain assets={assets} model={model} snowline={snowline} />
+      <Terrain assets={assets} model={model} snowline={snowline} paint={variant.paintGround} />
       <Road model={model} />
       <RiskBand model={model} stretches={strips} />
-      <Trees seed={stationId} climate={assets.road.climate} lat={assets.road.origin.lat} model={model} />
+      <variant.Scenery stationId={stationId} assets={assets} model={model} />
       <Station
         position={[sx, model.ground(sx, sz), sz]}
         name={assets.road.name}

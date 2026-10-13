@@ -5,11 +5,15 @@ import { SITE_EXAGGERATION, SITE_SIZE } from "./scale";
 import type { SiteAssets } from "../data/assets";
 import type { SiteModel } from "./siteModel";
 
+/** Recolours the ground's vertex colours before the road bed is carved (the /v2/ page paints land cover). */
+export type PaintGround = (geometry: THREE.BufferGeometry, assets: SiteAssets, model: SiteModel, snowline: boolean) => void;
+
 /** The site's ground, with a road bed carved so the terrain never pokes through the road. */
-export function Terrain({ assets, model, snowline }: { assets: SiteAssets; model: SiteModel; snowline: boolean }) {
+export function Terrain({ assets, model, snowline, paint }: { assets: SiteAssets; model: SiteModel; snowline: boolean; paint?: PaintGround }) {
   const geometry = useMemo(() => {
     const { n } = assets.road.terrain;
     const g = terrainGeometry(assets.heights, n, SITE_SIZE, SITE_EXAGGERATION, model.upm, snowline);
+    paint?.(g, assets, model, snowline);
     const pos = g.getAttribute("position") as THREE.BufferAttribute;
     const R = 9;
     for (let v = 0; v < pos.count; v++) {
@@ -32,7 +36,7 @@ export function Terrain({ assets, model, snowline }: { assets: SiteAssets; model
     }
     g.computeVertexNormals();
     return g;
-  }, [assets, model, snowline]);
+  }, [assets, model, snowline, paint]);
   const seaY = (0 - model.minM) * SITE_EXAGGERATION * model.upm;
   return (
     <group>

@@ -33,6 +33,7 @@ This document records what was built, why, and what to watch when changing it. L
 | Part | Where | Job | Runs |
 |---|---|---|---|
 | Bake script | `showcase/tools/bake_sites.py` | Turns reference data into static scene files: a terrain heightmap and a road corridor per station, and one overview per region with `overview/index.json` | By hand, output committed |
+| Places bake | `showcase/tools/bake_places.py` | Adds a land-cover grid (`cover.bin`, NIBIO AR5) and ranked place names (`places.json`, Kartverket) per station for the `/v2/` page. Never writes the files above | By hand after the bake script, output committed |
 | Worker | `showcase/worker/src/` | Reads gold, builds one state document, stores it in KV, serves it and the static app. Holds the only Databricks credential | Cron every 15 min; on every page request |
 | App | `showcase/src/` | Draws the scenes from the baked files and colours and animates them from a state document (live, snapshot or scenario) | In the browser |
 | Scenario tool | `showcase/tools/make_scenarios.py` | Writes the three scripted scenarios from the seed | By hand, output committed |
@@ -96,6 +97,26 @@ Sites are dioramas: the terrain shrinks to a 300-unit plate while road, cars, st
 sizes, because a 7 m road at true scale would be under a pixel wide. Vertical exaggeration is 2.4 on sites
 and 7 on the overview. Cars move at 40 times real speed. Treelines (metres): coast 450, fjord 500, inland
 550, mountain 650, warm 600. Constants live in `src/scene/scale.ts` and `dressing.ts`.
+
+### The /v2/ page: land cover and place names
+
+`/v2/` is the same app with one difference on a site: the scenery comes from the land, so a local can
+recognise the place. It plugs into `Site` as a `SiteVariant` (`src/v2/variant.tsx`); the root page uses
+`BASE_SITE` and is unchanged.
+
+- **Ground and scenery.** `cover.bin` is a 256×256 grid of land-cover classes over the terrain box, from
+  NIBIO AR5's land type and tree-species layers (CC BY 4.0). Built-up land, farmland, forest floor and bog
+  get their own ground colour (snow when the road is at or below freezing); rock, snow and sea still come
+  from the height rule. Trees stand where AR5 says forest, as cones on conifer land and round crowns on
+  birch, and at half density by the treeline rule where AR5 has no mapping (mostly high mountain). Up to
+  700 toy houses fill built-up land, larger and plainer in town centres. All instanced: about 20 more draw
+  calls than the root page.
+- **Place names.** `places.json` holds up to 45 names from Kartverket's place-name register (CC BY 4.0),
+  ranked by tier (towns, districts, bridges, tunnels and islands first; peaks, valleys and lakes nearer;
+  rivers and capes close up) and thinned by spacing per kind. The page shows the tiers for the camera
+  distance and hides a label that would overlap a higher-ranked one on screen (`src/v2/labels.ts`).
+- **Cost.** About 8 KB more per site gzipped. A site without the two files falls back to the root page's
+  look.
 
 ### Positions
 
@@ -174,7 +195,7 @@ history; counters are recounted from the simulated rows. Every simulated thing o
 |---|---|---|
 | State document | One document for 115 stations | Split per region (`/api/state/<region>`); load what is on screen |
 | Statement API results | Inline, one chunk | Follow `next_chunk_internal_link`; cancel timed-out statements |
-| Site assets | About 44 KB per station, loaded on demand | A few hundred stations is about 15 MB, still loaded one at a time; bake per county |
+| Site assets | About 44 KB per station (52 KB with the /v2/ files), loaded on demand | A few hundred stations is about 15 MB, still loaded one at a time; bake per county |
 | Overview | One 256×256 grid per region | A national map that drills into regions, with terrain detail levels |
 | Pipeline | `fylke=55` seed and gold | The real limit: seed, silver and gold must cover every county first |
 
@@ -188,7 +209,7 @@ npm run build && npx wrangler dev --test-scheduled         # Worker on :8787, Vi
 curl "http://localhost:8787/__scheduled?cron=*/15+*+*+*+*" # run the cron once
 curl -s http://localhost:8787/api/state > public/snapshot.json && npm run check
 npm run check                                              # tsc + vitest (app and Worker)
-uv run pytest tests/unit/test_bake_sites.py tests/unit/test_serving.py
+uv run pytest tests/unit/test_bake_sites.py tests/unit/test_bake_places.py tests/unit/test_serving.py
 ```
 
 When you change:
@@ -197,7 +218,8 @@ When you change:
   `tests/unit/test_serving.py`, deploy the bundle and run the gold job, then read it in
   `worker/src/queries.ts` and map it in `shape.ts`. Do not join or aggregate in the Worker.
 - **The document**: change `shared/contract.ts` first, then the Worker fixture and tests, then the app.
-- **Roads or stations**: re-run `tools/bake_sites.py` and commit `public/sites` and `public/overview`.
+- **Roads or stations**: re-run `tools/bake_sites.py`, then `tools/bake_places.py`, and commit
+  `public/sites` and `public/overview`.
 
 CI: `.github/workflows/showcase.yml` runs the app and Worker checks and the bake tests on changes under
 `showcase/`.

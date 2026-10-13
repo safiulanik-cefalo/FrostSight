@@ -1,16 +1,17 @@
-// SPIKE (throwaway): toy houses over the built-up cells, two instanced draws (walls and roofs).
+// Toy houses over the built-up cells, in two instanced draws (walls and roofs).
 import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { SiteModel } from "../scene/siteModel";
 import type { CoverGrid } from "./cover";
-import { COVER_PALETTE, housePlacements } from "./dressingV2";
+import { COVER_PALETTE, HOUSE_CAP, housePlacements } from "./scenery";
 
-const CAP = 700;
+// the sampling can overshoot the budget slightly; instances past the cap are dropped
+const CAP = Math.round(HOUSE_CAP * 1.1);
 
 export function Houses({ seed, model, cover }: { seed: string; model: SiteModel; cover: CoverGrid }) {
   const walls = useRef<THREE.InstancedMesh>(null);
   const roofs = useRef<THREE.InstancedMesh>(null);
-  const houses = useMemo(() => housePlacements(seed, cover, model.upm, model.distToRoad, CAP), [seed, cover, model]);
+  const houses = useMemo(() => housePlacements(seed, cover, model.upm, model.distToRoad).slice(0, CAP), [seed, cover, model]);
   useLayoutEffect(() => {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();

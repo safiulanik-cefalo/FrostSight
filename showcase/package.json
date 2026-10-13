@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "check": "tsc --noEmit && vitest run",
-    "bake": "uv run tools/bake_sites.py --out public"
+    "bake": "uv run tools/bake_sites.py --out public",
+    "bake:places": "uv run tools/bake_places.py --out public"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

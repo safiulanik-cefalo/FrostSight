@@ -4,7 +4,7 @@ import { useShowcase } from "./data/store";
 import { Overview } from "./scene/Overview";
 import { SceneCanvas } from "./scene/SceneCanvas";
 import { ScenarioClock } from "./scene/ScenarioClock";
-import { Site } from "./scene/Site";
+import { Site, type SiteVariant } from "./scene/Site";
 import { closuresAt } from "./data/scenario";
 
 type Route = { view: "overview"; region: string | null } | { view: "site"; id: string };
@@ -41,7 +41,8 @@ function useHashRoute() {
   }, [goSite, goOverview]);
 }
 
-export default function App() {
+/** The whole page. The /v2/ entry passes its site variant; the root page uses the base one. */
+export default function App({ siteVariant }: { siteVariant?: SiteVariant } = {}) {
   const boot = useShowcase((s) => s.boot);
   const view = useShowcase((s) => s.view);
   const siteId = useShowcase((s) => s.siteId);
@@ -59,7 +60,7 @@ export default function App() {
     <>
       <SceneCanvas wide={view === "overview"}>
         <ScenarioClock />
-        {view === "site" && siteId ? <Site key={siteId} stationId={siteId} scenarioClosures={closures} /> : <Overview key={regionId} regionId={regionId} />}
+        {view === "site" && siteId ? <Site key={siteId} stationId={siteId} scenarioClosures={closures} variant={siteVariant} /> : <Overview key={regionId} regionId={regionId} />}
       </SceneCanvas>
       <Hud />
     </>

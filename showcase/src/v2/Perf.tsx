@@ -1,20 +1,14 @@
-// SPIKE (throwaway): with ?perf in the URL, write fps, draw calls and triangles into #perf once a second.
-import { useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
+// A frame-rate, draw-call and triangle readout for the /v2/ page (?perf). The canvas writes into it through
+// reportPerf (variant.tsx) once a second, straight to the DOM so the readout costs no React renders.
+const ID = "perf";
+
+export type PerfSample = { fps: number; calls: number; triangles: number };
+
+export function reportPerf({ fps, calls, triangles }: PerfSample): void {
+  const el = document.getElementById(ID);
+  if (el) el.textContent = `${fps.toFixed(0)} fps · ${calls} draws · ${(triangles / 1000).toFixed(0)}k tris`;
+}
 
 export function Perf() {
-  const gl = useThree((s) => s.gl);
-  const frames = useRef(0);
-  const since = useRef(performance.now());
-  useFrame(() => {
-    frames.current++;
-    const now = performance.now();
-    if (now - since.current < 1000) return;
-    const fps = (frames.current * 1000) / (now - since.current);
-    const el = document.getElementById("perf");
-    if (el) el.textContent = `${fps.toFixed(0)} fps · ${gl.info.render.calls} draws · ${(gl.info.render.triangles / 1000).toFixed(0)}k tris`;
-    frames.current = 0;
-    since.current = now;
-  });
-  return null;
+  return <div id={ID} className="perf" />;
 }

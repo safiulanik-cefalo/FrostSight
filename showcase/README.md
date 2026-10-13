@@ -22,6 +22,9 @@ without a Worker: switch on **Scenarios** in the header and pick one.
 
 Links: `#overview` for the county, `#site=<station_id>` for a site, for example `#site=3000016` (Gardeborri).
 
+`/v2/` is the same page with land cover, houses and place names on each site, for example
+`http://localhost:5173/v2/#site=3000078` (Tromsø). Add `?perf` for frame rate and draw calls.
+
 ## The Worker, locally
 
 The Worker reads gold through the Databricks SQL Statement Execution API every 15 minutes and serves the
@@ -53,10 +56,12 @@ npm run check                         # the snapshot must still parse
 ## Scene assets
 
 `public/sites/` and `public/overview/` are baked from the NVDB seed (`tools/mock_dashboards/nvdb_seed.sql`),
-Kartverket's county outline and Mapzen Terrarium elevation tiles. Re-run only when the seed changes:
+Kartverket's county outline and Mapzen Terrarium elevation tiles. `/v2/` adds `cover.bin` and `places.json` per
+site from NIBIO AR5 and Kartverket's place names. Re-run only when the seed changes:
 
 ```bash
 npm run bake                          # uv run tools/bake_sites.py --out public
+npm run bake:places                   # land cover (NIBIO AR5) and place names (Kartverket) for /v2/
 uv run tools/make_scenarios.py        # rewrites public/scenarios/ from the seed stations
 ```
 
@@ -64,7 +69,7 @@ uv run tools/make_scenarios.py        # rewrites public/scenarios/ from the seed
 
 ```bash
 npm run check                         # TypeScript and Vitest
-uv run pytest tests/unit/test_bake_sites.py   # from the repo root
+uv run pytest tests/unit/test_bake_sites.py tests/unit/test_bake_places.py   # from the repo root
 ```
 
 Screenshot checklist before a demo: the overview, a site (Bossovarri `3000014`), "Snowstorm on E8" at 60 s

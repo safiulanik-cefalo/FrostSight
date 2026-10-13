@@ -1,4 +1,4 @@
-// SPIKE (throwaway): the baked land-cover grid (public/sites/<id>/cover.bin, from tools/bake_places.py).
+// The baked land-cover grid (public/sites/<id>/cover.bin, from tools/bake_places.py).
 // One byte per cell over the site's terrain box, row 0 north (-z), same codes as the bake script's CLASSES.
 export const COVER = {
   UNMAPPED: 0,

@@ -1,32 +1,33 @@
-// SPIKE (throwaway): v1 site assets plus the baked cover grid and place names. Sites without them (not yet
-// baked) load as v1 with no cover and no labels.
+// /v2/ site assets: the base files plus the baked land-cover grid and place names (tools/bake_places.py).
+// A site baked before those files existed loads with no cover and no labels and looks like the root page.
 import { loadSiteAssets, type SiteAssets } from "../data/assets";
 import { decodeCover, type CoverGrid } from "./cover";
 
 export type PlaceKind =
   | "town" | "district" | "village" | "bridge" | "tunnel" | "island" | "fjord" | "sound"
   | "peak" | "valley" | "lake" | "river" | "cape" | "landmark"; // prettier-ignore
+/** One label; the bake writes them in placement priority order. */
 export type Place = { name: string; kind: PlaceKind; tier: 1 | 2 | 3; xz: [number, number] };
 export type PlacesJson = { n: number; places: Place[]; attribution: string[] };
-export type SiteAssetsV2 = SiteAssets & { cover: CoverGrid | null; places: Place[]; attribution: string[] };
+export type PlacesAssets = SiteAssets & { cover: CoverGrid | null; places: Place[] };
 
-const cache = new Map<string, Promise<SiteAssetsV2>>();
+export function hasPlaces(a: SiteAssets): a is PlacesAssets {
+  return "places" in a;
+}
 
-export function loadSiteAssetsV2(stationId: string, fetchFn: typeof fetch = fetch): Promise<SiteAssetsV2> {
+const cache = new Map<string, Promise<PlacesAssets>>();
+
+export function loadPlacesAssets(stationId: string, fetchFn: typeof fetch = fetch): Promise<PlacesAssets> {
   let p = cache.get(stationId);
   if (!p) {
     p = (async () => {
       const base = await loadSiteAssets(stationId, fetchFn);
-      try {
-        const [c, pl] = await Promise.all([fetchFn(`/sites/${stationId}/cover.bin`), fetchFn(`/sites/${stationId}/places.json`)]);
-        // the static host answers unknown paths with index.html and 200, so check the type, not only the status
-        if (!c.ok || !pl.ok || !(pl.headers.get("content-type") ?? "").includes("json")) throw new Error("not baked");
-        const places = (await pl.json()) as PlacesJson;
-        const cover = decodeCover(await c.arrayBuffer(), base.road.terrain.size_m);
-        return { ...base, cover, places: places.places, attribution: places.attribution };
-      } catch {
-        return { ...base, cover: null, places: [], attribution: [] };
-      }
+      const [c, pl] = await Promise.all([fetchFn(`/sites/${stationId}/cover.bin`), fetchFn(`/sites/${stationId}/places.json`)]);
+      // the static host answers unknown paths with index.html and 200, so check the type, not only the status
+      if (!c.ok || !pl.ok || !(pl.headers.get("content-type") ?? "").includes("json")) return { ...base, cover: null, places: [] };
+      const places = (await pl.json()) as PlacesJson;
+      const cover = decodeCover(await c.arrayBuffer(), base.road.terrain.size_m);
+      return { ...base, cover, places: places.places };
     })();
     p.catch(() => cache.delete(stationId));
     cache.set(stationId, p);
