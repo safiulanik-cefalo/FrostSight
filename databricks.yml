@@ -10,6 +10,7 @@ include:
 sync:
   exclude:
     - showcase/**              # the 3D showcase is a separate web app, not a workspace file
+    - collector/ingest_bronze.ipynb  # same notebook as ingest_bronze.py; both map to one workspace path
 
 variables:
   catalog:

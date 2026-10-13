@@ -1,7 +1,9 @@
 # Showcase dashboard: architecture and design record
 
-The FrostSight showcase is a standalone 3D web page that shows the icing risk for Troms as a low-poly world:
-a county overview with one pin per weather station, and one diorama per station with its real road
+The FrostSight showcase is a standalone 3D web page that shows the icing risk as a low-poly world for four
+counties in three overview regions: Troms (the pilot), Oslo and Akershus together, and Innlandet (ADR-0002
+amendment). Each region has an overview with one pin per weather station, and each of the 115 stations has a
+diorama with its real road
 coloured by risk, live weather, closures and incidents. It sits beside the MVP, not in it (ADR-0010), and
 reads the same plot-ready gold tables as the AI/BI dashboards (ADR-0009), so the two never disagree.
 
@@ -30,7 +32,7 @@ This document records what was built, why, and what to watch when changing it. L
 
 | Part | Where | Job | Runs |
 |---|---|---|---|
-| Bake script | `showcase/tools/bake_sites.py` | Turns reference data into static scene files: a terrain heightmap and a road corridor per station, and the county overview | By hand, output committed |
+| Bake script | `showcase/tools/bake_sites.py` | Turns reference data into static scene files: a terrain heightmap and a road corridor per station, and one overview per region with `overview/index.json` | By hand, output committed |
 | Worker | `showcase/worker/src/` | Reads gold, builds one state document, stores it in KV, serves it and the static app. Holds the only Databricks credential | Cron every 15 min; on every page request |
 | App | `showcase/src/` | Draws the scenes from the baked files and colours and animates them from a state document (live, snapshot or scenario) | In the browser |
 | Scenario tool | `showcase/tools/make_scenarios.py` | Writes the three scripted scenarios from the seed | By hand, output committed |
@@ -82,7 +84,8 @@ segment. Any change goes there first; both sides fail their tests until they agr
 | Area | Files | Notes |
 |---|---|---|
 | State | `src/data/store.ts` (zustand), `live.ts`, `scenario.ts` | View (overview or site), selected site, segment and incident; scenario clock |
-| Overview scene | `src/scene/Overview.tsx` | 600-unit plate from a 256×256 elevation grid, county border, roads, one pin per station, incident cones |
+| Overview scene | `src/scene/Overview.tsx` | Per region (`#region=<id>`): 600-unit plate from a 256×256 elevation grid, county borders, roads, one pin per station, incident cones |
+| Regions | `src/data/regions.ts` | Which counties each overview shows; the region's counters are counted from its rows, as on a site |
 | Site scene | `src/scene/Site.tsx` and its parts | Terrain, road, risk band, trees, station with spinning wind gauge, cars, gritting truck, weather, barriers, incident cones |
 | Panels | `src/app/*.tsx`, `src/styles/hud.css` | Header with search and site switcher, counters, segment detail, risk outlook, tabbed list, legend, camera controls |
 | Pure logic | `src/data/corridor.ts`, `cars.ts`, `outlook.ts`, `geo.ts`, `src/app/listRows.ts`, `src/scene/dressing.ts` | Unit-tested; scenes only draw what these return |
@@ -113,7 +116,7 @@ monitored station on its road within 5 km. In the list, active incidents near a 
 Clicking a row:
 
 - near a station: opens that station's site, selects its segment and marks the spot with a cone;
-- far from any station: marks it on the county overview;
+- far from any station: marks it on its region's overview;
 - scenario incident (no position): opens the site of its segment.
 
 A live closure is drawn 250 m either side of its own spot on the road when its position is on the baked
@@ -165,14 +168,14 @@ history; counters are recounted from the simulated rows. Every simulated thing o
 | Access to the page | Public by design (open data). Cloudflare Access can add a login without code |
 | Warehouse wake-ups | The 15-min check wakes the warehouse up to 96 times a day; align the cron to the gold schedule to cut cost |
 
-## 7. Scaling beyond Troms
+## 7. Scaling beyond four counties
 
 | Concern | Today | For all of Norway |
 |---|---|---|
-| State document | 37 KB, 24 stations | Split per county (`/api/state/<county>`); load what is on screen |
+| State document | One document for 115 stations | Split per region (`/api/state/<region>`); load what is on screen |
 | Statement API results | Inline, one chunk | Follow `next_chunk_internal_link`; cancel timed-out statements |
 | Site assets | About 44 KB per station, loaded on demand | A few hundred stations is about 15 MB, still loaded one at a time; bake per county |
-| Overview | One 256×256 grid of Troms | A national map that drills into counties, with terrain detail levels |
+| Overview | One 256×256 grid per region | A national map that drills into regions, with terrain detail levels |
 | Pipeline | `fylke=55` seed and gold | The real limit: seed, silver and gold must cover every county first |
 
 ## 8. Running and changing it

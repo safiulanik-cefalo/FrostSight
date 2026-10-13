@@ -3,6 +3,7 @@ import { Icon } from "./icons";
 import { incidentRows, segmentRows, stationRows } from "./listRows";
 import { LevelPill, ScoreBar, TonePill } from "./Pill";
 import { useSites } from "./useSites";
+import { useRegion } from "./useRegion";
 
 export function ListPanel() {
   const state = useCurrentState();
@@ -14,12 +15,13 @@ export function ListPanel() {
   const focusIncident = useShowcase((s) => s.focusIncident);
   const incidentId = useShowcase((s) => s.incidentId);
   const bakedRoad = useSites().find((s) => s.station_id === siteId)?.road;
+  const region = useRegion();
   if (!state) return null;
   const now = new Date();
-  const segs = segmentRows(state, siteId, now, bakedRoad);
-  const stations = stationRows(state, siteId, bakedRoad);
-  const incidents = incidentRows(state, siteId, now, bakedRoad);
-  const road = siteId ? state.stations.find((s) => s.station_id === siteId)?.road ?? bakedRoad : "Troms";
+  const segs = segmentRows(state, siteId, now, bakedRoad, region);
+  const stations = stationRows(state, siteId, bakedRoad, region);
+  const incidents = incidentRows(state, siteId, now, bakedRoad, region);
+  const road = siteId ? state.stations.find((s) => s.station_id === siteId)?.road ?? bakedRoad : region?.name ?? "Troms";
   const tabs: Array<[Tab, string, string, boolean]> = [
     ["segments", "Segments", `${segs.filter((s) => s.level === "HIGH" || s.level === "VERY_HIGH").length}/${segs.length}`, false],
     ["stations", "Stations", `${stations.filter((s) => s.reporting).length}/${stations.length}`, false],

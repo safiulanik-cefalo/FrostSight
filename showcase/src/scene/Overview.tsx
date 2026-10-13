@@ -10,20 +10,29 @@ import { IncidentMarker } from "./IncidentMarker";
 import { projectLocal } from "../data/geo";
 import { incidentLabel } from "../app/listRows";
 import { isSimulatedIncident } from "./dressing";
+import { inRegion } from "../data/regions";
 
 /** The county overview plate: units per metre and vertical exaggeration for a 295 km square. */
 export const OVERVIEW_SIZE = 600;
 const EXAGGERATION = 7;
 
-export function Overview() {
+/** One region's overview plate; App keys it by region so the camera starts fresh. */
+export function Overview({ regionId }: { regionId: string }) {
   const [assets, setAssets] = useState<OverviewAssets | null>(null);
+  const region = useShowcase((s) => s.regions.find((r) => r.id === regionId) ?? null);
   const state = useCurrentState();
   const goSite = useShowcase((s) => s.goSite);
   const incidentId = useShowcase((s) => s.incidentId);
   const reduced = usePrefersReducedMotion();
   useEffect(() => {
-    loadOverviewAssets().then(setAssets);
-  }, []);
+    let live = true;
+    loadOverviewAssets(regionId)
+      .then((a) => live && setAssets(a))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [regionId]);
 
   const scene = useMemo(() => {
     if (!assets) return null;
@@ -45,7 +54,7 @@ export function Overview() {
     if (!assets || !scene) return [];
     const now = Date.now();
     return (state?.incidents ?? [])
-      .filter((i) => i.lat != null && i.lon != null && !isSimulatedIncident(i.incident_id))
+      .filter((i) => i.lat != null && i.lon != null && !isSimulatedIncident(i.incident_id) && inRegion(region, i.county))
       .filter((i) => !i.end_time || new Date(i.end_time).getTime() > now || i.incident_id === incidentId)
       .map((i) => {
         const [mx, mz] = projectLocal(i.lat!, i.lon!, assets.county.origin);
@@ -53,7 +62,7 @@ export function Overview() {
         const z = mz * scene.upm;
         return { incident: i, position: [x, scene.y(x, z) + 0.6, z] as [number, number, number] };
       });
-  }, [assets, scene, state?.incidents, incidentId]);
+  }, [assets, scene, state?.incidents, incidentId, region]);
 
   const home = useMemo<Pose>(() => ({ target: [0, 0, 20], azimuth: 0.2, elevation: 0.98, distance: 760 }), []);
   if (!assets || !scene) return null;

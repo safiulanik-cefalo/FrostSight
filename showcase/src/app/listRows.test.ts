@@ -94,3 +94,18 @@ describe("incidentLabel", () => {
     expect(incidentLabel("SOMETHINGNEW")).toBe("Somethingnew");
   });
 });
+
+describe("rows on a region's overview", () => {
+  it("lists only that region's counties; rows without a county are Troms", () => {
+    const s = richer();
+    s.stations.push({ ...s.stations[0], station_id: "o1", name: "Ryen", road: "E6", county: "Oslo" });
+    s.segments.push({ ...s.segments[0], road_segment_id: "o-seg", station_id: "o1", road: "E6", county: "Oslo" });
+    s.incidents.push({ ...s.incidents[0], incident_id: "o-inc", county: "Oslo" });
+    const oslo = { id: "oslo-akershus", name: "Oslo and Akershus", counties: ["Oslo", "Akershus"], stations: ["o1"] };
+    const troms = { id: "troms", name: "Troms", counties: ["Troms"], stations: [] };
+    expect(segmentRows(s, null, now, undefined, oslo).map((r) => r.id)).toEqual(["o-seg"]);
+    expect(stationRows(s, null, undefined, oslo).map((r) => r.id)).toEqual(["o1"]);
+    expect(incidentRows(s, null, now, undefined, oslo).map((r) => r.id)).toEqual(["o-inc"]);
+    expect(segmentRows(s, null, now, undefined, troms).map((r) => r.id)).not.toContain("o-seg");
+  });
+});

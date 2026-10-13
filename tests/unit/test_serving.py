@@ -61,3 +61,12 @@ def test_incident_list_places_each_incident_once_at_its_own_position():
         assert re.search(rf"\bAS {col}\b|\bi\.{col}\b", sql), col
     # the station a click flies to is on the incident's own road and within coverage
     assert "5.0" in sql and "road_key" in sql
+
+
+def test_tables_the_showcase_splits_by_county_carry_it():
+    sql = dict(TABLES)
+    assert re.search(r"\bst\.county\b", sql["station_status"])
+    assert re.search(r"\bs\.county\b", sql["segment_detail"])
+    assert re.search(r"\bAS county\b", sql["incident_list"])
+    # each county grits its own roads, so priority ranks within a county
+    assert "PARTITION BY county ORDER BY icing_score DESC" in sql["priority_list"]

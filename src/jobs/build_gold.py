@@ -1,6 +1,7 @@
 """build_gold: gold tables for the live dashboard from the team's silver (docs/gold-from-team-silver.md).
 
-Reads the Troms rows of silver.datex_road_weather_silver and silver.datex_incidents_silver, which hold only
+Reads the rows of the monitored counties (those in silver.nvdb_seed_stations: Troms, Oslo, Akershus,
+Innlandet) from silver.datex_road_weather_silver and silver.datex_incidents_silver, which hold only
 the newest snapshot (B2), so gold keeps its own append-only copy of every reading it sees
 (gold.road_weather_observation_log) until silver keeps history. Then: trends, risk v0, current risk per
 segment, insert-only risk history, incidents on the monitored roads, freshness, and last the plot-ready
@@ -27,7 +28,6 @@ from frostsight.windows import with_trends
 
 spark = SparkSession.builder.getOrCreate()
 
-COUNTY = "Troms"  # DATEX `county` value for the pilot county (fylke 55, ADR-0002)
 STATION_COVERAGE_M = 5000.0  # 04_M3 T3.3 step 7: a station covers its own road within 5 km
 
 RISK_COLS = [
@@ -99,9 +99,17 @@ def overwrite(df: DataFrame, table: str) -> None:
     )
 
 
+def monitored_counties(catalog: str) -> list[str]:
+    """DATEX `county` names of the monitored counties: those in the NVDB reference seed (ADR-0002)."""
+    rows = spark.read.table(f"{catalog}.silver.nvdb_seed_stations").select("county").distinct().collect()
+    return sorted(r["county"] for r in rows)
+
+
 def log_snapshot(catalog: str, cfg: dict) -> DataFrame:
-    """Append the Troms rows of the current silver snapshot to the log; returns the snapshot."""
-    snap = spark.read.table(f"{catalog}.silver.datex_road_weather_silver").where(F.col("county") == COUNTY)
+    """Append the monitored counties' rows of the current silver snapshot to the log; returns the snapshot."""
+    snap = spark.read.table(f"{catalog}.silver.datex_road_weather_silver").where(
+        F.col("county").isin(monitored_counties(catalog))
+    )
     rows = snap.select(
         "station_id", "event_time", "published_at", "road_ref", "location_description", "air_temperature_c",
         "road_surface_temperature_c", "dew_point_c", "humidity_pct", "precipitation_intensity_mm_h",
@@ -157,6 +165,12 @@ def build_risk(catalog: str, cfg: dict, current_window_min: int) -> None:
         .dropDuplicates(["road_segment_id"])
     )
     merge(current, f"{catalog}.gold.road_segment_current_risk", ["road_segment_id"])
+    # NVDB renumbers segments when a road is edited; after a seed reload the old ids would keep their rows
+    # beside the new ones, so a station shows twice. Keep only the segments the seed still monitors.
+    spark.sql(
+        f"DELETE FROM {catalog}.gold.road_segment_current_risk WHERE road_segment_id NOT IN "
+        f"(SELECT road_segment_id FROM {catalog}.silver.nvdb_seed_stations)"
+    )
 
 
 def build_incidents(catalog: str) -> None:
@@ -197,7 +211,9 @@ def build_incidents(catalog: str) -> None:
 
 def build_freshness(catalog: str, stale_after_min: int, forecast_threshold_min: int) -> None:
     log = spark.read.table(f"{catalog}.gold.road_weather_observation_log")
-    rw = spark.read.table(f"{catalog}.silver.datex_road_weather_silver").where(F.col("county") == COUNTY)
+    rw = spark.read.table(f"{catalog}.silver.datex_road_weather_silver").where(
+        F.col("county").isin(monitored_counties(catalog))
+    )
     inc = spark.read.table(f"{catalog}.silver.datex_incidents_silver")
     fc = spark.read.table(f"{catalog}.silver.met_locationforecast_silver")
     day_ago = F.current_timestamp() - F.expr("INTERVAL 24 HOURS")

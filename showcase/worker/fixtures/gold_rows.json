@@ -24,7 +24,8 @@
       "station_status": "Reporting",
       "status_label": "🟢 Reporting",
       "risk_level": "HIGH",
-      "icing_score": "0.72"
+      "icing_score": "0.72",
+      "county": "Troms"
     },
     {
       "station_id": "3000016",
@@ -37,7 +38,8 @@
       "station_status": "Stale",
       "status_label": "⚪ Stale",
       "risk_level": null,
-      "icing_score": null
+      "icing_score": null,
+      "county": "Troms"
     }
   ],
   "segment_detail": [
@@ -56,7 +58,8 @@
       "change_label": "-0.8 in 1 h",
       "risk_drivers": "[]",
       "event_time": "2026-10-12T09:20:00.000Z",
-      "risk_updated_at": "2026-10-12T09:20:00.000Z"
+      "risk_updated_at": "2026-10-12T09:20:00.000Z",
+      "county": "Troms"
     }
   ],
   "segment_drivers": [
@@ -134,7 +137,8 @@
       "severity": "high",
       "start_time": "2026-10-12T08:00:00.000Z",
       "end_time": null,
-      "description": "E8 closed at Gardeborri, convoy driving"
+      "description": "E8 closed at Gardeborri, convoy driving",
+      "county": "Troms"
     }
   ]
 }

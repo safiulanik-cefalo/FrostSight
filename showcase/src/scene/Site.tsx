@@ -110,7 +110,7 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
       <Terrain assets={assets} model={model} snowline={snowline} />
       <Road model={model} />
       <RiskBand model={model} stretches={strips} />
-      <Trees seed={stationId} climate={assets.road.climate} model={model} />
+      <Trees seed={stationId} climate={assets.road.climate} lat={assets.road.origin.lat} model={model} />
       <Station
         position={[sx, model.ground(sx, sz), sz]}
         name={assets.road.name}

@@ -1,6 +1,7 @@
 // Rows for the list panel and the detail panel, filtered to the site's road on a site.
 import type { LevelOrNone, State } from "../../shared/contract";
 import { COVERAGE_M } from "../data/corridor";
+import { inRegion, type Region } from "../data/regions";
 import { isClosureIncident, isSimulatedIncident } from "../scene/dressing";
 
 export type SegmentRow = { id: string; title: string; subtitle: string; level: LevelOrNone; score: number | null; closed: boolean; stationId: string | null };
@@ -20,13 +21,17 @@ const siteRoad = (state: State, siteId: string | null, fallback?: string) =>
 
 const isActive = (end: string | null, now: Date) => end === null || new Date(end).getTime() > now.getTime();
 
-export function segmentRows(state: State, siteId: string | null, now: Date, fallbackRoad?: string): SegmentRow[] {
+/** On a site: rows on the site's road. On an overview: rows in the region's counties (all when region is null). */
+const keep = (road: string | null, region: Region | null | undefined, row: { road: string; county?: string | null }) =>
+  road === null ? inRegion(region, row.county) : row.road === road;
+
+export function segmentRows(state: State, siteId: string | null, now: Date, fallbackRoad?: string, region?: Region | null): SegmentRow[] {
   const road = siteRoad(state, siteId, fallbackRoad);
   const closedIds = new Set(
     state.incidents.filter((i) => isClosureIncident(i.incident_type) && isActive(i.end_time, now)).map((i) => i.road_segment_id),
   );
   return state.segments
-    .filter((s) => road === null || s.road === road)
+    .filter((s) => keep(road, region, s))
     .sort((a, b) => b.icing_score - a.icing_score)
     .map((s) => ({
       id: s.road_segment_id,
@@ -39,10 +44,10 @@ export function segmentRows(state: State, siteId: string | null, now: Date, fall
     }));
 }
 
-export function stationRows(state: State, siteId: string | null, fallbackRoad?: string): StationRow[] {
+export function stationRows(state: State, siteId: string | null, fallbackRoad?: string, region?: Region | null): StationRow[] {
   const road = siteRoad(state, siteId, fallbackRoad);
   const rows = state.stations
-    .filter((s) => road === null || s.road === road)
+    .filter((s) => keep(road, region, s))
     .map((s) => ({
       id: s.station_id,
       title: s.name,
@@ -71,10 +76,10 @@ export function incidentLabel(t: string): string {
   return words.replace(/^./, (c) => c.toUpperCase());
 }
 
-export function incidentRows(state: State, siteId: string | null, now: Date, fallbackRoad?: string): IncidentRow[] {
+export function incidentRows(state: State, siteId: string | null, now: Date, fallbackRoad?: string, region?: Region | null): IncidentRow[] {
   const road = siteRoad(state, siteId, fallbackRoad);
   return state.incidents
-    .filter((i) => road === null || i.road === road)
+    .filter((i) => keep(road, region, i))
     .map((i) => ({
       id: i.incident_id,
       title: incidentLabel(i.incident_type),
