@@ -15,6 +15,7 @@
       "lat": 69.41272,
       "lon": 17.15316,
       "road_segment_id": "1125839-31-10",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -27,6 +28,7 @@
       "lat": 69.49886,
       "lon": 17.51101,
       "road_segment_id": "1126346-21-12",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -38,7 +40,8 @@
       "road": "E6",
       "lat": 68.67548,
       "lon": 17.9054,
-      "road_segment_id": "1125762-30-8",
+      "road_segment_id": "1125762-30-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -51,6 +54,7 @@
       "lat": 69.43376,
       "lon": 19.26065,
       "road_segment_id": "2429627-5-8",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -63,6 +67,7 @@
       "lat": 69.14523,
       "lon": 19.05055,
       "road_segment_id": "1125769-28-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -75,6 +80,7 @@
       "lat": 69.53758,
       "lon": 20.37774,
       "road_segment_id": "2678477-1-7",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -87,6 +93,7 @@
       "lat": 69.54629,
       "lon": 19.00845,
       "road_segment_id": "1126304-38-12",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -99,6 +106,7 @@
       "lat": 69.14675,
       "lon": 20.74661,
       "road_segment_id": "1125788-9-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -111,6 +119,7 @@
       "lat": 70.00346,
       "lon": 20.89832,
       "road_segment_id": "1125978-51-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -123,6 +132,7 @@
       "lat": 69.90313,
       "lon": 19.47368,
       "road_segment_id": "1125961-24-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -135,6 +145,7 @@
       "lat": 69.93681,
       "lon": 20.9139,
       "road_segment_id": "1125977-6-11",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -146,7 +157,8 @@
       "road": "E6",
       "lat": 68.61795,
       "lon": 17.64264,
-      "road_segment_id": "1126283-14-9",
+      "road_segment_id": "1126283-14-10",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -159,6 +171,7 @@
       "lat": 70.035,
       "lon": 20.53976,
       "road_segment_id": "1126205-6-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -171,6 +184,7 @@
       "lat": 68.86913,
       "lon": 17.47708,
       "road_segment_id": "1126332-3-11",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -183,6 +197,7 @@
       "lat": 69.07201,
       "lon": 17.9633,
       "road_segment_id": "1126315-3-10",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -195,6 +210,7 @@
       "lat": 69.09185,
       "lon": 18.29635,
       "road_segment_id": "1125836-2-10",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -207,6 +223,7 @@
       "lat": 69.75374,
       "lon": 20.50605,
       "road_segment_id": "1125779-18-7",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -219,6 +236,7 @@
       "lat": 69.1202,
       "lon": 20.74511,
       "road_segment_id": "1125788-27-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -231,6 +249,7 @@
       "lat": 69.28513,
       "lon": 20.46572,
       "road_segment_id": "2491853-2-8",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -243,6 +262,7 @@
       "lat": 69.18203,
       "lon": 20.75035,
       "road_segment_id": "1125788-25-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -255,6 +275,7 @@
       "lat": 69.65625,
       "lon": 19.56798,
       "road_segment_id": "1125851-12-9",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -267,6 +288,7 @@
       "lat": 69.67681,
       "lon": 18.96943,
       "road_segment_id": "1125917-5-11",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -279,6 +301,7 @@
       "lat": 69.29716,
       "lon": 17.29072,
       "road_segment_id": "1126368-7-16",
+      "county": "Troms",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -290,7 +313,1191 @@
       "road": "Rv83",
       "lat": 68.70616,
       "lon": 16.52131,
-      "road_segment_id": "1126308-5-6",
+      "road_segment_id": "1126308-5-7",
+      "county": "Troms",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "329002",
+      "name": "Hjortnes",
+      "road": "E18",
+      "lat": 59.91114,
+      "lon": 10.70414,
+      "road_segment_id": "625294-40-14",
+      "county": "Oslo",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "329003",
+      "name": "Linderud",
+      "road": "Rv4",
+      "lat": 59.94392,
+      "lon": 10.83456,
+      "road_segment_id": "625367-16-9",
+      "county": "Oslo",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "329004",
+      "name": "Furuset",
+      "road": "E6",
+      "lat": 59.93941,
+      "lon": 10.90031,
+      "road_segment_id": "625215-13-6",
+      "county": "Oslo",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "200020",
+      "name": "Åserud",
+      "road": "Fv169",
+      "lat": 59.83885,
+      "lon": 11.36252,
+      "road_segment_id": "444292-2-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "200030",
+      "name": "Feiring",
+      "road": "Fv33",
+      "lat": 60.58863,
+      "lon": 11.14492,
+      "road_segment_id": "443434-15-7",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "200085",
+      "name": "E6 Nøstvett",
+      "road": "E6",
+      "lat": 59.77212,
+      "lon": 10.83266,
+      "road_segment_id": "1796950-2-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229001",
+      "name": "Holstad",
+      "road": "E18",
+      "lat": 59.68503,
+      "lon": 10.83042,
+      "road_segment_id": "443293-47-9",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229002",
+      "name": "Sonsveien",
+      "road": "E6",
+      "lat": 59.51765,
+      "lon": 10.72531,
+      "road_segment_id": "443149-7-9",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229003",
+      "name": "Minnesund",
+      "road": "E6",
+      "lat": 60.39997,
+      "lon": 11.23366,
+      "road_segment_id": "2038032-2-12",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229004",
+      "name": "Andelva",
+      "road": "E6",
+      "lat": 60.2853,
+      "lon": 11.13594,
+      "road_segment_id": "2037779-2-10",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229005",
+      "name": "Gjelleråsen",
+      "road": "Rv4",
+      "lat": 59.98875,
+      "lon": 10.92983,
+      "road_segment_id": "444240-54-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229007",
+      "name": "Uvesund bru",
+      "road": "E16",
+      "lat": 60.16896,
+      "lon": 11.4798,
+      "road_segment_id": "443378-23-12",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229009",
+      "name": "Sandvika øst",
+      "road": "E18",
+      "lat": 59.89262,
+      "lon": 10.53992,
+      "road_segment_id": "444232-97-7",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229013",
+      "name": "Vestby",
+      "road": "E6",
+      "lat": 59.59932,
+      "lon": 10.73874,
+      "road_segment_id": "443150-3-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229014",
+      "name": "Råken",
+      "road": "Fv155",
+      "lat": 59.74137,
+      "lon": 11.00859,
+      "road_segment_id": "444271-9-9",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229015",
+      "name": "Kompveien",
+      "road": "Fv170",
+      "lat": 59.94198,
+      "lon": 11.30166,
+      "road_segment_id": "443670-26-9",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229017",
+      "name": "Svartskog",
+      "road": "E18",
+      "lat": 59.77546,
+      "lon": 10.77037,
+      "road_segment_id": "444231-10-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229018",
+      "name": "Djupdalen",
+      "road": "E6",
+      "lat": 59.96208,
+      "lon": 10.97496,
+      "road_segment_id": "444219-3-7",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229019",
+      "name": "Gardermoen",
+      "road": "E16",
+      "lat": 60.16772,
+      "lon": 11.11551,
+      "road_segment_id": "2350599-4-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229020",
+      "name": "Tangen",
+      "road": "Fv21",
+      "lat": 59.84497,
+      "lon": 11.71932,
+      "road_segment_id": "444243-6-7",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "229034",
+      "name": "Folmo",
+      "road": "Fv175",
+      "lat": 60.14646,
+      "lon": 11.49388,
+      "road_segment_id": "444303-28-7",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000037",
+      "name": "Holter",
+      "road": "Fv172",
+      "lat": 59.95447,
+      "lon": 11.2032,
+      "road_segment_id": "444298-33-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000038",
+      "name": "Finsbråtan",
+      "road": "Fv181",
+      "lat": 60.37122,
+      "lon": 11.35908,
+      "road_segment_id": "444313-59-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000039",
+      "name": "Åneby nord",
+      "road": "Rv4",
+      "lat": 60.11342,
+      "lon": 10.84245,
+      "road_segment_id": "3344720-8-6",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000084",
+      "name": "Nøstvett",
+      "road": "E6",
+      "lat": 59.7719,
+      "lon": 10.83222,
+      "road_segment_id": "1796950-1-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000088",
+      "name": "Hemnes",
+      "road": "Fv115",
+      "lat": 59.72674,
+      "lon": 11.41802,
+      "road_segment_id": "443465-34-10",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000682",
+      "name": "Olum",
+      "road": "E16",
+      "lat": 60.26441,
+      "lon": 10.49637,
+      "road_segment_id": "3306403-9-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000908",
+      "name": "Kløfta",
+      "road": "E6",
+      "lat": 60.06178,
+      "lon": 11.15146,
+      "road_segment_id": "444220-36-7",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3001091",
+      "name": "Bjørum",
+      "road": "E16",
+      "lat": 59.93898,
+      "lon": 10.42509,
+      "road_segment_id": "3904219-1-4",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529002",
+      "name": "Stryken",
+      "road": "Rv4",
+      "lat": 60.15699,
+      "lon": 10.72133,
+      "road_segment_id": "1060045-1-9",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529016",
+      "name": "Romeriksåsen",
+      "road": "E16",
+      "lat": 60.27532,
+      "lon": 10.74697,
+      "road_segment_id": "2459877-1-8",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "629025",
+      "name": "Hurum",
+      "road": "Fv289",
+      "lat": 59.6313,
+      "lon": 10.49217,
+      "road_segment_id": "181013-90-5",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "629028",
+      "name": "Storsand",
+      "road": "Fv281",
+      "lat": 59.64154,
+      "lon": 10.60385,
+      "road_segment_id": "181313-37-10",
+      "county": "Akershus",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000011",
+      "name": "Vingromåsen",
+      "road": "Fv250",
+      "lat": 61.01035,
+      "lon": 10.1453,
+      "road_segment_id": "1060179-44-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000012",
+      "name": "Valdresflye",
+      "road": "Fv51",
+      "lat": 61.38926,
+      "lon": 8.8105,
+      "road_segment_id": "1060136-10-9",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000021",
+      "name": "Ryfoss",
+      "road": "E16",
+      "lat": 61.13761,
+      "lon": 8.8173,
+      "road_segment_id": "3443736-2-6",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000271",
+      "name": "Krokstad",
+      "road": "Fv21",
+      "lat": 59.89318,
+      "lon": 11.81972,
+      "road_segment_id": "704623-2-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000272",
+      "name": "Rasan",
+      "road": "Fv24",
+      "lat": 60.52523,
+      "lon": 11.50871,
+      "road_segment_id": "704629-23-9",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000273",
+      "name": "Evenstad",
+      "road": "Rv3",
+      "lat": 61.41842,
+      "lon": 11.08334,
+      "road_segment_id": "3125829-8-6",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000445",
+      "name": "Stabekken",
+      "road": "Rv3",
+      "lat": 60.81615,
+      "lon": 11.28535,
+      "road_segment_id": "3106834-3-4",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000590",
+      "name": "Breidalen",
+      "road": "Rv15",
+      "lat": 62.01087,
+      "lon": 7.3925,
+      "road_segment_id": "1060662-9-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000592",
+      "name": "Bjorli",
+      "road": "E136",
+      "lat": 62.27024,
+      "lon": 8.16415,
+      "road_segment_id": "1060647-38-11",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000594",
+      "name": "Eidefossen",
+      "road": "Rv15",
+      "lat": 61.80507,
+      "lon": 9.3026,
+      "road_segment_id": "1060658-9-9",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000799",
+      "name": "Grotli",
+      "road": "Rv15",
+      "lat": 62.01513,
+      "lon": 7.62099,
+      "road_segment_id": "1060661-10-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3000848",
+      "name": "Hugavika",
+      "road": "E16",
+      "lat": 61.15351,
+      "lon": 8.67818,
+      "road_segment_id": "3414477-8-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3001095",
+      "name": "Flaggfjell",
+      "road": "Fv33",
+      "lat": 60.83884,
+      "lon": 9.72451,
+      "road_segment_id": "1060673-3-17",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3001112",
+      "name": "Sømådal",
+      "road": "Fv26",
+      "lat": 62.10447,
+      "lon": 11.66391,
+      "road_segment_id": "704655-35-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3001113",
+      "name": "Midtskog",
+      "road": "E6",
+      "lat": 61.2069,
+      "lon": 10.42841,
+      "road_segment_id": "1211205-13-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "3001156",
+      "name": "Strynefjellet Grotåa Vind/Kamera",
+      "road": "Rv15",
+      "lat": 62.01471,
+      "lon": 7.66661,
+      "road_segment_id": "1060661-18-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429001",
+      "name": "Vien",
+      "road": "E6",
+      "lat": 60.81083,
+      "lon": 11.10304,
+      "road_segment_id": "2823423-6-3",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429002",
+      "name": "Rudshøgda",
+      "road": "E6",
+      "lat": 60.91536,
+      "lon": 10.78821,
+      "road_segment_id": "2822708-10-3",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429003",
+      "name": "Mjøsbrua",
+      "road": "E6",
+      "lat": 60.92824,
+      "lon": 10.67018,
+      "road_segment_id": "704480-10-10",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429004",
+      "name": "Sigernessjøen",
+      "road": "Rv2",
+      "lat": 60.10222,
+      "lon": 12.06269,
+      "road_segment_id": "705188-21-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429005",
+      "name": "Ebru",
+      "road": "Rv3",
+      "lat": 60.85661,
+      "lon": 11.40051,
+      "road_segment_id": "3106834-14-4",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429006",
+      "name": "Østlund",
+      "road": "Rv3",
+      "lat": 61.86441,
+      "lon": 10.90963,
+      "road_segment_id": "704584-23-5",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429007",
+      "name": "Bergerønningen",
+      "road": "Rv3",
+      "lat": 62.17932,
+      "lon": 10.61649,
+      "road_segment_id": "704586-13-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429009",
+      "name": "Kvikneskogen",
+      "road": "Rv3",
+      "lat": 62.48261,
+      "lon": 10.38957,
+      "road_segment_id": "705204-31-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429010",
+      "name": "Føttaskjæret",
+      "road": "Rv2",
+      "lat": 60.37188,
+      "lon": 12.04336,
+      "road_segment_id": "704611-57-10",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429011",
+      "name": "Osmoen",
+      "road": "Fv30",
+      "lat": 62.50031,
+      "lon": 11.17242,
+      "road_segment_id": "705242-1-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429012",
+      "name": "Vikselv",
+      "road": "E6",
+      "lat": 60.62167,
+      "lon": 11.29938,
+      "road_segment_id": "1801387-1-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429013",
+      "name": "Rena",
+      "road": "Rv3",
+      "lat": 61.12149,
+      "lon": 11.36305,
+      "road_segment_id": "705194-10-11",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429014",
+      "name": "Flermoberget",
+      "road": "Fv2168",
+      "lat": 61.21763,
+      "lon": 12.6981,
+      "road_segment_id": "705081-16-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429015",
+      "name": "Svingen",
+      "road": "Rv3",
+      "lat": 60.95716,
+      "lon": 11.49036,
+      "road_segment_id": "3106835-21-6",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429016",
+      "name": "Koppang",
+      "road": "Rv3",
+      "lat": 61.57468,
+      "lon": 11.00466,
+      "road_segment_id": "705197-16-10",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429017",
+      "name": "Midtskogberget",
+      "road": "Rv25",
+      "lat": 61.11873,
+      "lon": 12.06503,
+      "road_segment_id": "705218-8-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429018",
+      "name": "Skarven",
+      "road": "Fv26",
+      "lat": 61.84048,
+      "lon": 11.99279,
+      "road_segment_id": "705226-40-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429019",
+      "name": "Sorma",
+      "road": "Rv2",
+      "lat": 60.75264,
+      "lon": 11.7621,
+      "road_segment_id": "705212-47-9",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429020",
+      "name": "Storsjøen",
+      "road": "Fv24",
+      "lat": 60.35812,
+      "lon": 11.59316,
+      "road_segment_id": "705215-67-11",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429021",
+      "name": "Espa",
+      "road": "E6",
+      "lat": 60.55471,
+      "lon": 11.25069,
+      "road_segment_id": "2282277-1-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429025",
+      "name": "Litjfossen",
+      "road": "Rv3",
+      "lat": 62.66902,
+      "lon": 10.15277,
+      "road_segment_id": "704589-20-3",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429026",
+      "name": "Øyermoen",
+      "road": "E16",
+      "lat": 60.25241,
+      "lon": 12.45567,
+      "road_segment_id": "705247-100-4",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429027",
+      "name": "Valdalsfjellet",
+      "road": "Fv221",
+      "lat": 62.08193,
+      "lon": 12.13216,
+      "road_segment_id": "705273-20-10",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429028",
+      "name": "Haslemosletta",
+      "road": "Rv2",
+      "lat": 60.6242,
+      "lon": 11.94258,
+      "road_segment_id": "705210-53-10",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "429029",
+      "name": "Gravbekklia",
+      "road": "Fv29",
+      "lat": 62.18389,
+      "lon": 9.71813,
+      "road_segment_id": "704673-43-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529001",
+      "name": "Eina",
+      "road": "Rv4",
+      "lat": 60.61286,
+      "lon": 10.62991,
+      "road_segment_id": "1060048-8-11",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529003",
+      "name": "Frya",
+      "road": "E6",
+      "lat": 61.54646,
+      "lon": 10.07469,
+      "road_segment_id": "1060620-44-9",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529004",
+      "name": "Vingnes",
+      "road": "E6",
+      "lat": 61.10799,
+      "lon": 10.44258,
+      "road_segment_id": "1060615-26-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529005",
+      "name": "Tingberg",
+      "road": "E6",
+      "lat": 61.27826,
+      "lon": 10.38264,
+      "road_segment_id": "2237113-1-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529006",
+      "name": "Hjerkinn",
+      "road": "E6",
+      "lat": 62.23213,
+      "lon": 9.53189,
+      "road_segment_id": "1060630-14-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529007",
+      "name": "Avsjøen",
+      "road": "E6",
+      "lat": 62.18073,
+      "lon": 9.47477,
+      "road_segment_id": "1059999-16-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529009",
+      "name": "Begnadalen",
+      "road": "E16",
+      "lat": 60.63192,
+      "lon": 9.89498,
+      "road_segment_id": "1060631-21-13",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529010",
+      "name": "Venabygdsfjellet",
+      "road": "Fv27",
+      "lat": 61.68904,
+      "lon": 10.13533,
+      "road_segment_id": "1060113-16-8",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529012",
+      "name": "Fåberg",
+      "road": "E6",
+      "lat": 61.16967,
+      "lon": 10.41088,
+      "road_segment_id": "1060616-24-9",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529013",
+      "name": "Rosten",
+      "road": "E6",
+      "lat": 61.87839,
+      "lon": 9.41543,
+      "road_segment_id": "1060626-13-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529014",
+      "name": "Lora",
+      "road": "E136",
+      "lat": 62.14717,
+      "lon": 8.69044,
+      "road_segment_id": "1060645-37-12",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529015",
+      "name": "Fokstugu",
+      "road": "E6",
+      "lat": 62.11187,
+      "lon": 9.28494,
+      "road_segment_id": "1059998-2-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529018",
+      "name": "Kalplassen",
+      "road": "E16",
+      "lat": 60.95313,
+      "lon": 9.33491,
+      "road_segment_id": "1060040-24-10",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529023",
+      "name": "Lom",
+      "road": "Rv15",
+      "lat": 61.84146,
+      "lon": 8.58519,
+      "road_segment_id": "1060104-5-7",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529024",
+      "name": "Tonsåsen",
+      "road": "Fv33",
+      "lat": 60.86481,
+      "lon": 9.54945,
+      "road_segment_id": "3263295-4-4",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529025",
+      "name": "Vardalsåsen",
+      "road": "Fv33",
+      "lat": 60.79113,
+      "lon": 10.40022,
+      "road_segment_id": "1060668-6-9",
+      "county": "Innlandet",
+      "status": "Reporting",
+      "last_event_time": null,
+      "risk_level": "LOW",
+      "icing_score": 0.1
+     },
+     {
+      "station_id": "529026",
+      "name": "Filefjell v/Varden",
+      "road": "Fv2515",
+      "lat": 61.17842,
+      "lon": 8.15287,
+      "road_segment_id": "1060642-31-11",
+      "county": "Innlandet",
       "status": "Reporting",
       "last_event_time": null,
       "risk_level": "LOW",
@@ -302,6 +1509,7 @@
       "road_segment_id": "1125839-31-10",
       "segment": "Fv86 · Hamn",
       "road": "Fv86",
+      "county": "Troms",
       "station_id": "1900113",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -327,6 +1535,7 @@
       "road_segment_id": "1126346-21-12",
       "segment": "Fv862 · Senjahopen",
       "road": "Fv862",
+      "county": "Troms",
       "station_id": "1900123",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -349,9 +1558,10 @@
       }
      },
      {
-      "road_segment_id": "1125762-30-8",
+      "road_segment_id": "1125762-30-9",
       "segment": "E6 · Gratangsfjellet",
       "road": "E6",
+      "county": "Troms",
       "station_id": "1900163",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -377,6 +1587,7 @@
       "road_segment_id": "2429627-5-8",
       "segment": "E8 · Lavangsdalen",
       "road": "E8",
+      "county": "Troms",
       "station_id": "1900175",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -402,6 +1613,7 @@
       "road_segment_id": "1125769-28-9",
       "segment": "E6 · Heia",
       "road": "E6",
+      "county": "Troms",
       "station_id": "1900176",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -427,6 +1639,7 @@
       "road_segment_id": "2678477-1-7",
       "segment": "E6 · Nordnes",
       "road": "E6",
+      "county": "Troms",
       "station_id": "1900177",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -452,6 +1665,7 @@
       "road_segment_id": "1126304-38-12",
       "segment": "E8 · Sandvikeidet",
       "road": "E8",
+      "county": "Troms",
       "station_id": "1900178",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -477,6 +1691,7 @@
       "road_segment_id": "1125788-9-9",
       "segment": "E8 · Galgo",
       "road": "E8",
+      "county": "Troms",
       "station_id": "1900179",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -502,6 +1717,7 @@
       "road_segment_id": "1125978-51-9",
       "segment": "Fv866 · Skattørsund",
       "road": "Fv866",
+      "county": "Troms",
       "station_id": "1900180",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -527,6 +1743,7 @@
       "road_segment_id": "1125961-24-9",
       "segment": "Fv863 · Gamnes",
       "road": "Fv863",
+      "county": "Troms",
       "station_id": "1900181",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -552,6 +1769,7 @@
       "road_segment_id": "1125977-6-11",
       "segment": "Fv866 · Maursund",
       "road": "Fv866",
+      "county": "Troms",
       "station_id": "1900182",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -574,9 +1792,10 @@
       }
      },
      {
-      "road_segment_id": "1126283-14-9",
+      "road_segment_id": "1126283-14-10",
       "segment": "E6 · Øse",
       "road": "E6",
+      "county": "Troms",
       "station_id": "1900185",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -602,6 +1821,7 @@
       "road_segment_id": "1126205-6-9",
       "segment": "Fv7940 · Arnøya",
       "road": "Fv7940",
+      "county": "Troms",
       "station_id": "1901001",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -627,6 +1847,7 @@
       "road_segment_id": "1126332-3-11",
       "segment": "Fv848 · Fornes",
       "road": "Fv848",
+      "county": "Troms",
       "station_id": "1929002",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -652,6 +1873,7 @@
       "road_segment_id": "1126315-3-10",
       "segment": "Fv84 · Gumpen",
       "road": "Fv84",
+      "county": "Troms",
       "station_id": "1929003",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -677,6 +1899,7 @@
       "road_segment_id": "1125836-2-10",
       "segment": "Fv86 · Andsvatnet",
       "road": "Fv86",
+      "county": "Troms",
       "station_id": "1929004",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -702,6 +1925,7 @@
       "road_segment_id": "1125779-18-7",
       "segment": "E6 · Djupvik",
       "road": "E6",
+      "county": "Troms",
       "station_id": "1929005",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -727,6 +1951,7 @@
       "road_segment_id": "1125788-27-9",
       "segment": "E8 · Bossovarri",
       "road": "E8",
+      "county": "Troms",
       "station_id": "3000014",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -752,6 +1977,7 @@
       "road_segment_id": "2491853-2-8",
       "segment": "E8 · Halsebakkan nedre",
       "road": "E8",
+      "county": "Troms",
       "station_id": "3000015",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -777,6 +2003,7 @@
       "road_segment_id": "1125788-25-9",
       "segment": "E8 · Gardeborri",
       "road": "E8",
+      "county": "Troms",
       "station_id": "3000016",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -802,6 +2029,7 @@
       "road_segment_id": "1125851-12-9",
       "segment": "Fv91 · Breivikeidet",
       "road": "Fv91",
+      "county": "Troms",
       "station_id": "3000017",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -827,6 +2055,7 @@
       "road_segment_id": "1125917-5-11",
       "segment": "E8 · Tverrforbindelsen øst",
       "road": "E8",
+      "county": "Troms",
       "station_id": "3000078",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -852,6 +2081,7 @@
       "road_segment_id": "1126368-7-16",
       "segment": "Fv7862 · Kaperskaret",
       "road": "Fv7862",
+      "county": "Troms",
       "station_id": "3000699",
       "risk_level": "LOW",
       "icing_score": 0.1,
@@ -874,10 +2104,2377 @@
       }
      },
      {
-      "road_segment_id": "1126308-5-6",
+      "road_segment_id": "1126308-5-7",
       "segment": "Rv83 · Blomjoten",
       "road": "Rv83",
+      "county": "Troms",
       "station_id": "3000892",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "625294-40-14",
+      "segment": "E18 · Hjortnes",
+      "road": "E18",
+      "county": "Oslo",
+      "station_id": "329002",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "625367-16-9",
+      "segment": "Rv4 · Linderud",
+      "road": "Rv4",
+      "county": "Oslo",
+      "station_id": "329003",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "625215-13-6",
+      "segment": "E6 · Furuset",
+      "road": "E6",
+      "county": "Oslo",
+      "station_id": "329004",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444292-2-8",
+      "segment": "Fv169 · Åserud",
+      "road": "Fv169",
+      "county": "Akershus",
+      "station_id": "200020",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "443434-15-7",
+      "segment": "Fv33 · Feiring",
+      "road": "Fv33",
+      "county": "Akershus",
+      "station_id": "200030",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1796950-2-8",
+      "segment": "E6 · E6 Nøstvett",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "200085",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "443293-47-9",
+      "segment": "E18 · Holstad",
+      "road": "E18",
+      "county": "Akershus",
+      "station_id": "229001",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "443149-7-9",
+      "segment": "E6 · Sonsveien",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "229002",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2038032-2-12",
+      "segment": "E6 · Minnesund",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "229003",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2037779-2-10",
+      "segment": "E6 · Andelva",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "229004",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444240-54-8",
+      "segment": "Rv4 · Gjelleråsen",
+      "road": "Rv4",
+      "county": "Akershus",
+      "station_id": "229005",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "443378-23-12",
+      "segment": "E16 · Uvesund bru",
+      "road": "E16",
+      "county": "Akershus",
+      "station_id": "229007",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444232-97-7",
+      "segment": "E18 · Sandvika øst",
+      "road": "E18",
+      "county": "Akershus",
+      "station_id": "229009",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "443150-3-8",
+      "segment": "E6 · Vestby",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "229013",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444271-9-9",
+      "segment": "Fv155 · Råken",
+      "road": "Fv155",
+      "county": "Akershus",
+      "station_id": "229014",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "443670-26-9",
+      "segment": "Fv170 · Kompveien",
+      "road": "Fv170",
+      "county": "Akershus",
+      "station_id": "229015",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444231-10-8",
+      "segment": "E18 · Svartskog",
+      "road": "E18",
+      "county": "Akershus",
+      "station_id": "229017",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444219-3-7",
+      "segment": "E6 · Djupdalen",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "229018",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2350599-4-8",
+      "segment": "E16 · Gardermoen",
+      "road": "E16",
+      "county": "Akershus",
+      "station_id": "229019",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444243-6-7",
+      "segment": "Fv21 · Tangen",
+      "road": "Fv21",
+      "county": "Akershus",
+      "station_id": "229020",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444303-28-7",
+      "segment": "Fv175 · Folmo",
+      "road": "Fv175",
+      "county": "Akershus",
+      "station_id": "229034",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444298-33-8",
+      "segment": "Fv172 · Holter",
+      "road": "Fv172",
+      "county": "Akershus",
+      "station_id": "3000037",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444313-59-8",
+      "segment": "Fv181 · Finsbråtan",
+      "road": "Fv181",
+      "county": "Akershus",
+      "station_id": "3000038",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3344720-8-6",
+      "segment": "Rv4 · Åneby nord",
+      "road": "Rv4",
+      "county": "Akershus",
+      "station_id": "3000039",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1796950-1-8",
+      "segment": "E6 · Nøstvett",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "3000084",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "443465-34-10",
+      "segment": "Fv115 · Hemnes",
+      "road": "Fv115",
+      "county": "Akershus",
+      "station_id": "3000088",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3306403-9-8",
+      "segment": "E16 · Olum",
+      "road": "E16",
+      "county": "Akershus",
+      "station_id": "3000682",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "444220-36-7",
+      "segment": "E6 · Kløfta",
+      "road": "E6",
+      "county": "Akershus",
+      "station_id": "3000908",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3904219-1-4",
+      "segment": "E16 · Bjørum",
+      "road": "E16",
+      "county": "Akershus",
+      "station_id": "3001091",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060045-1-9",
+      "segment": "Rv4 · Stryken",
+      "road": "Rv4",
+      "county": "Akershus",
+      "station_id": "529002",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2459877-1-8",
+      "segment": "E16 · Romeriksåsen",
+      "road": "E16",
+      "county": "Akershus",
+      "station_id": "529016",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "181013-90-5",
+      "segment": "Fv289 · Hurum",
+      "road": "Fv289",
+      "county": "Akershus",
+      "station_id": "629025",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "181313-37-10",
+      "segment": "Fv281 · Storsand",
+      "road": "Fv281",
+      "county": "Akershus",
+      "station_id": "629028",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060179-44-7",
+      "segment": "Fv250 · Vingromåsen",
+      "road": "Fv250",
+      "county": "Innlandet",
+      "station_id": "3000011",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060136-10-9",
+      "segment": "Fv51 · Valdresflye",
+      "road": "Fv51",
+      "county": "Innlandet",
+      "station_id": "3000012",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3443736-2-6",
+      "segment": "E16 · Ryfoss",
+      "road": "E16",
+      "county": "Innlandet",
+      "station_id": "3000021",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704623-2-7",
+      "segment": "Fv21 · Krokstad",
+      "road": "Fv21",
+      "county": "Innlandet",
+      "station_id": "3000271",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704629-23-9",
+      "segment": "Fv24 · Rasan",
+      "road": "Fv24",
+      "county": "Innlandet",
+      "station_id": "3000272",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3125829-8-6",
+      "segment": "Rv3 · Evenstad",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "3000273",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3106834-3-4",
+      "segment": "Rv3 · Stabekken",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "3000445",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060662-9-8",
+      "segment": "Rv15 · Breidalen",
+      "road": "Rv15",
+      "county": "Innlandet",
+      "station_id": "3000590",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060647-38-11",
+      "segment": "E136 · Bjorli",
+      "road": "E136",
+      "county": "Innlandet",
+      "station_id": "3000592",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060658-9-9",
+      "segment": "Rv15 · Eidefossen",
+      "road": "Rv15",
+      "county": "Innlandet",
+      "station_id": "3000594",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060661-10-7",
+      "segment": "Rv15 · Grotli",
+      "road": "Rv15",
+      "county": "Innlandet",
+      "station_id": "3000799",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3414477-8-8",
+      "segment": "E16 · Hugavika",
+      "road": "E16",
+      "county": "Innlandet",
+      "station_id": "3000848",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060673-3-17",
+      "segment": "Fv33 · Flaggfjell",
+      "road": "Fv33",
+      "county": "Innlandet",
+      "station_id": "3001095",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704655-35-7",
+      "segment": "Fv26 · Sømådal",
+      "road": "Fv26",
+      "county": "Innlandet",
+      "station_id": "3001112",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1211205-13-8",
+      "segment": "E6 · Midtskog",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "3001113",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060661-18-7",
+      "segment": "Rv15 · Strynefjellet Grotåa Vind/Kamera",
+      "road": "Rv15",
+      "county": "Innlandet",
+      "station_id": "3001156",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2823423-6-3",
+      "segment": "E6 · Vien",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "429001",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2822708-10-3",
+      "segment": "E6 · Rudshøgda",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "429002",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704480-10-10",
+      "segment": "E6 · Mjøsbrua",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "429003",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705188-21-8",
+      "segment": "Rv2 · Sigernessjøen",
+      "road": "Rv2",
+      "county": "Innlandet",
+      "station_id": "429004",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3106834-14-4",
+      "segment": "Rv3 · Ebru",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429005",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704584-23-5",
+      "segment": "Rv3 · Østlund",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429006",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704586-13-7",
+      "segment": "Rv3 · Bergerønningen",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429007",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705204-31-7",
+      "segment": "Rv3 · Kvikneskogen",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429009",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704611-57-10",
+      "segment": "Rv2 · Føttaskjæret",
+      "road": "Rv2",
+      "county": "Innlandet",
+      "station_id": "429010",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705242-1-8",
+      "segment": "Fv30 · Osmoen",
+      "road": "Fv30",
+      "county": "Innlandet",
+      "station_id": "429011",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1801387-1-7",
+      "segment": "E6 · Vikselv",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "429012",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705194-10-11",
+      "segment": "Rv3 · Rena",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429013",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705081-16-7",
+      "segment": "Fv2168 · Flermoberget",
+      "road": "Fv2168",
+      "county": "Innlandet",
+      "station_id": "429014",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3106835-21-6",
+      "segment": "Rv3 · Svingen",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429015",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705197-16-10",
+      "segment": "Rv3 · Koppang",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429016",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705218-8-7",
+      "segment": "Rv25 · Midtskogberget",
+      "road": "Rv25",
+      "county": "Innlandet",
+      "station_id": "429017",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705226-40-7",
+      "segment": "Fv26 · Skarven",
+      "road": "Fv26",
+      "county": "Innlandet",
+      "station_id": "429018",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705212-47-9",
+      "segment": "Rv2 · Sorma",
+      "road": "Rv2",
+      "county": "Innlandet",
+      "station_id": "429019",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705215-67-11",
+      "segment": "Fv24 · Storsjøen",
+      "road": "Fv24",
+      "county": "Innlandet",
+      "station_id": "429020",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2282277-1-8",
+      "segment": "E6 · Espa",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "429021",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704589-20-3",
+      "segment": "Rv3 · Litjfossen",
+      "road": "Rv3",
+      "county": "Innlandet",
+      "station_id": "429025",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705247-100-4",
+      "segment": "E16 · Øyermoen",
+      "road": "E16",
+      "county": "Innlandet",
+      "station_id": "429026",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705273-20-10",
+      "segment": "Fv221 · Valdalsfjellet",
+      "road": "Fv221",
+      "county": "Innlandet",
+      "station_id": "429027",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "705210-53-10",
+      "segment": "Rv2 · Haslemosletta",
+      "road": "Rv2",
+      "county": "Innlandet",
+      "station_id": "429028",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "704673-43-8",
+      "segment": "Fv29 · Gravbekklia",
+      "road": "Fv29",
+      "county": "Innlandet",
+      "station_id": "429029",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060048-8-11",
+      "segment": "Rv4 · Eina",
+      "road": "Rv4",
+      "county": "Innlandet",
+      "station_id": "529001",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060620-44-9",
+      "segment": "E6 · Frya",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529003",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060615-26-7",
+      "segment": "E6 · Vingnes",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529004",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "2237113-1-7",
+      "segment": "E6 · Tingberg",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529005",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060630-14-7",
+      "segment": "E6 · Hjerkinn",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529006",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1059999-16-8",
+      "segment": "E6 · Avsjøen",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529007",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060631-21-13",
+      "segment": "E16 · Begnadalen",
+      "road": "E16",
+      "county": "Innlandet",
+      "station_id": "529009",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060113-16-8",
+      "segment": "Fv27 · Venabygdsfjellet",
+      "road": "Fv27",
+      "county": "Innlandet",
+      "station_id": "529010",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060616-24-9",
+      "segment": "E6 · Fåberg",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529012",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060626-13-7",
+      "segment": "E6 · Rosten",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529013",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060645-37-12",
+      "segment": "E136 · Lora",
+      "road": "E136",
+      "county": "Innlandet",
+      "station_id": "529014",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1059998-2-7",
+      "segment": "E6 · Fokstugu",
+      "road": "E6",
+      "county": "Innlandet",
+      "station_id": "529015",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060040-24-10",
+      "segment": "E16 · Kalplassen",
+      "road": "E16",
+      "county": "Innlandet",
+      "station_id": "529018",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060104-5-7",
+      "segment": "Rv15 · Lom",
+      "road": "Rv15",
+      "county": "Innlandet",
+      "station_id": "529023",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "3263295-4-4",
+      "segment": "Fv33 · Tonsåsen",
+      "road": "Fv33",
+      "county": "Innlandet",
+      "station_id": "529024",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060668-6-9",
+      "segment": "Fv33 · Vardalsåsen",
+      "road": "Fv33",
+      "county": "Innlandet",
+      "station_id": "529025",
+      "risk_level": "LOW",
+      "icing_score": 0.1,
+      "surface_c": 2.5,
+      "air_c": 1.0,
+      "change_1h_c": null,
+      "event_time": null,
+      "priority_rank": null,
+      "drivers": [
+       {
+        "factor": "Surface temperature",
+        "contribution": 0.06
+       }
+      ],
+      "readings": {
+       "dew_point_c": -3.0,
+       "precip_type": "NONE",
+       "precip_mm_h": 0.0,
+       "wind_ms": 3
+      }
+     },
+     {
+      "road_segment_id": "1060642-31-11",
+      "segment": "Fv2515 · Filefjell v/Varden",
+      "road": "Fv2515",
+      "county": "Innlandet",
+      "station_id": "529026",
       "risk_level": "LOW",
       "icing_score": 0.1,
       "surface_c": 2.5,
