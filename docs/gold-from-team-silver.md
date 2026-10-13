@@ -4,7 +4,7 @@ Status: decisions taken and G1 to G6 built on 8 Oct 2026 (branch `feature/m5-gol
 lists the decisions, section 8 what runs where. Owner: Safiul.
 
 Goal: fill `frostsight.gold` in the team workspace (`dbc-03393298-a93c`, target `free`) from the bronze and silver
-tables the team built in notebooks (`/Users/nazmul.sani@cefalo.com/FrostSight/`), so the demo dashboard can read
+tables the team built in notebooks (now in `/Users/safiul.kabir@cefalo.com/FrostSight-notebooks/`, see section 8), so the demo dashboard can read
 `gold` instead of `mock`. Pilot county Troms only. This is a cut-down M5 (06_M5 T5.1, T5.3, T5.4) and
 M6 T6.2 to T6.4, adapted to the silver tables that exist today rather than the ones the plan names.
 
@@ -199,6 +199,7 @@ covers B1 for the sources it fetches.
 | Thing | Where |
 |---|---|
 | Gold job `[dev safiul_kabir] frostsight-gold` | `databricks bundle deploy -t free`; tasks `ingest` (the team's job) then `build_gold`; cron `0 0 0/4 * * ?` UTC |
+| Team ingestion job `frostsight ingestion and transformation job` | Notebooks in `/Users/safiul.kabir@cefalo.com/FrostSight-notebooks/` (moved from Sani's folder 13 Oct 2026); runs as Safiul. Two own schedules, 18:00 and 20:00 UTC, besides the gold job's `ingest` task |
 | Reference seed | `uv run python tools/mock_dashboards/deploy.py --profile frostsight-free --dashboard live --load-reference` (once) |
 | Plot-ready tables | built by the gold job after every fetch (`frostsight.serving`) |
 | Live dashboard | `deploy.py --profile frostsight-free --dashboard live --share users`; id in `.dashboard_id.frostsight-free.live` |
