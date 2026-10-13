@@ -11,6 +11,8 @@ export function ListPanel() {
   const setTab = useShowcase((s) => s.setTab);
   const select = useShowcase((s) => s.select);
   const goSite = useShowcase((s) => s.goSite);
+  const focusIncident = useShowcase((s) => s.focusIncident);
+  const incidentId = useShowcase((s) => s.incidentId);
   const bakedRoad = useSites().find((s) => s.station_id === siteId)?.road;
   if (!state) return null;
   const now = new Date();
@@ -77,18 +79,37 @@ export function ListPanel() {
           (incidents.length === 0 ? (
             <p className="empty">No incidents{siteId ? " on this road" : ""} in the current feed.</p>
           ) : (
-            incidents.map((r) => (
-              <div key={r.id} className="lrow static">
-                <span className="n">
-                  <i className={`d ${r.active ? "high" : "none"}`} />
-                  {r.title}
-                  <small>{r.subtitle}</small>
-                </span>
-                <TonePill tone={r.active ? "high" : "none"}>{r.active ? "Active" : "Ended"}</TonePill>
-                <span className="when">{r.start.slice(11, 16)}</span>
-                <span />
-              </div>
-            ))
+            incidents.map((r) => {
+              const body = (
+                <>
+                  <span className="n">
+                    <i className={`d ${r.active ? "high" : "none"}`} />
+                    {r.title}
+                    <small>{r.where ?? r.subtitle}</small>
+                  </span>
+                  <TonePill tone={r.active ? "high" : "none"}>{r.active ? "Active" : "Ended"}</TonePill>
+                  <span className="when">{r.start.slice(11, 16)}</span>
+                </>
+              );
+              // an incident with a position or a station goes there; one with neither stays a plain row
+              return r.located || r.stationId || r.segmentId ? (
+                <button
+                  key={r.id}
+                  className={`lrow${incidentId === r.id ? " active" : ""}`}
+                  title={r.subtitle}
+                  aria-current={incidentId === r.id ? "true" : undefined}
+                  onClick={() => focusIncident(r.id)}
+                >
+                  {body}
+                  <span className="chev">›</span>
+                </button>
+              ) : (
+                <div key={r.id} className="lrow static" title={r.subtitle}>
+                  {body}
+                  <span />
+                </div>
+              );
+            })
           ))}
       </div>
     </section>

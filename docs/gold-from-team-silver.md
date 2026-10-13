@@ -117,6 +117,7 @@ in the dashboard query: minutes ago, data age, whether an incident is still acti
 | `segment_drivers`, `segment_risk_types`, `segment_readings` | road detail bar and tables | rows per segment |
 | `segment_history` | road detail 24 h lines | one row per segment and reading |
 | `segment_incidents` | incidents on the segment's road | one row per segment and incident |
+| `incident_list` | each incident at its own position, with the nearest monitored station on its road within coverage (showcase list and map) | one row per incident record |
 | `priority_list` | gritting priority bar, filters and table | one row per segment, ranked |
 | `kpi_summary` | risk-map counters, latency | one row |
 

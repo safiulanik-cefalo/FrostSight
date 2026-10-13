@@ -18,6 +18,8 @@ export type ShowcaseStore = {
   view: View;
   siteId: string | null;
   segmentId: string | null;
+  /** the incident marked on the map after a click in the list */
+  incidentId: string | null;
   tab: Tab;
   query: string;
   boot(): Promise<void>;
@@ -28,6 +30,7 @@ export type ShowcaseStore = {
   goOverview(): void;
   goSite(stationId: string): void;
   select(segmentId: string | null): void;
+  focusIncident(incidentId: string): void;
   setTab(tab: Tab): void;
   setQuery(q: string): void;
 };
@@ -45,6 +48,7 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
   view: "overview",
   siteId: null,
   segmentId: null,
+  incidentId: null,
   tab: "segments",
   query: "",
 
@@ -79,13 +83,29 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
     set({ playing: !playing, clockS: !playing && clockS >= scenario.duration_s ? 0 : clockS });
   },
   goOverview() {
-    set({ view: "overview", siteId: null, segmentId: null, error: null });
+    set({ view: "overview", siteId: null, segmentId: null, incidentId: null, error: null });
   },
   goSite(stationId) {
-    set({ view: "site", siteId: stationId, segmentId: null, error: null });
+    set({ view: "site", siteId: stationId, segmentId: null, incidentId: null, error: null });
   },
   select(segmentId) {
     set({ segmentId });
+  },
+  focusIncident(incidentId) {
+    const state = currentState(get());
+    const incident = state?.incidents.find((i) => i.incident_id === incidentId);
+    if (!state || !incident) return;
+    // the nearest monitored station within coverage; a scenario incident has only its segment
+    const stationId =
+      incident.station_id ??
+      (incident.lat == null ? state.segments.find((s) => s.road_segment_id === incident.road_segment_id)?.station_id : null) ??
+      null;
+    if (stationId) {
+      const segmentId = state.segments.find((s) => s.station_id === stationId)?.road_segment_id ?? null;
+      set({ view: "site", siteId: stationId, segmentId, incidentId, error: null });
+    } else {
+      set({ view: "overview", siteId: null, segmentId: null, incidentId, error: null });
+    }
   },
   setTab(tab) {
     set({ tab });

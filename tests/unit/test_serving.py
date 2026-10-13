@@ -49,3 +49,15 @@ def test_live_dashboard_uses_every_live_dataset_and_no_other():
         for q in i["widget"].get("queries", [])
     }
     assert used == set(LIVE_DATASETS)
+
+
+def test_incident_list_places_each_incident_once_at_its_own_position():
+    sql = dict(TABLES)["incident_list"]
+    reads = set(re.findall(r"frostsight\.((?:gold|silver)\.\w+)", sql))
+    assert reads == {"gold.road_incidents", "silver.nvdb_seed_stations"}
+    # one row per incident (newest version), not one per segment on its road like segment_incidents
+    assert re.search(r"PARTITION BY i\.incident_id\s+ORDER BY i\.snapshot_time DESC", sql)
+    for col in ("latitude", "longitude", "road_segment_id", "station_id", "station_km", "road"):
+        assert re.search(rf"\bAS {col}\b|\bi\.{col}\b", sql), col
+    # the station a click flies to is on the incident's own road and within coverage
+    assert "5.0" in sql and "road_key" in sql

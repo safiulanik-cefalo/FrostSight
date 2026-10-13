@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { segmentRows, stationRows, incidentRows, driverChip } from "./listRows";
+import { segmentRows, stationRows, incidentRows, driverChip, incidentLabel } from "./listRows";
 import { baseState } from "../data/fixtures";
 import type { State } from "../../shared/contract";
 
@@ -10,8 +10,8 @@ function richer(): State {
   s.segments.push({ ...seg, road_segment_id: "e6-vh", station_id: "x2", segment: "E6 · Heia", road: "E6", risk_level: "VERY_HIGH", icing_score: 0.95 });
   s.stations.push({ ...s.stations[0], station_id: "x2", name: "Heia", road: "E6", status: "Reporting", risk_level: "VERY_HIGH", icing_score: 0.95 });
   s.incidents = [
-    { incident_id: "a", road: "E8", road_segment_id: "1125788-27-9", incident_type: "roadClosed", severity: null, start_time: "2026-10-12T08:00:00Z", end_time: null, description: "Closed" },
-    { incident_id: "b", road: "E8", road_segment_id: null, incident_type: "accident", severity: null, start_time: "2026-10-12T05:00:00Z", end_time: "2026-10-12T06:00:00Z", description: null },
+    { incident_id: "a", road: "E8", road_segment_id: "1125788-27-9", station_id: "3000014", station_km: 0.8, lat: 69.13, lon: 20.76, incident_type: "roadClosed", severity: null, start_time: "2026-10-12T08:00:00Z", end_time: null, description: "Closed" },
+    { incident_id: "b", road: "E8", road_segment_id: null, station_id: null, station_km: 12.4, lat: 69.3, lon: 20.1, incident_type: "accident", severity: null, start_time: "2026-10-12T05:00:00Z", end_time: "2026-10-12T06:00:00Z", description: null },
     { incident_id: "c", road: "E6", road_segment_id: "e6-vh", incident_type: "roadworks", severity: null, start_time: "2026-10-12T05:00:00Z", end_time: null, description: null },
   ];
   return s;
@@ -44,6 +44,18 @@ describe("incidentRows", () => {
     expect(rows.map((r) => [r.id, r.active])).toEqual([["a", true], ["b", false]]);
     expect(incidentRows(richer(), null, now)).toHaveLength(3);
   });
+  it("lists active incidents first, those near a station before the rest, newest first", () => {
+    const s = richer();
+    s.incidents.push({ ...s.incidents[1], incident_id: "d", end_time: null, start_time: "2026-10-12T09:00:00Z" });
+    expect(incidentRows(s, null, now).map((r) => r.id)).toEqual(["a", "d", "c", "b"]);
+  });
+  it("says where each incident is, so the row can take the viewer there", () => {
+    const rows = incidentRows(richer(), null, now);
+    const [a, b, c] = ["a", "b", "c"].map((id) => rows.find((r) => r.id === id));
+    expect(a).toMatchObject({ stationId: "3000014", located: true, where: "0.8 km from Bossovarri" });
+    expect(b).toMatchObject({ stationId: null, located: true, where: "No station within 5 km" });
+    expect(c).toMatchObject({ stationId: null, located: false, where: null });
+  });
 });
 
 describe("driverChip", () => {
@@ -68,5 +80,17 @@ describe("rows for a site the state does not list", () => {
     const rows = incidentRows(s, null, now);
     expect(rows.find((r) => r.id === "sim-x")?.simulated).toBe(true);
     expect(rows.find((r) => r.id === "a")?.simulated).toBe(false);
+  });
+});
+
+describe("incidentLabel", () => {
+  it("names the DATEX record types in plain words", () => {
+    expect(incidentLabel("MAINTENANCEWORKS")).toBe("Roadworks");
+    expect(incidentLabel("ROADORCARRIAGEWAYORLANEMANAGEMENT")).toBe("Lane or road restriction");
+    expect(incidentLabel("REROUTINGMANAGEMENT")).toBe("Diversion");
+    expect(incidentLabel("GENERALNETWORKMANAGEMENT")).toBe("Traffic management");
+    expect(incidentLabel("SPEEDMANAGEMENT")).toBe("Speed restriction");
+    expect(incidentLabel("roadClosed")).toBe("Road closed");
+    expect(incidentLabel("SOMETHINGNEW")).toBe("Somethingnew");
   });
 });

@@ -83,19 +83,21 @@ export function shapeState(rows: GoldRows, generatedAt: string): State {
       icing_score: num(s.icing_score),
     })),
     segments,
-    incidents: rows.segment_incidents.map((i) => {
-      const d = bySegment.get(String(i.segment));
-      return {
-        incident_id: String(i.incident_id),
-        road: d ? String(d.road) : String(i.segment).split(" · ")[0],
-        road_segment_id: d ? String(d.road_segment_id) : null,
-        incident_type: String(i.incident_type),
-        severity: str(i.severity),
-        start_time: String(i.start_time),
-        end_time: str(i.end_time),
-        description: str(i.description),
-      };
-    }),
+    incidents: rows.incident_list.map((i) => ({
+      incident_id: String(i.incident_id),
+      situation_id: str(i.situation_id),
+      road: String(i.road),
+      road_segment_id: str(i.road_segment_id),
+      station_id: str(i.station_id),
+      station_km: num(i.station_km),
+      lat: num(i.latitude),
+      lon: num(i.longitude),
+      incident_type: String(i.incident_type),
+      severity: str(i.severity),
+      start_time: String(i.start_time),
+      end_time: str(i.end_time),
+      description: str(i.description),
+    })),
     history,
   };
 }
