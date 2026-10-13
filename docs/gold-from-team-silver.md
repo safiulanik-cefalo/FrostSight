@@ -199,7 +199,7 @@ covers B1 for the sources it fetches.
 | Thing | Where |
 |---|---|
 | Gold job `[dev safiul_kabir] frostsight-gold` | `databricks bundle deploy -t free`; tasks `ingest` (the team's job) then `build_gold`; cron `0 0 0/4 * * ?` UTC |
-| Team ingestion job `frostsight ingestion and transformation job` | Notebooks in `/Users/safiul.kabir@cefalo.com/FrostSight-notebooks/` (moved from Sani's folder 13 Oct 2026); runs as Safiul. Two own schedules, 18:00 and 20:00 UTC, besides the gold job's `ingest` task |
+| Team ingestion job `frostsight ingestion and transformation job` | Notebooks in `/Users/safiul.kabir@cefalo.com/FrostSight-notebooks/` (moved from Sani's folder 13 Oct 2026); runs as Safiul, standard performance mode. No schedule of its own: only the gold job's `ingest` task starts it |
 | Reference seed | `uv run python tools/mock_dashboards/deploy.py --profile frostsight-free --dashboard live --load-reference` (once) |
 | Plot-ready tables | built by the gold job after every fetch (`frostsight.serving`) |
 | Live dashboard | `deploy.py --profile frostsight-free --dashboard live --share users`; id in `.dashboard_id.frostsight-free.live` |
