@@ -15,7 +15,7 @@
 # COMMAND ----------
 
 dbutils.widgets.text("catalog", "frostsight", "Unity Catalog catalog")
-dbutils.widgets.text("county", "55,3,32,34", "NVDB fylke numbers, comma-separated (Troms, Oslo, Akershus, Innlandet)")
+dbutils.widgets.text("county", "55,3,32,34", "NVDB fylke numbers: Troms, Oslo, Akershus, Innlandet")
 
 CATALOG = dbutils.widgets.get("catalog")
 COUNTIES = [c.strip() for c in dbutils.widgets.get("county").split(",") if c.strip()]
@@ -102,7 +102,7 @@ WFS_PARAMS = {"service": "WFS", "version": "2.0.0", "request": "GetFeature",
               "srsName": "EPSG:4326"}
 
 features, urls = {}, []
-for county, bbox in county_bboxes(COUNTIES).items():
+for bbox in county_bboxes(COUNTIES).values():
     resp = http_get(DATEX_WFS_BASE, params={**WFS_PARAMS, "bbox": bbox})
     urls.append(resp.url)
     for f in resp.json().get("features", []):
