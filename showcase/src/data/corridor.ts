@@ -7,7 +7,7 @@ export const COVERAGE_M = 5000;
 export const STEP_M = 25;
 
 export type Stretch = { start_m: number; end_m: number; level: LevelOrNone; closed: boolean; simulated: boolean };
-export type Closure = { start_m: number; end_m: number; simulated: boolean };
+export type Closure = { start_m: number; end_m: number; simulated: boolean; approximate?: boolean };
 
 export function stretches(
   lengthM: number,

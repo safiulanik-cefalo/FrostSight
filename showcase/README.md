@@ -6,7 +6,8 @@ readings, closures as barriers, and glass panels with the numbers.
 
 It is a demo built in parallel with the MVP, outside its milestones and the Asset Bundle (ADR-0010). It reads
 the same plot-ready gold tables as the AI/BI dashboards and does not replace them. Cars on the page are
-ambience, not traffic data. Design: `docs/superpowers/specs/2026-10-12-showcase-dashboard-design.md`.
+ambience, not traffic data. Design: `docs/superpowers/specs/2026-10-12-showcase-dashboard-design.md`. Architecture and decisions:
+`docs/showcase/architecture.md`.
 
 ## Run it locally
 

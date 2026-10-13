@@ -6,6 +6,10 @@ import { usePrefersReducedMotion } from "../hooks";
 import { CameraRig, type Pose } from "./CameraRig";
 import { heightAt, PALETTE, terrainGeometry } from "./geometry";
 import { Pin } from "./Pin";
+import { IncidentMarker } from "./IncidentMarker";
+import { projectLocal } from "../data/geo";
+import { incidentLabel } from "../app/listRows";
+import { isSimulatedIncident } from "./dressing";
 
 /** The county overview plate: units per metre and vertical exaggeration for a 295 km square. */
 export const OVERVIEW_SIZE = 600;
@@ -15,6 +19,7 @@ export function Overview() {
   const [assets, setAssets] = useState<OverviewAssets | null>(null);
   const state = useCurrentState();
   const goSite = useShowcase((s) => s.goSite);
+  const incidentId = useShowcase((s) => s.incidentId);
   const reduced = usePrefersReducedMotion();
   useEffect(() => {
     loadOverviewAssets().then(setAssets);
@@ -35,6 +40,21 @@ export function Overview() {
     };
   }, [assets]);
 
+  // live incidents at their own position; ended ones only while picked in the list
+  const incidents = useMemo(() => {
+    if (!assets || !scene) return [];
+    const now = Date.now();
+    return (state?.incidents ?? [])
+      .filter((i) => i.lat != null && i.lon != null && !isSimulatedIncident(i.incident_id))
+      .filter((i) => !i.end_time || new Date(i.end_time).getTime() > now || i.incident_id === incidentId)
+      .map((i) => {
+        const [mx, mz] = projectLocal(i.lat!, i.lon!, assets.county.origin);
+        const x = mx * scene.upm;
+        const z = mz * scene.upm;
+        return { incident: i, position: [x, scene.y(x, z) + 0.6, z] as [number, number, number] };
+      });
+  }, [assets, scene, state?.incidents, incidentId]);
+
   const home = useMemo<Pose>(() => ({ target: [0, 0, 20], azimuth: 0.2, elevation: 0.98, distance: 760 }), []);
   if (!assets || !scene) return null;
   return (
@@ -52,6 +72,15 @@ export function Overview() {
       ))}
       {scene.roads.map((pts, i) => (
         <Line key={`r${i}`} points={pts} color={PALETTE.asphalt} lineWidth={1.6} />
+      ))}
+      {incidents.map(({ incident, position }) => (
+        <IncidentMarker
+          key={incident.incident_id}
+          position={position}
+          scale={2.2}
+          label={`${incidentLabel(incident.incident_type)} · ${incident.road}`}
+          selected={incident.incident_id === incidentId}
+        />
       ))}
       {assets.stations.map((s) => {
         const live = state?.stations.find((x) => x.station_id === s.station_id);

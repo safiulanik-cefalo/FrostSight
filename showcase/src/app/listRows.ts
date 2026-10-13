@@ -1,10 +1,18 @@
 // Rows for the list panel and the detail panel, filtered to the site's road on a site.
 import type { LevelOrNone, State } from "../../shared/contract";
+import { COVERAGE_M } from "../data/corridor";
 import { isClosureIncident, isSimulatedIncident } from "../scene/dressing";
 
 export type SegmentRow = { id: string; title: string; subtitle: string; level: LevelOrNone; score: number | null; closed: boolean; stationId: string | null };
 export type StationRow = { id: string; title: string; subtitle: string; level: LevelOrNone; score: number | null; reporting: boolean };
-export type IncidentRow = { id: string; title: string; subtitle: string; active: boolean; closure: boolean; simulated: boolean; segmentId: string | null; start: string };
+export type IncidentRow = {
+  id: string; title: string; subtitle: string; active: boolean; closure: boolean; simulated: boolean; segmentId: string | null; start: string;
+  /** the monitored station within coverage on the incident's road, where a click goes; null when none is */
+  stationId: string | null;
+  /** has its own position, so it can be marked on the map */
+  located: boolean;
+  where: string | null;
+};
 
 /** null on the overview; on a site, the station's road, else the baked road, else "" which matches nothing. */
 const siteRoad = (state: State, siteId: string | null, fallback?: string) =>
@@ -46,8 +54,22 @@ export function stationRows(state: State, siteId: string | null, fallbackRoad?: 
   return [...rows.filter((r) => r.reporting), ...rows.filter((r) => !r.reporting)];
 }
 
-const TYPE_LABEL: Record<string, string> = { roadClosed: "Road closed", accident: "Accident", roadworks: "Roadworks" };
-const typeLabel = (t: string) => TYPE_LABEL[t] ?? t.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
+// DATEX II record types as the NPRA feed sends them, and the scenario's camelCase ones
+const TYPE_LABEL: Record<string, string> = {
+  roadClosed: "Road closed",
+  accident: "Accident",
+  roadworks: "Roadworks",
+  MAINTENANCEWORKS: "Roadworks",
+  ROADORCARRIAGEWAYORLANEMANAGEMENT: "Lane or road restriction",
+  REROUTINGMANAGEMENT: "Diversion",
+  GENERALNETWORKMANAGEMENT: "Traffic management",
+  SPEEDMANAGEMENT: "Speed restriction",
+};
+export function incidentLabel(t: string): string {
+  if (TYPE_LABEL[t]) return TYPE_LABEL[t];
+  const words = t === t.toUpperCase() ? t.toLowerCase() : t.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+  return words.replace(/^./, (c) => c.toUpperCase());
+}
 
 export function incidentRows(state: State, siteId: string | null, now: Date, fallbackRoad?: string): IncidentRow[] {
   const road = siteRoad(state, siteId, fallbackRoad);
@@ -55,14 +77,25 @@ export function incidentRows(state: State, siteId: string | null, now: Date, fal
     .filter((i) => road === null || i.road === road)
     .map((i) => ({
       id: i.incident_id,
-      title: typeLabel(i.incident_type),
+      title: incidentLabel(i.incident_type),
       subtitle: i.description ?? i.road,
       active: isActive(i.end_time, now),
       closure: isClosureIncident(i.incident_type),
       simulated: isSimulatedIncident(i.incident_id),
       segmentId: i.road_segment_id,
       start: i.start_time,
-    }));
+      stationId: i.station_id ?? null,
+      located: i.lat != null && i.lon != null,
+      where: incidentWhere(state, i),
+    }))
+    .sort((x, y) => Number(y.active) - Number(x.active) || Number(!!y.stationId) - Number(!!x.stationId) || y.start.localeCompare(x.start));
+}
+
+function incidentWhere(state: State, i: State["incidents"][number]): string | null {
+  const name = i.station_id ? state.stations.find((s) => s.station_id === i.station_id)?.name : undefined;
+  if (name && i.station_km != null) return `${i.station_km} km from ${name}`;
+  if (i.lat != null && i.lon != null) return `No station within ${COVERAGE_M / 1000} km`;
+  return null;
 }
 
 export function driverChip(contribution: number): "Driver" | "Rising" | "Minor" {

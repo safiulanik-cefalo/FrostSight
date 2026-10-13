@@ -1,3 +1,4 @@
+import type { Closure } from "../data/corridor";
 // Deterministic scenery per station: trees below the treeline, fewer in mountain and inland climates,
 // none on the road. Live incident types that mean the road is closed.
 export const TREELINE_M: Record<string, number> = { coast: 450, fjord: 500, inland: 550, mountain: 650, warm: 600 };
@@ -53,8 +54,22 @@ export function isSimulatedIncident(incidentId: string): boolean {
   return incidentId.startsWith("sim-");
 }
 
-/** A scenario closure has a known stretch; a live one is placed near the station because DATEX positions are not in the state. */
-export function closureLabel(c: { start_m: number; end_m: number; simulated: boolean }, stationName: string): string {
-  if (!c.simulated) return `Road closed near ${stationName} · position approximate`;
+const LIVE_CLOSURE_HALF_M = 250;
+const APPROX_CLOSURE_HALF_M = 1000;
+/** Further off the baked road than this, an incident is on another road or past its end. */
+const ON_ROAD_M = 1000;
+
+/** A live closure: around the incident's own spot on the road when it is known and on this road, otherwise
+ *  1 km either side of the station and marked approximate. DATEX gives a point, not the closed stretch. */
+export function liveClosure(lengthM: number, stationAtM: number, spot: { atM: number; offsetM: number } | null): Closure {
+  const exact = spot !== null && spot.offsetM <= ON_ROAD_M;
+  const at = exact ? spot.atM : stationAtM;
+  const half = exact ? LIVE_CLOSURE_HALF_M : APPROX_CLOSURE_HALF_M;
+  return { start_m: Math.max(0, at - half), end_m: Math.min(lengthM, at + half), simulated: false, approximate: !exact };
+}
+
+/** A scenario closure has a known stretch; a live one is exact when the incident's position is on the road. */
+export function closureLabel(c: Closure, stationName: string): string {
+  if (!c.simulated) return c.approximate === false ? "Road closed here" : `Road closed near ${stationName} · position approximate`;
   return `Road closed · km ${(c.start_m / 1000).toFixed(0)} to ${(c.end_m / 1000).toFixed(0)}`;
 }

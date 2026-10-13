@@ -33,9 +33,10 @@ describe("shapeState", () => {
     expect(state.segments.some((s) => s.station_id === "3000016")).toBe(false);
   });
 
-  it("places incidents on the segment and its road", () => {
-    expect(state.incidents).toEqual([{ incident_id: "NPRA_HBT_123", road: "E8", road_segment_id: "1125788-27-9", incident_type: "roadClosed",
-      severity: "high", start_time: "2026-10-12T08:00:00.000Z", end_time: null, description: "E8 closed at Gardeborri, convoy driving" }]);
+  it("keeps each incident once, at its own position, with the station a click goes to", () => {
+    expect(state.incidents).toEqual([{ incident_id: "NPRA_HBT_123_1", situation_id: "NPRA_HBT_123", road: "E8", road_segment_id: "1125788-27-9",
+      station_id: "3000014", station_km: 0.8, lat: 69.1265, lon: 20.76, incident_type: "roadClosed", severity: "high",
+      start_time: "2026-10-12T08:00:00.000Z", end_time: null, description: "E8 closed at Gardeborri, convoy driving" }]);
   });
 
   it("keys history by road segment, oldest first", () => {

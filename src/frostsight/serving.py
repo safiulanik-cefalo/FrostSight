@@ -32,6 +32,13 @@ ROAD_LABEL = (
 )
 
 
+# The same label from an incident's road_key (E6, R83, F855), which has no separate category column
+INCIDENT_ROAD = (
+    "concat(CASE left(i.road_key, 1) WHEN 'R' THEN 'Rv' WHEN 'F' THEN 'Fv' WHEN 'K' THEN 'Kv' "
+    "ELSE left(i.road_key, 1) END, substr(i.road_key, 2))"
+)
+
+
 def serving_tables(catalog: str, current_window_min: int, coverage_km: float) -> list[tuple[str, str]]:
     g, s = f"{catalog}.gold", f"{catalog}.silver"
     newest = f"(SELECT max(event_time) FROM {g}.road_weather_observation_log)"
@@ -153,6 +160,28 @@ UNION ALL SELECT segment, 7, 'Observed', concat(date_format(event_time, 'HH:mm')
        i.description
 FROM {g}.segment_detail d
 JOIN {g}.road_incidents i ON i.road_key = d.road_key""",
+        ),
+        # one row per incident at its own position, with the nearest monitored station on its road within
+        # coverage, so a list or map can go to where it happened (segment_incidents fans out per road)
+        (
+            "incident_list",
+            f"""WITH latest AS (
+  SELECT * FROM {g}.road_incidents i
+  QUALIFY row_number() OVER (PARTITION BY i.incident_id
+                             ORDER BY i.snapshot_time DESC, i.incident_version DESC) = 1),
+nearest AS (
+  SELECT i.incident_id, st.station_id,
+         111.2 * sqrt(power(i.latitude - st.latitude, 2)
+                      + power((i.longitude - st.longitude) * cos(radians(i.latitude)), 2)) AS station_km
+  FROM latest i
+  JOIN {s}.nvdb_seed_stations st ON concat(st.road_category, st.road_number) = i.road_key
+  QUALIFY row_number() OVER (PARTITION BY i.incident_id ORDER BY station_km) = 1)
+SELECT i.incident_id, i.situation_id, {INCIDENT_ROAD} AS road, i.road_segment_id,
+       CASE WHEN n.station_km <= {coverage_km} THEN n.station_id END AS station_id,
+       round(n.station_km, 1) AS station_km, i.latitude, i.longitude, i.incident_type, i.severity,
+       i.start_time, i.end_time, i.description
+FROM latest i
+LEFT JOIN nearest n USING (incident_id)""",
         ),
         # gritting priority: county-wide rank, surface and precipitation from the last 3 h of readings
         (

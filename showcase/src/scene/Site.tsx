@@ -7,10 +7,13 @@ import { usePrefersReducedMotion } from "../hooks";
 import { Barrier } from "./Barrier";
 import { Cars } from "./Cars";
 import { CameraRig, type Pose } from "./CameraRig";
-import { closureLabel, isClosureIncident, isSimulatedIncident } from "./dressing";
+import { nearestAlong, projectLocal } from "../data/geo";
+import { closureLabel, isClosureIncident, isSimulatedIncident, liveClosure } from "./dressing";
+import { IncidentMarker } from "./IncidentMarker";
+import { incidentLabel } from "../app/listRows";
 import { RiskBand } from "./RiskBand";
 import { Road } from "./Road";
-import { ROAD } from "./scale";
+import { ROAD, SITE_SIZE, siteUnitsPerMetre } from "./scale";
 import { siteModel } from "./siteModel";
 import { Station } from "./Station";
 import { Terrain } from "./Terrain";
@@ -32,7 +35,6 @@ export function useSiteAssets(stationId: string): SiteAssets | null {
   return assets;
 }
 
-const LIVE_CLOSURE_HALF_M = 1000;
 
 export function Site({ stationId, scenarioClosures = [] }: { stationId: string; scenarioClosures?: ScenarioClosure[] }) {
   const assets = useSiteAssets(stationId);
@@ -45,27 +47,38 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
   const surface = segment?.surface_c ?? segment?.air_c ?? null;
   const snowline = surface === null || surface <= 0.5;
 
-  // Live closures: an active closure incident on this station's segment, drawn 1 km either side of the
-  // station because DATEX positions are not in the state. Scenario closures carry their own stretch.
+  const incidentId = useShowcase((s) => s.incidentId);
+  // live incidents with a position, in this site's local metres and placed on the road where it is near
+  const located = useMemo(() => {
+    if (!assets) return [];
+    const now = Date.now();
+    return (state?.incidents ?? [])
+      .filter((i) => i.lat != null && i.lon != null && !isSimulatedIncident(i.incident_id))
+      .filter((i) => !i.end_time || new Date(i.end_time).getTime() > now || i.incident_id === incidentId)
+      .map((i) => {
+        const [x, z] = projectLocal(i.lat!, i.lon!, assets.road.origin);
+        return { incident: i, x, z, spot: nearestAlong(assets.road.points, x, z) };
+      })
+      .filter((p) => Math.abs(p.x) <= assets.road.terrain.size_m / 2 && Math.abs(p.z) <= assets.road.terrain.size_m / 2);
+  }, [assets, state?.incidents, incidentId]);
+
+  // Live closures: an active closure incident at this station, around its own spot on the road when it has a
+  // position, else 1 km either side of the station and marked approximate. Scenario closures carry a stretch.
   const closuresRaw = useMemo<Closure[]>(() => {
     if (!model) return [];
     const segId = station?.road_segment_id;
     const now = Date.now();
     const live = (state?.incidents ?? [])
       // sim- incidents come from a scenario, whose closures carry their own stretch below
-      .filter((i) => !isSimulatedIncident(i.incident_id))
-      .filter((i) => segId && i.road_segment_id === segId && isClosureIncident(i.incident_type))
+      .filter((i) => !isSimulatedIncident(i.incident_id) && isClosureIncident(i.incident_type))
+      .filter((i) => (i.station_id != null ? i.station_id === stationId : Boolean(segId) && i.road_segment_id === segId))
       .filter((i) => !i.end_time || new Date(i.end_time).getTime() > now)
-      .map(() => ({
-        start_m: Math.max(0, model.stationAtM - LIVE_CLOSURE_HALF_M),
-        end_m: Math.min(model.lengthM, model.stationAtM + LIVE_CLOSURE_HALF_M),
-        simulated: false,
-      }));
+      .map((i) => liveClosure(model.lengthM, model.stationAtM, located.find((p) => p.incident === i)?.spot ?? null));
     const sim = scenarioClosures
       .filter((c) => c.station_id === stationId)
       .map((c) => ({ start_m: c.start_m, end_m: Math.min(c.end_m, model.lengthM), simulated: true }));
     return [...live.slice(0, 1), ...sim];
-  }, [model, state?.incidents, station?.road_segment_id, scenarioClosures, stationId]);
+  }, [model, state?.incidents, station?.road_segment_id, scenarioClosures, stationId, located]);
   // the scenario state is rebuilt every second; compare by content so cars and the band are not rebuilt with it
   const closuresKey = JSON.stringify(closuresRaw);
   const closures = useMemo(() => JSON.parse(closuresKey) as Closure[], [closuresKey]);
@@ -122,6 +135,19 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
           );
         }),
       )}
+      {located.map(({ incident, x, z }) => {
+        const upm = siteUnitsPerMetre(assets.road.terrain.size_m);
+        const sx2 = Math.max(-SITE_SIZE / 2, Math.min(SITE_SIZE / 2, x * upm));
+        const sz2 = Math.max(-SITE_SIZE / 2, Math.min(SITE_SIZE / 2, z * upm));
+        return (
+          <IncidentMarker
+            key={incident.incident_id}
+            position={[sx2, model.ground(sx2, sz2) + ROAD.lift, sz2]}
+            label={incidentLabel(incident.incident_type)}
+            selected={incident.incident_id === incidentId}
+          />
+        );
+      })}
       <Cars model={model} level={level ?? "NONE"} closures={closures} truck={(segment?.priority_rank ?? 99) <= 5} reduced={reduced} />
       <Weather precipType={segment?.readings.precip_type ?? null} mmH={segment?.readings.precip_mm_h ?? null} reduced={reduced} />
     </group>
