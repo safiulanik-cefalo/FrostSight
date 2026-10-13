@@ -1,0 +1,23 @@
+# FAQ
+
+Q1: Do we need databricks for this project? Is it worth it?
+
+Answer: Databricks gives us one governed place for the whole path: the collector lands files in a Unity Catalog volume, one Lakeflow Declarative Pipeline builds bronze and silver, a scheduled job writes gold, and AI/BI dashboards read gold, all on serverless compute with no clusters to run. For a single pilot county that is more platform than we strictly need, and Free Edition adds limits: one active pipeline, five concurrent job tasks, one 2X-Small SQL warehouse, no service principals, non-commercial terms only, and dashboards that need a workspace login, which is why the showcase exists. Moving to a paid AWS workspace removes those limits, and ADR-0003 estimates $250 to $890 for the MVP build there. The platform pays off when we grow beyond Troms, add more sources such as traffic or ML features, and need Unity Catalog access control across teams, because the same code and bundle then run on a bigger target with only bundle variables changed. Our view is that it is worth it for a product meant to scale, and Free Edition keeps the MVP at no platform cost until it is accepted.
+
+---
+Q2: Is the terrain in the 3D dashboard real? Where does the data come from?
+
+Answer: Yes, the terrain shapes are real. The elevation comes from Mapzen Terrarium elevation tiles hosted on AWS, at zoom 11 for the 24 station sites and zoom 8 for the county overview, baked once by `showcase/tools/bake_sites.py` and committed to the repo. Roads, stations and segments come from Statens vegvesen NVDB through the repo's seed `tools/mock_dashboards/nvdb_seed.sql` (NLOD), the county outline comes from Kartverket/Geonorge (CC BY 4.0), and each site shows the real road about 6 km either side of the station. We draw it at diorama scale: the terrain is shrunk to a plate and stretched vertically (2.4 times on sites, 7 times on the overview), while the road, cars, trees and station are toy-sized, because a 7 m road at true scale would be less than a pixel wide, so distances and heights on screen are not to scale. Risk, weather, closures and incidents come from the live gold tables, trees follow a fixed rule below a treeline, cars are ambience and not traffic data (the legend says so), and scenario content is labelled "Simulated".
+
+---
+Q3: How scalable the 3D dashboard is? Can we go full Norway and beyond?
+
+Answer: The number of viewers is not a concern, because once deployed (it runs locally today) Cloudflare serves the page and one prepared state file from its edge and page requests never reach the warehouse. Today the state file is about 37 KB for 24 stations, and each station's site assets are about 44 KB and load only when someone opens that station, so even a few hundred stations would be about 15 MB in total, still loaded one at a time. Covering all of Norway needs four changes in the showcase: split the state per county (`/api/state/<county>`), handle chunked Statement API results, which we do not handle today, add a national overview that zooms into counties in place of today's single 256×256 elevation grid of Troms, and run the bake per county. The real limit is the pipeline, since the seed, silver and gold cover only Troms (fylke=55) today and must cover every county first. Going beyond Norway would also need other countries' road and weather sources, because NVDB and the DATEX feeds are Norwegian.
+
+---
+
+Q4: How does data safely come from the gold tables to the 3D dashboard?
+
+Answer: A Cloudflare Worker in `showcase/worker/` runs every 15 minutes and first reads `gold.kpi_summary`; if `risk_updated_at` has not changed, it stops there, and otherwise it runs seven fixed read-only SELECTs in parallel on the plot-ready gold tables through the Databricks SQL Statement Execution API. It builds one state document, validates it against the shared zod schema in `showcase/shared/contract.ts` and only then writes it to Cloudflare KV, so a document that fails validation is never written and the last good one stays live. The browser reads only that KV document through `GET /api/state` (cached for 60 s) and never talks to Databricks; if the Worker has nothing valid, the page falls back to a committed snapshot and shows "Snapshot". The Databricks credential lives only in the Worker as a Wrangler secret, or in the gitignored `showcase/.dev.vars` locally, never in the browser, the repo or the snapshot, no user input reaches SQL, and visitors add no warehouse cost. Before a public launch we still need to replace the personal access token with a service principal that can only read gold and use one warehouse, and stop `/api/health` from returning raw errors, which can include the workspace URL.
+
+---
