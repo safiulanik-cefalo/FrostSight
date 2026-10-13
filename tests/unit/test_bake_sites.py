@@ -41,6 +41,31 @@ def test_load_seed_reads_roads_and_stations():
     assert bake.road_label("F", "91") == "Fv91"
 
 
+SEED_WITH_COUNTY = """
+INSERT INTO frostsight.mock.seed_roads VALUES
+('E', '6', 3, 900, 'LINESTRING (10.76 59.91, 10.77 59.92)', 'Oslo');
+INSERT INTO frostsight.mock.seed_stations VALUES
+('1100000', 'Ryen', 'E', '6', 59.89, 10.80, 'warm', 0, '1-2-3', 'Oslo'),
+('1200000', 'Mjøsbrua', 'E', '6', 60.92, 10.69, 'inland', 0, '4-5-6', 'Innlandet');
+"""
+
+
+def test_load_seed_reads_the_county_and_defaults_old_rows_to_troms():
+    roads, stations = bake.load_seed(SEED_WITH_COUNTY)
+    assert [(r.line_no, r.county) for r in roads] == [(3, "Oslo")]
+    assert [(s.station_id, s.county) for s in stations] == [("1100000", "Oslo"), ("1200000", "Innlandet")]
+    old_roads, old_stations = bake.load_seed(SEED_EXCERPT)
+    assert old_roads[0].county == "Troms" and old_stations[0].county == "Troms"
+
+
+def test_regions_group_counties_for_the_overview():
+    assert [r["id"] for r in bake.REGIONS] == ["troms", "oslo-akershus", "innlandet"]
+    assert bake.region_of("Oslo") == "oslo-akershus" and bake.region_of("Akershus") == "oslo-akershus"
+    assert bake.region_of("Troms") == "troms" and bake.region_of("Innlandet") == "innlandet"
+    oslo = next(r for r in bake.REGIONS if r["id"] == "oslo-akershus")
+    assert oslo["fylker"] == ["03", "32"] and oslo["name"] == "Oslo and Akershus"
+
+
 def test_project_local_east_positive_north_negative():
     x, z = bake.project_local(20.75, 69.13, 20.74511, 69.1202)
     expected_x = 0.00489 * math.cos(math.radians(69.1202)) * 111320

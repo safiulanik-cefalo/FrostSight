@@ -25,10 +25,14 @@ const level = z.enum(LEVELS);
 const iso = z.string();
 const num = z.number();
 
+// county: the DATEX county name (Troms, Oslo, Akershus, Innlandet); documents from before the column are Troms
+const county = z.string().nullable().optional();
+
 const StationSchema = z.object({
   station_id: z.string(),
   name: z.string(),
   road: z.string(),
+  county,
   lat: num,
   lon: num,
   road_segment_id: z.string().nullable(),
@@ -42,6 +46,7 @@ const SegmentSchema = z.object({
   road_segment_id: z.string(),
   segment: z.string(),
   road: z.string(),
+  county,
   station_id: z.string().nullable(),
   risk_level: level,
   icing_score: num,
@@ -65,6 +70,7 @@ const IncidentSchema = z.object({
   incident_id: z.string(),
   situation_id: z.string().nullable().optional(),
   road: z.string(),
+  county,
   road_segment_id: z.string().nullable(),
   station_id: z.string().nullable().optional(),
   station_km: num.nullable().optional(),

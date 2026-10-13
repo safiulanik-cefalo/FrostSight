@@ -2,6 +2,13 @@ import type { Closure } from "../data/corridor";
 // Deterministic scenery per station: trees below the treeline, fewer in mountain and inland climates,
 // none on the road. Live incident types that mean the road is closed.
 export const TREELINE_M: Record<string, number> = { coast: 450, fjord: 500, inland: 550, mountain: 650, warm: 600 };
+/** Metres the treeline rises per degree south of 69°N: about 500 m in Troms, about 1,100 m in Innlandet. */
+const TREELINE_RISE_PER_DEG = 70;
+
+export function treelineAt(climate: string, lat: number): number {
+  return (TREELINE_M[climate] ?? 550) + Math.round(Math.max(0, 69 - lat) * TREELINE_RISE_PER_DEG);
+}
+
 const DENSITY: Record<string, number> = { coast: 1, fjord: 1, inland: 0.7, mountain: 0.4, warm: 1 };
 const ROAD_CLEARANCE = 7;
 
@@ -29,9 +36,10 @@ export function treePlacements(
   distToRoad: (x: number, z: number) => number,
   size: number,
   count: number,
+  lat = 69,
 ): Array<{ x: number; z: number; s: number }> {
   const rand = rng(`${seed}:trees`);
-  const treeline = TREELINE_M[climate] ?? 550;
+  const treeline = treelineAt(climate, lat);
   const want = Math.round(count * (DENSITY[climate] ?? 0.7));
   const out: Array<{ x: number; z: number; s: number }> = [];
   for (let tries = 0; out.length < want && tries < want * 40; tries++) {

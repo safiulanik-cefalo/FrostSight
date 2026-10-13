@@ -1,7 +1,7 @@
 # FrostSight Showcase
 
-A standalone 3D dashboard of winter road icing risk in Troms: a county overview and a low-poly diorama for each
-of the 24 road weather stations, with the road coloured by risk, the station reporting, snow or rain from its
+A standalone 3D dashboard of winter road icing risk in Troms, Oslo, Akershus and Innlandet: an overview per region and a low-poly diorama for each
+of the 115 road weather stations, with the road coloured by risk, the station reporting, snow or rain from its
 readings, closures as barriers, and glass panels with the numbers.
 
 It is a demo built in parallel with the MVP, outside its milestones and the Asset Bundle (ADR-0010). It reads

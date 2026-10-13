@@ -1,4 +1,4 @@
-"""Fetch real Troms roads and road-weather stations from NVDB and write nvdb_seed.sql for the mock dashboards.
+"""Fetch real roads and road-weather stations for the monitored counties from NVDB and write nvdb_seed.sql.
 
 A developer step run once on a laptop, like the collector: pipelines and jobs still never call NVDB.
 - Roads: the main carriageway of every E, R and F road with a station, merged per road, strekning and
@@ -8,7 +8,8 @@ A developer step run once on a laptop, like the collector: pipelines and jobs st
   nearest main-road segment on its own road, the way silver.station_segment_lookup will be (seed_stations,
   seed_segments). Readings stay synthetic; the real elevation picks the mock climate, and a station marked
   temporarily out of service is the stale one.
-- Incidents: six mock incidents placed on chosen stations (seed_incidents).
+- Counties: COUNTIES below. Every table carries the DATEX county name, which is also the scope of gold.
+- Incidents: six mock incidents placed on chosen Troms stations (seed_incidents), for the mock dashboard.
 
 Run: uv run --with shapely python tools/mock_dashboards/fetch_nvdb.py
 Data: Statens vegvesen, NVDB, NLOD.
@@ -32,7 +33,9 @@ from shapely.strtree import STRtree
 
 BASE = "https://nvdbapiles.atlas.vegvesen.no"
 HEADERS = {"X-Client": "frostsight", "Accept": "application/json"}
-COUNTY = 55
+# NVDB fylke number -> the DATEX `county` name; Troms is the pilot (ADR-0002), the others show variety
+COUNTIES = {55: "Troms", 3: "Oslo", 32: "Akershus", 34: "Innlandet"}
+MOCK_COUNTY = "Troms"  # the mock dashboard and its mock incidents stay on Troms
 POINT_M = 300  # spacing of the grey road points
 SIMPLIFY_DEG = 0.0002  # about 20 m
 HERE = Path(__file__).resolve().parent
@@ -103,7 +106,10 @@ def inserts(table: str, rows: list[str], chunk: int) -> list[str]:
 
 
 def climate(elevation_m: float, lat: float) -> str:
-    """Mock climate from the real station elevation: higher is colder; low and far south is mild."""
+    """Climate class from the real station elevation: higher is colder; low and far south is mild. South of
+    64°N the mountains start higher (the treeline there is near 1,000 m against 500 m in Troms)."""
+    if lat < 64:
+        return "mountain" if elevation_m >= 800 else "inland" if elevation_m >= 200 else "warm"
     if elevation_m >= 300:
         return "mountain"
     if elevation_m >= 150:
@@ -113,8 +119,8 @@ def climate(elevation_m: float, lat: float) -> str:
     return "coast" if elevation_m < 15 else "fjord"
 
 
-def fetch_stations() -> list[dict]:
-    url = f"{BASE}/vegobjekter/api/v4/vegobjekter/153?fylke={COUNTY}&srid=4326&inkluder=egenskaper,lokasjon"
+def fetch_stations(fylke: int, county: str) -> list[dict]:
+    url = f"{BASE}/vegobjekter/api/v4/vegobjekter/153?fylke={fylke}&srid=4326&inkluder=egenskaper,lokasjon"
     stations = []
     for o in pages(url):
         props = {e["navn"]: e.get("verdi") for e in o.get("egenskaper", [])}
@@ -130,6 +136,8 @@ def fetch_stations() -> list[dict]:
         stations.append(
             {
                 "station_id": str(props["Målestasjonsnummer"]),
+                "county": county,
+                "fylke": fylke,
                 "name": props.get("Navn") or road,
                 "road": road,
                 "point": point,
@@ -142,9 +150,9 @@ def fetch_stations() -> list[dict]:
     return sorted(unique.values(), key=lambda s: s["station_id"])
 
 
-def fetch_road(road: str) -> tuple[dict[tuple, list[LineString]], list[tuple[str, LineString]]]:
+def fetch_road(fylke: int, road: str) -> tuple[dict[tuple, list[LineString]], list[tuple[str, LineString]]]:
     url = (
-        f"{BASE}/vegnett/api/v4/veglenkesekvenser/segmentert?fylke={COUNTY}&vegsystemreferanse={road}"
+        f"{BASE}/vegnett/api/v4/veglenkesekvenser/segmentert?fylke={fylke}&vegsystemreferanse={road}"
         f"&srid=4326&antall=500"
     )
     groups: dict[tuple, list[LineString]] = defaultdict(list)
@@ -176,60 +184,66 @@ def road_lines(groups: dict[tuple, list[LineString]]) -> list[LineString]:
 
 
 def main() -> None:
-    print("stations")
-    stations = fetch_stations()
-    print(f"  {len(stations)} operative stations")
-    roads, segments = [], []  # roads: (road, line); segments: (road, referanse, line)
-    for road in sorted({s["road"] for s in stations}):
-        groups, segs = fetch_road(road)
-        lines = road_lines(groups)
-        roads += [(road, line) for line in lines]
-        segments += [(road, ref, line) for ref, line in segs]
-        total_km = sum(length_m(x) for x in lines) / 1000
-        print(f"{road}: {len(segs)} segments, {total_km:.0f} km, {len(lines)} lines")
+    stations: list[dict] = []
+    roads, segments = [], []  # roads: (county, road, line); segments: (county, road, referanse, line)
+    for fylke, county in COUNTIES.items():
+        found = fetch_stations(fylke, county)
+        print(f"{county}: {len(found)} operative stations")
+        stations += found
+        for road in sorted({s["road"] for s in found}):
+            groups, segs = fetch_road(fylke, road)
+            lines = road_lines(groups)
+            roads += [(county, road, line) for line in lines]
+            segments += [(county, road, ref, line) for ref, line in segs]
+            total_km = sum(length_m(x) for x in lines) / 1000
+            print(f"  {road}: {len(segs)} segments, {total_km:.0f} km, {len(lines)} lines")
+    # a station on a county border can be listed by both counties; keep the first (pilot first)
+    stations = list({s["station_id"]: s for s in reversed(stations)}.values())[::-1]
 
     for s in stations:
-        own = [seg for seg in segments if seg[0] == s["road"]]
-        seg = own[int(STRtree([x[2] for x in own]).nearest(s["point"]))]
-        s["road_segment_id"], s["segment"] = seg[1], seg[2]
-    stale = next((s["station_id"] for s in stations if s["stale"]), stations[-1]["station_id"])
+        own = [seg for seg in segments if seg[0] == s["county"] and seg[1] == s["road"]]
+        seg = own[int(STRtree([x[3] for x in own]).nearest(s["point"]))]
+        s["road_segment_id"], s["segment"] = seg[2], seg[3]
+    mock = [s for s in stations if s["county"] == MOCK_COUNTY]
+    stale = next((s["station_id"] for s in mock if s["stale"]), mock[-1]["station_id"])
 
     def display(road: str) -> tuple[str, str]:
         return {"EV": "E", "RV": "R", "FV": "F"}[road[:2]], road[2:]
 
     lines = [
         "-- nvdb_seed.sql: generated by tools/mock_dashboards/fetch_nvdb.py. Do not edit by hand.",
-        "-- Real Troms roads, stations and their nearest main-road segment (Statens vegvesen, NVDB, NLOD).",
+        f"-- Real roads, stations and their nearest main-road segment in {', '.join(COUNTIES.values())}",
+        "-- (Statens vegvesen, NVDB, NLOD).",
         "",
         "CREATE SCHEMA IF NOT EXISTS frostsight.mock COMMENT 'Mock gold layer for dashboard previews';",
         "",
         "CREATE OR REPLACE TABLE frostsight.mock.seed_roads (",
         "  road_category STRING, road_number STRING, line_no INT, length_m DOUBLE,",
-        "  geometry_wkt_4326 STRING);",
+        "  geometry_wkt_4326 STRING, county STRING);",
     ]
     road_rows, point_rows = [], []
-    for i, (road, line) in enumerate(roads):
+    for i, (county, road, line) in enumerate(roads):
         cat, num = display(road)
         road_rows.append(
             f"('{cat}', '{num}', {i}, {length_m(line):.0f}, "
-            f"{sql_str(shapely.to_wkt(line, rounding_precision=5))})"
+            f"{sql_str(shapely.to_wkt(line, rounding_precision=5))}, '{county}')"
         )
         n = max(1, int(length_m(line) // POINT_M))
         for k in range(n + 1):
             p = line.interpolate(k / n, normalized=True)
-            point_rows.append(f"('{cat}', '{num}', {i}, {k}, {p.y:.5f}, {p.x:.5f})")
+            point_rows.append(f"('{cat}', '{num}', {i}, {k}, {p.y:.5f}, {p.x:.5f}, '{county}')")
     lines += inserts("seed_roads", road_rows, 20)
     lines += [
         "CREATE OR REPLACE TABLE frostsight.mock.seed_road_points (",
         "  road_category STRING, road_number STRING, line_no INT, seq INT,",
-        "  latitude DOUBLE, longitude DOUBLE);",
+        "  latitude DOUBLE, longitude DOUBLE, county STRING);",
     ]
     lines += inserts("seed_road_points", point_rows, 500)
 
     lines += [
         "CREATE OR REPLACE TABLE frostsight.mock.seed_segments (",
         "  road_segment_id STRING, road_category STRING, road_number STRING, length_m DOUBLE,",
-        "  centroid_lat DOUBLE, centroid_lon DOUBLE, geometry_wkt_4326 STRING);",
+        "  centroid_lat DOUBLE, centroid_lon DOUBLE, geometry_wkt_4326 STRING, county STRING);",
     ]
     seg_rows = []
     for s in stations:
@@ -237,7 +251,8 @@ def main() -> None:
         mid = s["segment"].interpolate(0.5, normalized=True)
         seg_rows.append(
             f"({sql_str(s['road_segment_id'])}, '{cat}', '{num}', {length_m(s['segment']):.1f}, "
-            f"{mid.y:.6f}, {mid.x:.6f}, {sql_str(shapely.to_wkt(s['segment'], rounding_precision=6))})"
+            f"{mid.y:.6f}, {mid.x:.6f}, {sql_str(shapely.to_wkt(s['segment'], rounding_precision=6))}, "
+            f"'{s['county']}')"
         )
     lines += inserts("seed_segments", sorted(set(seg_rows)), 50)
 
@@ -245,7 +260,8 @@ def main() -> None:
         "-- silent_min: minutes without readings before now (the stale station)",
         "CREATE OR REPLACE TABLE frostsight.mock.seed_stations (",
         "  station_id STRING, name STRING, road_category STRING, road_number STRING,",
-        "  latitude DOUBLE, longitude DOUBLE, climate STRING, silent_min INT, road_segment_id STRING);",
+        "  latitude DOUBLE, longitude DOUBLE, climate STRING, silent_min INT, road_segment_id STRING,",
+        "  county STRING);",
     ]
     station_rows = []
     for s in stations:
@@ -253,14 +269,14 @@ def main() -> None:
         station_rows.append(
             f"({sql_str(s['station_id'])}, {sql_str(s['name'])}, '{cat}', '{num}', "
             f"{s['point'].y:.5f}, {s['point'].x:.5f}, '{s['climate']}', "
-            f"{90 if s['station_id'] == stale else 0}, {sql_str(s['road_segment_id'])})"
+            f"{90 if s['station_id'] == stale else 0}, {sql_str(s['road_segment_id'])}, '{s['county']}')"
         )
     lines += inserts("seed_stations", station_rows, 50)
 
     used: set[str] = {stale}
     incident_rows, labels = [], {}
     for n, (kind, severity, start, end, text, wanted) in enumerate(INCIDENTS, 1):
-        by_height = sorted(stations, key=lambda s: -s["elevation_m"])
+        by_height = sorted(mock, key=lambda s: -s["elevation_m"])
         pick = next(
             (s for s in by_height if s["climate"] == wanted and s["station_id"] not in used),
             next(s for s in by_height if s["station_id"] not in used),
@@ -283,18 +299,19 @@ def main() -> None:
     closure = labels["CLOSURE"]
     cat, num = display(closure["road"])
     prefix = {"E": "E", "R": "Rv", "F": "Fv"}[cat]
-    stale_station = next(s for s in stations if s["station_id"] == stale)
+    stale_station = next(s for s in mock if s["station_id"] == stale)
     OUT_META.write_text(
         json.dumps(
             {
                 "default_segment": f"{prefix}{num} · {closure['name']}",
                 "climates": {
-                    c: sorted(s["name"] for s in stations if s["climate"] == c)
+                    c: sorted(s["name"] for s in mock if s["climate"] == c)
                     for c in ("mountain", "inland", "fjord", "coast", "warm")
                 },
                 "closure_station": closure["name"],
                 "stale_station": stale_station["name"],
-                "stations": len(stations),
+                "stations": len(mock),
+                "counties": {c: sum(s["county"] == c for s in stations) for c in COUNTIES.values()},
             },
             ensure_ascii=False,
             indent=1,

@@ -4,19 +4,27 @@ import { Icon } from "./icons";
 import { driverChip, incidentRows } from "./listRows";
 import { LevelPill, ScoreBar, TonePill } from "./Pill";
 import { useSites } from "./useSites";
+import { useRegion } from "./useRegion";
+import { inRegion } from "../data/regions";
 
 const fmt = (v: number | null, unit: string, digits = 1) => (v === null ? "not reported" : `${v.toFixed(digits)} ${unit}`);
 const CHIP_TONE = { Driver: "high", Rising: "medium", Minor: "none" } as const;
 
 function CountyTop({ state }: { state: State }) {
   const goSite = useShowcase((s) => s.goSite);
-  const top = [...state.segments].filter((s) => s.priority_rank !== null).sort((a, b) => (a.priority_rank ?? 99) - (b.priority_rank ?? 99)).slice(0, 5);
+  const region = useRegion();
+  // priority ranks within each county; across a region's counties the highest icing score comes first
+  const top = state.segments
+    .filter((s) => s.priority_rank !== null && inRegion(region, s.county))
+    .sort((a, b) => b.icing_score - a.icing_score || (a.priority_rank ?? 99) - (b.priority_rank ?? 99))
+    .slice(0, 5);
+  const multi = (region?.counties.length ?? 1) > 1;
   return (
     <>
       <div className="phead">
         <div className="ic"><Icon.Road /></div>
         <div>
-          <div className="eyebrow">County · Troms</div>
+          <div className="eyebrow">{multi ? "Region" : "County"} · {region?.name ?? "Troms"}</div>
           <h2>Gritting priority</h2>
           <div className="addr">Highest icing risk first</div>
         </div>
@@ -26,7 +34,7 @@ function CountyTop({ state }: { state: State }) {
         {top.map((s) => (
           <button key={s.road_segment_id} className="row" onClick={() => s.station_id && goSite(s.station_id)}>
             <span className="rank">{s.priority_rank}</span>
-            <span className="nm">{state.stations.find((x) => x.station_id === s.station_id)?.name ?? s.segment}<small>{s.road}</small></span>
+            <span className="nm">{state.stations.find((x) => x.station_id === s.station_id)?.name ?? s.segment}<small>{multi ? `${s.road} · ${s.county ?? "Troms"}` : s.road}</small></span>
             <LevelPill level={s.risk_level} small />
           </button>
         ))}
@@ -125,7 +133,7 @@ export function DetailPanel() {
             </div>
             <div className="row static"><span className="nm">Wind</span><span className="vv">{fmt(segment.readings.wind_ms, "m/s", 0)}</span></div>
           </div>
-          <div className="sec">Gritting <small>{segment.priority_rank ? `priority ${segment.priority_rank} in Troms` : "not ranked"}</small></div>
+          <div className="sec">Gritting <small>{segment.priority_rank ? `priority ${segment.priority_rank} in ${segment.county ?? "Troms"}` : "not ranked"}</small></div>
           {closure && (
             <div className="rows">
               <div className="row static">

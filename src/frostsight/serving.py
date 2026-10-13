@@ -50,7 +50,7 @@ def serving_tables(catalog: str, current_window_min: int, coverage_km: float) ->
   SELECT station_id, max(event_time) AS last_event_time
   FROM {g}.road_weather_observation_log GROUP BY station_id)
 SELECT st.station_id, st.name, st.latitude AS lat, st.longitude AS lon, {ROAD_LABEL.format(t="st")} AS road,
-       st.road_segment_id, l.last_event_time,
+       st.county, st.road_segment_id, l.last_event_time,
        CASE WHEN l.last_event_time >= {newest} - INTERVAL {current_window_min} MINUTES THEN 'Reporting'
             ELSE 'Stale' END AS station_status,
        CASE WHEN l.last_event_time >= {newest} - INTERVAL {current_window_min} MINUTES THEN '🟢 Reporting'
@@ -96,7 +96,7 @@ FROM {g}.station_status""",
          AS segment,
        r.road_segment_id, {ROAD_LABEL.format(t="s")} AS road,
        concat(s.road_category, s.road_number) AS road_key,
-       r.station_id, st.name AS station_name, r.risk_level, round(r.icing_score, 2) AS icing_score,
+       s.county, r.station_id, st.name AS station_name, r.risk_level, round(r.icing_score, 2) AS icing_score,
        r.road_surface_temperature_c AS surface_c, r.air_temperature_c AS air_c,
        r.temperature_change_1h AS change_1h_c,
        coalesce(concat(CASE WHEN r.temperature_change_1h > 0 THEN '+' ELSE '' END,
@@ -162,7 +162,8 @@ FROM {g}.segment_detail d
 JOIN {g}.road_incidents i ON i.road_key = d.road_key""",
         ),
         # one row per incident at its own position, with the nearest monitored station on its road within
-        # coverage, so a list or map can go to where it happened (segment_incidents fans out per road)
+        # coverage, so a list or map can go to where it happened (segment_incidents fans out per road),
+        # and the county of the nearest monitored station on any road
         (
             "incident_list",
             f"""WITH latest AS (
@@ -175,13 +176,21 @@ nearest AS (
                       + power((i.longitude - st.longitude) * cos(radians(i.latitude)), 2)) AS station_km
   FROM latest i
   JOIN {s}.nvdb_seed_stations st ON concat(st.road_category, st.road_number) = i.road_key
-  QUALIFY row_number() OVER (PARTITION BY i.incident_id ORDER BY station_km) = 1)
-SELECT i.incident_id, i.situation_id, {INCIDENT_ROAD} AS road, i.road_segment_id,
+  QUALIFY row_number() OVER (PARTITION BY i.incident_id ORDER BY station_km) = 1),
+area AS (
+  SELECT i.incident_id, st.county
+  FROM latest i CROSS JOIN {s}.nvdb_seed_stations st
+  QUALIFY row_number() OVER (
+    PARTITION BY i.incident_id
+    ORDER BY power(i.latitude - st.latitude, 2)
+             + power((i.longitude - st.longitude) * cos(radians(i.latitude)), 2)) = 1)
+SELECT i.incident_id, i.situation_id, {INCIDENT_ROAD} AS road, a.county AS county, i.road_segment_id,
        CASE WHEN n.station_km <= {coverage_km} THEN n.station_id END AS station_id,
        round(n.station_km, 1) AS station_km, i.latitude, i.longitude, i.incident_type, i.severity,
        i.start_time, i.end_time, i.description
 FROM latest i
-LEFT JOIN nearest n USING (incident_id)""",
+LEFT JOIN nearest n USING (incident_id)
+LEFT JOIN area a USING (incident_id)""",
         ),
         # gritting priority: county-wide rank, surface and precipitation from the last 3 h of readings
         (
@@ -193,7 +202,7 @@ LEFT JOIN nearest n USING (incident_id)""",
   WHERE event_time >= {newest} - INTERVAL 3 HOURS
   GROUP BY station_id),
 ranked AS (
-  SELECT d.road_segment_id, d.road, d.station_name AS place, d.icing_score, d.risk_level,
+  SELECT d.road_segment_id, d.road, d.county, d.station_name AS place, d.icing_score, d.risk_level,
          {LEVEL_BADGE.format(col="d.risk_level")} AS level, o.surface_c,
          initcap(coalesce(o.precip, 'None')) AS precip,
          array_join(transform(d.risk_drivers, x -> {FACTOR_LABEL.format(col="x.factor")}), ', ')
@@ -201,7 +210,7 @@ ranked AS (
          d.risk_updated_at
   FROM {g}.segment_detail d
   LEFT JOIN obs o ON o.station_id = d.station_id)
-SELECT row_number() OVER (ORDER BY icing_score DESC, road) AS rank, * FROM ranked""",
+SELECT row_number() OVER (PARTITION BY county ORDER BY icing_score DESC, road) AS rank, * FROM ranked""",
         ),
         # one row for the counters on the risk map and Platform health
         (

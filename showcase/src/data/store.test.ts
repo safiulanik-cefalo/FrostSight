@@ -71,3 +71,29 @@ describe("focusIncident", () => {
     expect(useShowcase.getState().incidentId).toBeNull();
   });
 });
+
+describe("regions in the store", () => {
+  const regions = [
+    { id: "troms", name: "Troms", counties: ["Troms"], stations: ["3000014", "3000016"] },
+    { id: "innlandet", name: "Innlandet", counties: ["Innlandet"], stations: ["500"] },
+  ];
+  beforeEach(() => useShowcase.setState({ live: baseState(), regions, regionId: "troms", view: "overview", siteId: null, incidentId: null }));
+
+  it("follows a site into its region and keeps it on the way back to the overview", () => {
+    useShowcase.getState().goSite("500");
+    expect(useShowcase.getState()).toMatchObject({ view: "site", siteId: "500", regionId: "innlandet" });
+    useShowcase.getState().goOverview();
+    expect(useShowcase.getState()).toMatchObject({ view: "overview", regionId: "innlandet" });
+    useShowcase.getState().goOverview("troms");
+    expect(useShowcase.getState().regionId).toBe("troms");
+  });
+
+  it("shows an incident far from any station on its county's overview", () => {
+    const s = baseState();
+    s.incidents = [{ incident_id: "far", road: "Rv3", road_segment_id: null, county: "Innlandet", station_id: null, lat: 61.5, lon: 10.9,
+      incident_type: "MAINTENANCEWORKS", severity: null, start_time: "2026-10-12T05:00:00Z", end_time: null, description: null }];
+    useShowcase.setState({ live: s });
+    useShowcase.getState().focusIncident("far");
+    expect(useShowcase.getState()).toMatchObject({ view: "overview", regionId: "innlandet", incidentId: "far" });
+  });
+});

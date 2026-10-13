@@ -83,7 +83,7 @@ export function Header({ scenarioControl }: { scenarioControl?: ReactNode }) {
   const high = state ? state.kpi.segments_high : 0;
   return (
     <header className="top">
-      <button className="brand" onClick={goOverview} aria-label="FrostSight, back to the Troms overview">
+      <button className="brand" onClick={() => goOverview()} aria-label="FrostSight, back to the overview">
         <Icon.Brand />
         <span>FrostSight</span>
       </button>
@@ -104,7 +104,7 @@ export function Header({ scenarioControl }: { scenarioControl?: ReactNode }) {
         <div className="avatar">RO</div>
         <div>
           <b>Road operations</b>
-          <small>Troms pilot</small>
+          <small>Four counties</small>
         </div>
       </div>
     </header>

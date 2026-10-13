@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { treePlacements, isClosureIncident, TREELINE_M, liveClosure } from "./dressing";
+import { treePlacements, isClosureIncident, TREELINE_M, liveClosure, treelineAt } from "./dressing";
 
 const low = () => 100;
 const far = () => 50;
@@ -68,5 +68,19 @@ describe("liveClosure", () => {
   it("labels an exact closure without the approximate warning", () => {
     expect(closureLabel({ start_m: 3850, end_m: 4350, simulated: false, approximate: false }, "Bossovarri")).toBe("Road closed here");
     expect(closureLabel({ start_m: 2000, end_m: 4000, simulated: false, approximate: true }, "Bossovarri")).toBe("Road closed near Bossovarri · position approximate");
+  });
+});
+
+describe("treelineAt", () => {
+  it("rises 70 m per degree south of 69°N, so southern hills keep their forest", () => {
+    expect(treelineAt("warm", 69.2)).toBe(600);
+    expect(treelineAt("inland", 61)).toBe(1110);
+    expect(treelineAt("unknown", 69)).toBe(550);
+  });
+  it("lets trees grow higher on a southern site", () => {
+    const at800 = () => 800;
+    const far = () => 50;
+    expect(treePlacements("x", "inland", at800, far, 300, 100, 69)).toHaveLength(0);
+    expect(treePlacements("x", "inland", at800, far, 300, 100, 61)).toHaveLength(70);
   });
 });

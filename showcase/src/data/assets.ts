@@ -5,6 +5,8 @@ export type RoadJson = {
   name: string;
   road: string;
   climate: string;
+  county?: string;
+  region?: string;
   road_segment_id: string;
   origin: { lat: number; lon: number };
   points: [number, number][];
@@ -50,17 +52,24 @@ export function loadSiteAssets(stationId: string, fetchFn: typeof fetch = fetch)
   return p;
 }
 
-let overview: Promise<OverviewAssets> | null = null;
+const overviewCache = new Map<string, Promise<OverviewAssets>>();
 
-export function loadOverviewAssets(fetchFn: typeof fetch = fetch): Promise<OverviewAssets> {
-  overview ??= (async () => {
-    const [county, roads, stations, buf] = await Promise.all([
-      fetchFn("/overview/county.json").then((r) => r.json() as Promise<OverviewAssets["county"]>),
-      fetchFn("/overview/roads.json").then((r) => r.json() as Promise<OverviewAssets["roads"]>),
-      fetchFn("/overview/stations.json").then((r) => r.json() as Promise<OverviewAssets["stations"]>),
-      fetchFn("/overview/terrain.bin").then((r) => r.arrayBuffer()),
-    ]);
-    return { county, roads, stations, heights: decodeHeights(buf, county.terrain.min_m, county.terrain.max_m) };
-  })();
-  return overview;
+/** One region's overview: public/overview/<regionId>/ (troms, oslo-akershus, innlandet). */
+export function loadOverviewAssets(regionId: string, fetchFn: typeof fetch = fetch): Promise<OverviewAssets> {
+  let p = overviewCache.get(regionId);
+  if (!p) {
+    const base = `/overview/${regionId}`;
+    p = (async () => {
+      const [county, roads, stations, buf] = await Promise.all([
+        fetchFn(`${base}/county.json`).then((r) => r.json() as Promise<OverviewAssets["county"]>),
+        fetchFn(`${base}/roads.json`).then((r) => r.json() as Promise<OverviewAssets["roads"]>),
+        fetchFn(`${base}/stations.json`).then((r) => r.json() as Promise<OverviewAssets["stations"]>),
+        fetchFn(`${base}/terrain.bin`).then((r) => r.arrayBuffer()),
+      ]);
+      return { county, roads, stations, heights: decodeHeights(buf, county.terrain.min_m, county.terrain.max_m) };
+    })();
+    p.catch(() => overviewCache.delete(regionId));
+    overviewCache.set(regionId, p);
+  }
+  return p;
 }
