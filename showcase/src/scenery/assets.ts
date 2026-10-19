@@ -6,8 +6,10 @@ import { decodeCover, type CoverGrid } from "./cover";
 export type PlaceKind =
   | "town" | "district" | "village" | "bridge" | "tunnel" | "island" | "fjord" | "sound"
   | "peak" | "valley" | "lake" | "river" | "cape" | "landmark"; // prettier-ignore
+/** The toy model drawn under a landmark's label, from its Kartverket type. */
+export type LandmarkModel = "church" | "hospital" | "campus";
 /** One label; the bake writes them in placement priority order. */
-export type Place = { name: string; kind: PlaceKind; tier: 1 | 2 | 3; xz: [number, number] };
+export type Place = { name: string; kind: PlaceKind; tier: 1 | 2 | 3; xz: [number, number]; model?: LandmarkModel };
 export type PlacesJson = { n: number; places: Place[]; attribution: string[] };
 export type SceneryAssets = SiteAssets & { cover: CoverGrid | null; places: Place[] };
 
