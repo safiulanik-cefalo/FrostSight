@@ -22,7 +22,7 @@ This document records what was built, why, and what to watch when changing it. L
  ┌──────────────────────────┐           ┌──────────────────────────────┐            ┌───────────────────────────┐
  │ gold job (after fetch)   │           │ Worker                       │            │ React + three.js app      │
  │  writes plot-ready gold  │  SQL      │  cron */15  → refresh()      │  GET       │  overview + 24 dioramas   │
- │  kpi_summary             │◀─Statement│   1 cheap check, 7 reads     │◀/api/state─│  panels, list, outlook    │
+ │  kpi_summary             │◀─Statement│   1 cheap check, 8 reads     │◀/api/state─│  panels, list, outlook    │
  │  station_status          │  API      │   shape → validate → KV put  │  (KV only) │  scenarios (Simulated)    │
  │  segment_detail …        │  (token)  │  /api/state  /api/health     │            │                           │
  │  incident_list           │           │  static build (assets)       │──────────▶ │  /sites/<id>/… baked once │
@@ -46,7 +46,7 @@ The browser never talks to Databricks, and no secret reaches it.
 2. Every 15 minutes the Worker runs `refresh()` (`worker/src/index.ts`):
    - Reads `gold.kpi_summary`. If `risk_updated_at` is unchanged since the stored document, it only bumps
      `generated_at` and stops, so a quiet hour costs one small query.
-   - Otherwise it runs the other seven reads in parallel through the SQL Statement Execution API
+   - Otherwise it runs the other eight reads in parallel through the SQL Statement Execution API
      (`worker/src/databricks.ts`: `POST /api/2.0/sql/statements`, inline JSON results, polls up to 60 s).
    - `shapeState()` (`worker/src/shape.ts`) turns the rows into one document, and `parseState()` checks it
      against the same zod contract the app uses (`shared/contract.ts`). A document that fails is never
@@ -88,6 +88,7 @@ segment and optional `map_points` (absent in documents from before the 2D map). 
 | 2D map | `src/map/MapView.tsx`, `layers.ts` | The default view (`#map`): Leaflet on Kartverket grey-tone tiles with coloured road points, stations and open incidents. No KPI cards, panels, scenarios or animation; search pans to a station or a town |
 | Town search | `src/map/places.ts`, `usePlaceSearch.ts` | On the map, the search box also asks Kartverket's place-name service (prefix match, up to 500 trimmed hits, 250 ms after typing stops) and keeps towns, settlements, villages and municipalities in Norway, best five first. If the service fails the box still finds stations and roads |
 | Routing | `src/app/route.ts` | `#map` or no hash opens the map; `#overview`, `#region=` and `#site=` open 3D. The 3D scene (`src/scene/ThreeView.tsx`) is lazy-loaded, so the map never downloads three.js |
+| Map ↔ 3D link | `src/app/viewLink.ts` | The toggle carries the place, not the camera. Map → 3D: zoom 11 or more with a station within 10 km of the centre opens its diorama; zoom 7 or more opens the nearest station's region; further out keeps the current region. 3D → Map: a diorama centres on its station at zoom 12; an overview fits its region's stations |
 | Overview scene | `src/scene/Overview.tsx` | Per region (`#region=<id>`): 600-unit plate from a 256×256 elevation grid, county borders, roads, one pin per station, incident cones |
 | Regions | `src/data/regions.ts` | Which counties each overview shows; the region's counters are counted from its rows, as on a site |
 | Site scene | `src/scene/Site.tsx` and its parts | Terrain, road, risk band, trees, station with spinning wind gauge, cars, gritting truck, weather, barriers, incident cones |
