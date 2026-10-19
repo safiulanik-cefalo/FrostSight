@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { parsePlaces, placeSearchUrl, searchPlaces } from "./places";
 import ham from "./fixtures/places_ham.json";
 
@@ -54,6 +54,26 @@ describe("searchPlaces", () => {
   it("parses a good answer", async () => {
     const fetchFn = (async () => new Response(JSON.stringify(ham))) as unknown as typeof fetch;
     expect((await searchPlaces("ham", fetchFn)).map((p) => p.name)).toEqual(["Hamar", "Hammerfest", "Hamnvik", "Hamar kommune"]);
+  });
+
+  it("gives up on a service that does not answer in time", async () => {
+    vi.useFakeTimers();
+    try {
+      let aborted = false;
+      const hang = ((_url: string, init?: RequestInit) =>
+        new Promise((_resolve, reject) =>
+          init?.signal?.addEventListener("abort", () => {
+            aborted = true;
+            reject(new DOMException("timed out", "AbortError"));
+          }),
+        )) as unknown as typeof fetch;
+      const result = searchPlaces("ham", hang);
+      await vi.advanceTimersByTimeAsync(6000);
+      expect(await result).toEqual([]);
+      expect(aborted).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("returns nothing when the service fails, so station search still works", async () => {

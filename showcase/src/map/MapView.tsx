@@ -41,8 +41,11 @@ export function MapView() {
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
   const fitted = useRef(false);
+  /** true until the first focus is applied: a map that just opened jumps to it instead of gliding */
+  const opening = useRef(true);
   const state = useCurrentState();
   const focus = useShowcase((s) => s.mapFocus);
+  const setMapView = useShowcase((s) => s.setMapView);
   const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
@@ -54,11 +57,18 @@ export function MapView() {
     m.setView([64.5, 15], 5);
     map.current = m;
     layer.current = L.layerGroup().addTo(m);
+    // the 3D view opens on what the map shows when the viewer switches
+    const report = () => {
+      const c = m.getCenter();
+      setMapView({ lat: c.lat, lon: c.lng, zoom: m.getZoom() });
+    };
+    m.on("moveend", report);
     return () => {
       m.remove();
       map.current = null;
       layer.current = null;
       fitted.current = false;
+      opening.current = true;
     };
   }, []);
 
@@ -103,7 +113,15 @@ export function MapView() {
   }, [state]);
 
   useEffect(() => {
-    if (focus && map.current) map.current.setView([focus.lat, focus.lon], focus.zoom, { animate: !reduced });
+    const m = map.current;
+    if (!focus || !m) return;
+    // a focus from search or from the 3D view replaces the first fit to all stations
+    fitted.current = true;
+    // a map that has just opened jumps to the place: gliding there from the whole country is animation for nothing
+    const animate = !reduced && !opening.current;
+    opening.current = false;
+    if ("bounds" in focus) m.fitBounds(focus.bounds, { padding: [40, 40], maxZoom: 11, animate });
+    else m.setView([focus.lat, focus.lon], focus.zoom, { animate });
   }, [focus, reduced]);
 
   return <div ref={el} className="map2d" role="region" aria-label="Map of road icing risk" />;
