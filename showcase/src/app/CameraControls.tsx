@@ -1,4 +1,4 @@
-import { cameraActions } from "../scene/CameraRig";
+import { cameraActions } from "../scene/cameraActions";
 
 export function CameraControls() {
   return (

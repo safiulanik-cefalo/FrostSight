@@ -68,6 +68,7 @@ The browser never talks to Databricks, and no secret reaches it.
 | `incident_list` | Incident list and markers: one row per incident record, its position, nearest station within 5 km |
 | `priority_list` | Gritting priority (overview panel, truck on the site) |
 | `road_weather_observation_log` (newest row per station) | Dew point, precipitation, wind for weather effects |
+| `map_points` (risk layers only) | Coloured road points on the 2D map, the same points the AI/BI risk map draws |
 
 The last read is a window function in the Worker, not a select on one table. It is the one known exception
 to ADR-0009 here; the fix is a small `latest_readings` gold table.
@@ -76,14 +77,17 @@ to ADR-0009 here; the fix is a small `latest_readings` gold table.
 
 `shared/contract.ts` is the single definition of the document, shared by Worker, app and tests:
 `generated_at`, `source` (live, snapshot, scenario), `gold` timestamps, `kpi`, `stations`, `segments` (with
-drivers and readings), `incidents` (with optional position and nearest station) and `history` keyed by
-segment. Any change goes there first; both sides fail their tests until they agree.
+drivers and readings), `incidents` (with optional position and nearest station), `history` keyed by
+segment and optional `map_points` (absent in documents from before the 2D map). Any change goes there first; both sides fail their tests until they agree.
 
 ## 3. The app
 
 | Area | Files | Notes |
 |---|---|---|
-| State | `src/data/store.ts` (zustand), `live.ts`, `scenario.ts` | View (overview or site), selected site, segment and incident; scenario clock |
+| State | `src/data/store.ts` (zustand), `live.ts`, `scenario.ts` | Mode (map or 3D), view (overview or site), selected site, segment and incident; scenario clock |
+| 2D map | `src/map/MapView.tsx`, `layers.ts` | The default view (`#map`): Leaflet on Kartverket grey-tone tiles with coloured road points, stations and open incidents. No KPI cards, panels, scenarios or animation; search pans to a station or a town |
+| Town search | `src/map/places.ts`, `usePlaceSearch.ts` | On the map, the search box also asks Kartverket's place-name service (prefix match, up to 500 trimmed hits, 250 ms after typing stops) and keeps towns, settlements, villages and municipalities in Norway, best five first. If the service fails the box still finds stations and roads |
+| Routing | `src/app/route.ts` | `#map` or no hash opens the map; `#overview`, `#region=` and `#site=` open 3D. The 3D scene (`src/scene/ThreeView.tsx`) is lazy-loaded, so the map never downloads three.js |
 | Overview scene | `src/scene/Overview.tsx` | Per region (`#region=<id>`): 600-unit plate from a 256×256 elevation grid, county borders, roads, one pin per station, incident cones |
 | Regions | `src/data/regions.ts` | Which counties each overview shows; the region's counters are counted from its rows, as on a site |
 | Site scene | `src/scene/Site.tsx` and its parts | Terrain, road, risk band, trees, station with spinning wind gauge, cars, gritting truck, weather, barriers, incident cones |
@@ -139,7 +143,11 @@ history; counters are recounted from the simulated rows. Every simulated thing o
 | Read plot-ready gold only (ADR-0009) | Same numbers as AI/BI; logic lives once, in gold | New widgets need gold changes first |
 | One shared zod contract, validated before every KV write | A bad gold row can never blank the page | Contract changes touch three places |
 | Snapshot fallback committed in the repo | The page works with no Worker, for demos and CI | The snapshot ages; refresh it after gold runs |
-| Bake terrain and roads offline, commit the output | No map service at runtime; fast, free, deterministic | Re-run the bake when the seed changes |
+| Bake terrain and roads offline, commit the output | No map service at runtime for the 3D view; fast, free, deterministic | Re-run the bake when the seed changes |
+| 2D map is the default, 3D a toggle away | Someone about to drive wants the roads at a glance on a phone, not a scene | Two views to keep in step |
+| 2D map uses Kartverket's tile cache at runtime | Free, no key, Norwegian place names; the map needs real places to find a route | Tiles cover Norway only and depend on Kartverket's service |
+| Town search calls Kartverket's place-name API from the browser | Free, no key, CORS open; no Worker or gold change | The API has no type filter, so each search fetches up to 500 trimmed hits (about 80 kB before compression) |
+| 2D map draws `gold.map_points`, not lines | No gold change; the same points as the AI/BI risk map | Coloured stretches are dotted, with gaps at high zoom; continuous lines need `line_no`/`seq` in `map_points` |
 | Diorama scale, not true scale | A true-scale road is invisible | Distances on screen are not to scale |
 | Same 5 km coverage rule as `gold.map_points` | The 3D road and the AI/BI map never disagree | Long roads between stations stay grey |
 | Cars are ambience, labelled so | No traffic data exists | Someone could still read them as traffic |
@@ -154,6 +162,8 @@ history; counters are recounted from the simulated rows. Every simulated thing o
 | MET Norway, Open-Meteo (through the pipeline) | Weather fields | CC BY 4.0 |
 | Mapzen Terrarium tiles on AWS (zoom 11 sites, zoom 8 overview) | Terrain | Mapzen terms, attribution in legend |
 | Kartverket / Geonorge county outline (`fylke=55`) | County border | CC BY 4.0 |
+| Kartverket topographic tiles (`topograatone`, cache.kartverket.no) | 2D base map | CC BY 4.0, credited in the map legend |
+| Kartverket place names (Stedsnavn API, ws.geonorge.no) | Town search on the 2D map | CC BY 4.0, credited in the map legend |
 
 ## 6. Security
 

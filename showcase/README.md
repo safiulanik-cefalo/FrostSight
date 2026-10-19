@@ -1,6 +1,8 @@
 # FrostSight Showcase
 
-A standalone 3D dashboard of winter road icing risk in Troms, Oslo, Akershus and Innlandet: an overview per region and a low-poly diorama for each
+A standalone dashboard of winter road icing risk in Troms, Oslo, Akershus and Innlandet. It opens on a plain 2D
+map (Kartverket base map, road points coloured by risk, stations and open incidents) for someone checking the
+roads before driving; its search finds towns as well as stations and roads. **3D** in the header switches to an overview per region and a low-poly diorama for each
 of the 115 road weather stations, with the road coloured by risk, the station reporting, snow or rain from its
 readings, closures as barriers, and glass panels with the numbers.
 
@@ -20,7 +22,11 @@ npm run dev                # http://localhost:5173
 Without a Worker the page uses `public/snapshot.json` and the header chip says "Snapshot". Scenarios work
 without a Worker: switch on **Scenarios** in the header and pick one.
 
-Links: `#overview` for the county, `#site=<station_id>` for a site, for example `#site=3000016` (Gardeborri).
+Links: `#map` (or no hash) for the 2D map, `#overview` for the 3D county, `#site=<station_id>` for a site, for
+example `#site=3000016` (Gardeborri).
+
+The 2D map colours roads from `map_points` in the state document. The committed snapshot predates it, so in
+snapshot mode the map shows stations and incidents only until the snapshot is captured again.
 
 ## The Worker, locally
 
@@ -67,7 +73,7 @@ npm run check                         # TypeScript and Vitest
 uv run pytest tests/unit/test_bake_sites.py   # from the repo root
 ```
 
-Screenshot checklist before a demo: the overview, a site (Bossovarri `3000014`), "Snowstorm on E8" at 60 s
+Screenshot checklist before a demo: the 2D map at 400 px wide with a station searched, the 3D overview, a site (Bossovarri `3000014`), "Snowstorm on E8" at 60 s
 or later, and a 400 px wide window. A headless browser needs a few seconds before the first 3D frame.
 
 ## Deploy to Cloudflare (later)
@@ -81,5 +87,5 @@ npm run build && npx wrangler deploy
 
 ## Attribution
 
-Road data Statens vegvesen (NLOD). Weather MET Norway and Open-Meteo (CC BY 4.0). Elevation Mapzen terrain
-tiles.
+Road data Statens vegvesen (NLOD). Weather MET Norway and Open-Meteo (CC BY 4.0). Base map Kartverket (CC BY
+4.0), place names Kartverket (CC BY 4.0). Elevation Mapzen terrain tiles.

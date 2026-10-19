@@ -9,15 +9,19 @@ import { parseState } from "../../shared/contract";
 const CURRENT = "state:current";
 const LAST_ERROR = "state:last_error";
 const PUBLIC_ERROR = "The last refresh failed. Details are in the Worker log.";
+/** Bump when shapeState adds or changes a field, so a stored document from an older Worker is rebuilt even
+ * when gold has not changed since. 2: map_points for the 2D map. */
+const SHAPE_VERSION = 2;
 
 export async function refresh(env: Env, now: Date, fetchFn: typeof fetch = fetch): Promise<"updated" | "unchanged" | "failed"> {
   const at = now.toISOString();
   try {
     const kpi = await runStatement(env, QUERIES.kpi_summary(env.CATALOG), fetchFn);
     const previousText = await env.STATE.get(CURRENT);
-    const previous = previousText ? (JSON.parse(previousText) as { gold?: { risk_updated_at?: string | null } }) : null;
+    const previous = previousText ? (JSON.parse(previousText) as { shape?: number; gold?: { risk_updated_at?: string | null } }) : null;
     const riskUpdatedAt = kpi[0]?.risk_updated_at ?? null;
-    if (previous && riskUpdatedAt !== null && previous.gold?.risk_updated_at === String(riskUpdatedAt)) {
+    const sameShape = previous?.shape === SHAPE_VERSION;
+    if (previous && sameShape && riskUpdatedAt !== null && previous.gold?.risk_updated_at === String(riskUpdatedAt)) {
       await env.STATE.put(CURRENT, JSON.stringify({ ...previous, generated_at: at }));
       return "unchanged";
     }
@@ -26,7 +30,7 @@ export async function refresh(env: Env, now: Date, fetchFn: typeof fetch = fetch
     const rows = Object.fromEntries([["kpi_summary", kpi] as [TableKey, Row[]], ...rest.map((k, i) => [k, results[i]] as [TableKey, Row[]])]) as GoldRows;
     // validate against the same contract the app uses, so a bad row never replaces a good document
     const doc = parseState(shapeState(rows, at));
-    await env.STATE.put(CURRENT, JSON.stringify(doc));
+    await env.STATE.put(CURRENT, JSON.stringify({ ...doc, shape: SHAPE_VERSION }));
     return "updated";
   } catch (e) {
     // the full message stays private (KV and the Worker log): it can name the workspace host

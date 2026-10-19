@@ -3,16 +3,9 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { cameraActions } from "./cameraActions";
 
 export type Pose = { target: [number, number, number]; azimuth: number; elevation: number; distance: number };
-
-/** Called by the HUD's camera buttons; bound to the live controls once the canvas mounts. */
-export const cameraActions = {
-  zoomIn: () => {},
-  zoomOut: () => {},
-  rotate: () => {},
-  home: () => {},
-};
 
 const MIN_ELEV = (12 * Math.PI) / 180;
 const MAX_ELEV = (78 * Math.PI) / 180;

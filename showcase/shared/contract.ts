@@ -85,6 +85,17 @@ const IncidentSchema = z.object({
 
 const HistoryPointSchema = z.object({ t: iso, level, score: num });
 
+// The coloured road points of gold.map_points (a road point within coverage of a station on its own road).
+// Documents from before the 2D map have none, so the field is optional.
+const MapPointSchema = z.object({
+  road: z.string(),
+  lat: num,
+  lon: num,
+  risk_level: level,
+  place: z.string().nullable(),
+  icing_score: num.nullable(),
+});
+
 export const StateSchema = z.object({
   generated_at: iso,
   source: z.enum(["live", "snapshot", "scenario"]),
@@ -102,6 +113,7 @@ export const StateSchema = z.object({
   segments: z.array(SegmentSchema),
   incidents: z.array(IncidentSchema),
   history: z.record(z.array(HistoryPointSchema)),
+  map_points: z.array(MapPointSchema).optional(),
 });
 
 export type State = z.infer<typeof StateSchema>;
@@ -109,6 +121,7 @@ export type Station = z.infer<typeof StationSchema>;
 export type Segment = z.infer<typeof SegmentSchema>;
 export type Incident = z.infer<typeof IncidentSchema>;
 export type HistoryPoint = z.infer<typeof HistoryPointSchema>;
+export type MapPoint = z.infer<typeof MapPointSchema>;
 
 export function parseState(json: unknown): State {
   return StateSchema.parse(json);

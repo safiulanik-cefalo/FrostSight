@@ -140,5 +140,23 @@
       "description": "E8 closed at Gardeborri, convoy driving",
       "county": "Troms"
     }
+  ],
+  "map_points": [
+    {
+      "road": "E8",
+      "lat": "69.1185",
+      "lon": "20.7302",
+      "risk_level": "HIGH",
+      "place": "Bossovarri",
+      "icing_score": "0.72"
+    },
+    {
+      "road": "E8",
+      "lat": "69.1221",
+      "lon": "20.7604",
+      "risk_level": "HIGH",
+      "place": "Bossovarri",
+      "icing_score": "0.72"
+    }
   ]
 }

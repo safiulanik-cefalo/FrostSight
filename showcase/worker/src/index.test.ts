@@ -31,13 +31,13 @@ describe("refresh", () => {
     const env = makeEnv();
     const { fetchFn, calls } = scriptedFetch(TABLE_KEYS.map(answer));
     expect(await refresh(env, now, fetchFn)).toBe("updated");
-    expect(calls).toHaveLength(8);
+    expect(calls).toHaveLength(9);
     const doc = JSON.parse(env.STATE.data.get("state:current")!);
     expect(doc.generated_at).toBe("2026-10-12T09:30:00.000Z");
     expect(doc.kpi.stations_total).toBe(2);
   });
 
-  it("skips the other seven statements when risk_updated_at is unchanged", async () => {
+  it("skips the other eight statements when risk_updated_at is unchanged", async () => {
     const env = makeEnv();
     await refresh(env, now, scriptedFetch(TABLE_KEYS.map(answer)).fetchFn);
     const later = new Date("2026-10-12T09:45:00Z");
@@ -45,6 +45,21 @@ describe("refresh", () => {
     expect(await refresh(env, later, fetchFn)).toBe("unchanged");
     expect(calls).toHaveLength(1);
     expect(JSON.parse(env.STATE.data.get("state:current")!).generated_at).toBe("2026-10-12T09:45:00.000Z");
+  });
+
+  it("rebuilds when the stored document is from an older Worker, even if gold has not changed", async () => {
+    const env = makeEnv();
+    await refresh(env, now, scriptedFetch(TABLE_KEYS.map(answer)).fetchFn);
+    // a document an older Worker wrote: same gold, no shape version, no map points
+    const old = JSON.parse(env.STATE.data.get("state:current")!);
+    delete old.shape;
+    delete old.map_points;
+    env.STATE.data.set("state:current", JSON.stringify(old));
+    const later = new Date("2026-10-12T09:45:00Z");
+    const { fetchFn, calls } = scriptedFetch(TABLE_KEYS.map(answer));
+    expect(await refresh(env, later, fetchFn)).toBe("updated");
+    expect(calls).toHaveLength(9);
+    expect(JSON.parse(env.STATE.data.get("state:current")!).map_points).toHaveLength(2);
   });
 
   it("keeps the previous document and records the error on failure", async () => {
