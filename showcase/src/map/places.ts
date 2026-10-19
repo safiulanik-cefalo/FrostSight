@@ -5,6 +5,8 @@ export type Place = { name: string; kind: string; municipality: string; lat: num
 const ENDPOINT = "https://ws.geonorge.no/stedsnavn/v1/navn";
 const FIELDS = "navn.skrivemåte,navn.navneobjekttype,navn.representasjonspunkt,navn.kommuner.kommunenavn";
 const LIMIT = 5;
+/** The service usually answers in about a second; past this the box shows stations and roads alone. */
+const TIMEOUT_MS = 6000;
 
 /** The place types a driver heads for, in the order they rank, with a label and a zoom that shows nearby roads. */
 const TOWN_TYPES: Record<string, { kind: string; rank: number; zoom: number }> = {
@@ -62,11 +64,18 @@ export function parsePlaces(json: unknown, query: string): Place[] {
 export async function searchPlaces(query: string, fetchFn: typeof fetch = fetch, signal?: AbortSignal): Promise<Place[]> {
   const url = placeSearchUrl(query);
   if (!url) return [];
+  const ctrl = new AbortController();
+  const cancel = () => ctrl.abort();
+  signal?.addEventListener("abort", cancel);
+  const timer = setTimeout(cancel, TIMEOUT_MS);
   try {
-    const r = await fetchFn(url, { signal });
+    const r = await fetchFn(url, { signal: ctrl.signal });
     if (!r.ok) return [];
     return parsePlaces(await r.json(), query);
   } catch {
     return [];
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", cancel);
   }
 }

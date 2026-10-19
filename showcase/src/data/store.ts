@@ -7,6 +7,7 @@ import { DEFAULT_REGION, loadRegions, regionOfCounty, regionOfStation, type Regi
 import { stateAt, type Scenario } from "./scenario";
 import type { Mode } from "../app/route";
 import type { Place } from "../map/places";
+import { mapTarget, threeDTarget, type MapFocus, type MapView } from "../app/viewLink";
 
 /** A station's surroundings at street level. */
 const STATION_ZOOM = 12;
@@ -24,7 +25,9 @@ export type ShowcaseStore = {
   /** the 2D map (default) or the 3D scene */
   mode: Mode;
   /** where the map should pan to; a new object each time so picking the same station again pans again */
-  mapFocus: { lat: number; lon: number; zoom: number } | null;
+  mapFocus: MapFocus | null;
+  /** what the map last showed, reported when the viewer stops panning; the 3D view opens there */
+  mapView: MapView | null;
   view: View;
   /** overview regions from the bake, and the one on screen (a site's region while on a site) */
   regions: Region[];
@@ -41,6 +44,7 @@ export type ShowcaseStore = {
   seek(tS: number): void;
   togglePlay(): void;
   setMode(mode: Mode): void;
+  setMapView(view: MapView): void;
   focusStation(stationId: string): void;
   focusPlace(place: Place): void;
   goOverview(regionId?: string): void;
@@ -63,6 +67,7 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
   playing: false,
   mode: "map",
   mapFocus: null,
+  mapView: null,
   view: "overview",
   regions: [],
   regionId: DEFAULT_REGION,
@@ -104,8 +109,21 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
     set({ playing: !playing, clockS: !playing && clockS >= scenario.duration_s ? 0 : clockS });
   },
   setMode(mode) {
-    // scenarios play in the 3D scene only
-    set(mode === "map" ? { mode, scenario: null, clockS: 0, playing: false } : { mode });
+    const { mode: was, live, regions, regionId, view, siteId, mapView } = get();
+    if (mode === was) return;
+    const stations = live?.stations ?? [];
+    if (mode === "map") {
+      // scenarios play in the 3D scene only; the map opens on the place 3D showed
+      set({ mode, scenario: null, clockS: 0, playing: false, mapFocus: mapTarget({ view, siteId, regionId }, stations, regions) });
+      return;
+    }
+    const target = threeDTarget(mapView, stations, regions, regionId);
+    const base = { mode, segmentId: null, incidentId: null };
+    if (target.view === "site") set({ ...base, view: "site", siteId: target.id, regionId: regionOfStation(regions, target.id)?.id ?? regionId });
+    else set({ ...base, view: "overview", siteId: null, regionId: target.region });
+  },
+  setMapView(mapView) {
+    set({ mapView });
   },
   focusStation(stationId) {
     const st = get().live?.stations.find((s) => s.station_id === stationId);

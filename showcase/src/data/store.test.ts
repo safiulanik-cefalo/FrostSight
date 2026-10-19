@@ -130,3 +130,34 @@ describe("map mode", () => {
     expect(useShowcase.getState().mapFocus).toBeNull();
   });
 });
+
+describe("the toggle carries the place across", () => {
+  const regions = [{ id: "troms", name: "Troms", counties: ["Troms"], stations: ["3000014", "3000016"] }];
+  beforeEach(() =>
+    useShowcase.setState({ live: baseState(), regions, regionId: "troms", view: "overview", siteId: null, mode: "map", mapFocus: null, mapView: null }),
+  );
+
+  it("opens the diorama of the station the map is zoomed in on", () => {
+    useShowcase.getState().setMapView({ lat: 69.135, lon: 20.76, zoom: 12 });
+    useShowcase.getState().setMode("3d");
+    expect(useShowcase.getState()).toMatchObject({ mode: "3d", view: "site", siteId: "3000014", regionId: "troms" });
+  });
+
+  it("centres the map on the diorama's station when switching back", () => {
+    useShowcase.setState({ mode: "3d", view: "site", siteId: "3000016" });
+    useShowcase.getState().setMode("map");
+    expect(useShowcase.getState().mapFocus).toEqual({ lat: 69.18203, lon: 20.75035, zoom: 12 });
+  });
+
+  it("fits the map to the region of a 3D overview", () => {
+    useShowcase.setState({ mode: "3d", view: "overview", siteId: null });
+    useShowcase.getState().setMode("map");
+    expect(useShowcase.getState().mapFocus).toEqual({ bounds: [[69.1202, 20.74511], [69.18203, 20.75035]] });
+  });
+
+  it("does nothing when the active view is chosen again", () => {
+    useShowcase.getState().setMapView({ lat: 69.135, lon: 20.76, zoom: 12 });
+    useShowcase.getState().setMode("map");
+    expect(useShowcase.getState()).toMatchObject({ mode: "map", mapFocus: null, view: "overview" });
+  });
+});
