@@ -47,3 +47,17 @@ CLI profiles are `frostsight-personal`, `frostsight-free`, `frostsight-aws` (see
   variable or secret-scope key to read.
 - Branches `feature/<milestone>-<short-name>`, PR into `main`, squash merge. Owners are in `.github/CODEOWNERS`.
 - Attribution: Statens vegvesen data is NLOD, MET Norway and Open-Meteo data is CC BY 4.0.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on `safiulanik-cefalo/FrostSight`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` at the root plus `docs/adr/`. See `docs/agents/domain.md`.
