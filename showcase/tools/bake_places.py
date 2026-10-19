@@ -109,6 +109,8 @@ NAME_TYPES: dict[str, tuple[str, int, float, int]] = {
     "Sykehus": ("landmark", 2, 600, 2),
     "Kirke": ("landmark", 3, 600, 3),
 }
+# The toy model the page draws under a landmark's label, by SSR type (the name alone misses Ishavskatedralen)
+LANDMARK_MODELS: dict[str, str] = {"Kirke": "church", "Sykehus": "hospital", "Universitet/høgskole": "campus"}
 # Within a tier, the kinds people recognise first are placed first
 KIND_ORDER = [
     "town", "fjord", "island", "bridge", "tunnel", "district", "village",
@@ -280,16 +282,18 @@ def pick_labels(names: list[dict], lon0: float, lat0: float, half_m: float) -> l
         if abs(x) > half_m * 0.97 or abs(z) > half_m * 0.97:
             continue
         kind, tier, spacing, cap = spec
-        cands.append(
-            {
-                "name": name,
-                "kind": kind,
-                "tier": tier,
-                "xz": [round(x), round(z)],
-                "_sp": spacing,
-                "_cap": cap,
-            }
-        )
+        cand = {
+            "name": name,
+            "kind": kind,
+            "tier": tier,
+            "xz": [round(x), round(z)],
+            "_sp": spacing,
+            "_cap": cap,
+        }
+        model = LANDMARK_MODELS.get(e["navneobjekttype"])
+        if model:
+            cand["model"] = model
+        cands.append(cand)
     # tier, then kind, then centre-out so the station's surroundings keep their names when a cap bites
     cands.sort(key=lambda c: (c["tier"], KIND_ORDER.index(c["kind"]), math.hypot(*c["xz"]), c["name"]))
     chosen: list[dict] = []
