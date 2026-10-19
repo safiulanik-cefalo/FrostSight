@@ -4,12 +4,16 @@ import { terrainGeometry, PALETTE } from "./geometry";
 import { SITE_EXAGGERATION, SITE_SIZE } from "./scale";
 import type { SiteAssets } from "../data/assets";
 import type { SiteModel } from "./siteModel";
+import type { CoverGrid } from "../scenery/cover";
+import { applyCover } from "../scenery/scenery";
 
 /** The site's ground, with a road bed carved so the terrain never pokes through the road. */
-export function Terrain({ assets, model, snowline }: { assets: SiteAssets; model: SiteModel; snowline: boolean }) {
+export function Terrain({ assets, model, snowline, cover }: { assets: SiteAssets; model: SiteModel; snowline: boolean; cover: CoverGrid | null }) {
   const geometry = useMemo(() => {
     const { n } = assets.road.terrain;
     const g = terrainGeometry(assets.heights, n, SITE_SIZE, SITE_EXAGGERATION, model.upm, snowline);
+    // land cover paints the ground before the road bed is carved
+    if (cover) applyCover(g, cover, model.upm, snowline);
     const pos = g.getAttribute("position") as THREE.BufferAttribute;
     const R = 9;
     for (let v = 0; v < pos.count; v++) {
@@ -32,7 +36,7 @@ export function Terrain({ assets, model, snowline }: { assets: SiteAssets; model
     }
     g.computeVertexNormals();
     return g;
-  }, [assets, model, snowline]);
+  }, [assets, model, snowline, cover]);
   const seaY = (0 - model.minM) * SITE_EXAGGERATION * model.upm;
   return (
     <group>

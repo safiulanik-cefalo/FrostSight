@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { loadSiteAssets, type SiteAssets } from "../data/assets";
+import { loadSceneryAssets, type SceneryAssets } from "../scenery/assets";
+import { Scenery } from "../scenery/SiteScenery";
 import { stretches as cutStretches, type Closure } from "../data/corridor";
 import type { ScenarioClosure } from "../data/scenario";
 import { useCurrentState, useShowcase } from "../data/store";
@@ -17,15 +18,14 @@ import { ROAD, SITE_SIZE, siteUnitsPerMetre } from "./scale";
 import { siteModel } from "./siteModel";
 import { Station } from "./Station";
 import { Terrain } from "./Terrain";
-import { Trees } from "./Trees";
 import { Weather } from "./Weather";
 
-export function useSiteAssets(stationId: string): SiteAssets | null {
-  const [assets, setAssets] = useState<SiteAssets | null>(null);
+function useSiteAssets(stationId: string): SceneryAssets | null {
+  const [assets, setAssets] = useState<SceneryAssets | null>(null);
   useEffect(() => {
     let live = true;
     setAssets(null);
-    loadSiteAssets(stationId)
+    loadSceneryAssets(stationId)
       .then((a) => live && setAssets(a))
       .catch((e: Error) => live && useShowcase.setState({ error: `${e.message}. Pick a station from the list.` }));
     return () => {
@@ -34,7 +34,6 @@ export function useSiteAssets(stationId: string): SiteAssets | null {
   }, [stationId]);
   return assets;
 }
-
 
 export function Site({ stationId, scenarioClosures = [] }: { stationId: string; scenarioClosures?: ScenarioClosure[] }) {
   const assets = useSiteAssets(stationId);
@@ -107,10 +106,10 @@ export function Site({ stationId, scenarioClosures = [] }: { stationId: string; 
         reduced={reduced}
         flyFrom={{ target: home.target, azimuth: home.azimuth - 0.7, elevation: 1.15, distance: 560 }}
       />
-      <Terrain assets={assets} model={model} snowline={snowline} />
+      <Terrain assets={assets} model={model} snowline={snowline} cover={assets.cover} />
       <Road model={model} />
       <RiskBand model={model} stretches={strips} />
-      <Trees seed={stationId} climate={assets.road.climate} lat={assets.road.origin.lat} model={model} />
+      <Scenery stationId={stationId} assets={assets} model={model} />
       <Station
         position={[sx, model.ground(sx, sz), sz]}
         name={assets.road.name}
