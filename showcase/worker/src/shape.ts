@@ -102,5 +102,13 @@ export function shapeState(rows: GoldRows, generatedAt: string): State {
       description: str(i.description),
     })),
     history,
+    map_points: rows.map_points.map((p) => ({
+      road: String(p.road),
+      lat: req(p.lat),
+      lon: req(p.lon),
+      risk_level: String(p.risk_level) as Level,
+      place: str(p.place),
+      icing_score: num(p.icing_score),
+    })),
   };
 }

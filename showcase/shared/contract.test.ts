@@ -25,6 +25,12 @@ describe("contract", () => {
     expect(parseState(minimal).stations[0].name).toBe("Bossovarri");
     expect(() => parseState({ ...minimal, stations: [{ ...minimal.stations[0], risk_level: "EXTREME" }] })).toThrow();
   });
+  it("parses risk map points when present and accepts documents without them", () => {
+    const point = { road: "E8", lat: 69.12, lon: 20.74, risk_level: "HIGH", place: "Bossovarri", icing_score: 0.72 };
+    expect(parseState({ ...minimal, map_points: [point] }).map_points).toEqual([point]);
+    expect(parseState(minimal).map_points).toBeUndefined();
+    expect(() => parseState({ ...minimal, map_points: [{ ...point, risk_level: "Road" }] })).toThrow();
+  });
   it("describes data age in words", () => {
     const now = new Date("2026-10-12T09:40:00Z");
     expect(dataAgeMinutes("2026-10-12T09:28:00Z", now)).toBe(12);

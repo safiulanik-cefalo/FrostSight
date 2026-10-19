@@ -13,6 +13,16 @@ export function Hud() {
   const state = useCurrentState();
   const error = useShowcase((s) => s.error);
   const view = useShowcase((s) => s.view);
+  const mode = useShowcase((s) => s.mode);
+  if (mode === "map")
+    return (
+      <div className="hud">
+        <Header />
+        <Legend simulated={false} raised={false} onMap />
+        {!state && !error && <div className="boot">Loading the map…</div>}
+        {error && <div className="glass notice" role="alert">{error}</div>}
+      </div>
+    );
   return (
     <div className={`hud${state?.source === "scenario" ? " scenario-on" : ""}`}>
       <Header scenarioControl={<ScenarioMenu />} />
