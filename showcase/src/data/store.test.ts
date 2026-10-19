@@ -97,3 +97,36 @@ describe("regions in the store", () => {
     expect(useShowcase.getState()).toMatchObject({ view: "overview", regionId: "innlandet", incidentId: "far" });
   });
 });
+
+describe("map mode", () => {
+  beforeEach(() => useShowcase.setState({ mode: "map", mapFocus: null }));
+
+  it("switches between the map and 3D, and leaves a scenario behind on the map", () => {
+    useShowcase.getState().setMode("3d");
+    useShowcase.getState().setScenario(storm);
+    useShowcase.getState().setMode("map");
+    expect(useShowcase.getState().mode).toBe("map");
+    expect(useShowcase.getState().scenario).toBeNull();
+    expect(useShowcase.getState().playing).toBe(false);
+  });
+
+  it("focuses the map on a station, again when picked twice", () => {
+    useShowcase.getState().focusStation("3000014");
+    const first = useShowcase.getState().mapFocus;
+    expect(first).toMatchObject({ lat: 69.1202, lon: 20.74511 });
+    useShowcase.getState().focusStation("3000014");
+    expect(useShowcase.getState().mapFocus).not.toBe(first);
+  });
+
+  it("focuses a station at street zoom and a town at its own zoom", () => {
+    useShowcase.getState().focusStation("3000014");
+    expect(useShowcase.getState().mapFocus).toMatchObject({ zoom: 12 });
+    useShowcase.getState().focusPlace({ name: "Hamar", kind: "Town", municipality: "Hamar", lat: 60.79451, lon: 11.06795, zoom: 11 });
+    expect(useShowcase.getState().mapFocus).toEqual({ lat: 60.79451, lon: 11.06795, zoom: 11 });
+  });
+
+  it("ignores a station the state does not list", () => {
+    useShowcase.getState().focusStation("nope");
+    expect(useShowcase.getState().mapFocus).toBeNull();
+  });
+});

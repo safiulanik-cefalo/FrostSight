@@ -1,0 +1,98 @@
+{
+ "metadata": {
+  "totaltAntallTreff": 501
+ },
+ "navn": [
+  {
+   "kommuner": [
+    {
+     "kommunenavn": "Høyanger"
+    }
+   ],
+   "navneobjekttype": "Vik i sjø",
+   "representasjonspunkt": {
+    "nord": 61.09516,
+    "øst": 5.67449
+   },
+   "skrivemåte": "Hamn"
+  },
+  {
+   "kommuner": [
+    {
+     "kommunenavn": "Hammerfest"
+    }
+   ],
+   "navneobjekttype": "By",
+   "representasjonspunkt": {
+    "nord": 70.66336,
+    "øst": 23.68206
+   },
+   "skrivemåte": "Hammerfest"
+  },
+  {
+   "kommuner": [
+    {
+     "kommunenavn": "Hamar"
+    }
+   ],
+   "navneobjekttype": "Kommune",
+   "representasjonspunkt": {
+    "nord": 60.7945,
+    "øst": 11.0783
+   },
+   "skrivemåte": "Hamar kommune"
+  },
+  {
+   "kommuner": [
+    {
+     "kommunenavn": "Ibestad"
+    }
+   ],
+   "navneobjekttype": "Tettsted",
+   "representasjonspunkt": {
+    "nord": 68.77927,
+    "øst": 17.17179
+   },
+   "skrivemåte": "Hamnvik"
+  },
+  {
+   "kommuner": [
+    {
+     "kommunenavn": "Hamar"
+    }
+   ],
+   "navneobjekttype": "By",
+   "representasjonspunkt": {
+    "nord": 60.79451,
+    "øst": 11.06795
+   },
+   "skrivemåte": "Hamar"
+  },
+  {
+   "kommuner": [
+    {
+     "kommunenavn": "Dyrøy"
+    }
+   ],
+   "navneobjekttype": "Gard",
+   "representasjonspunkt": {
+    "nord": 69.01152,
+    "øst": 17.43478
+   },
+   "skrivemåte": "Hamn"
+  },
+  {
+   "kommuner": [
+    {
+     "kommunenavn": "Hamar"
+    }
+   ],
+   "navneobjekttype": "By",
+   "representasjonspunkt": {
+    "nord": 60.79451,
+    "øst": 11.06795
+   },
+   "skrivemåte": "Hamar"
+  }
+ ]
+}

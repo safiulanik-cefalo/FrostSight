@@ -5,6 +5,11 @@ import type { State } from "../../shared/contract";
 import { loadState } from "./live";
 import { DEFAULT_REGION, loadRegions, regionOfCounty, regionOfStation, type Region } from "./regions";
 import { stateAt, type Scenario } from "./scenario";
+import type { Mode } from "../app/route";
+import type { Place } from "../map/places";
+
+/** A station's surroundings at street level. */
+const STATION_ZOOM = 12;
 
 export type View = "overview" | "site";
 export type Tab = "segments" | "stations" | "incidents";
@@ -16,6 +21,10 @@ export type ShowcaseStore = {
   scenario: Scenario | null;
   clockS: number;
   playing: boolean;
+  /** the 2D map (default) or the 3D scene */
+  mode: Mode;
+  /** where the map should pan to; a new object each time so picking the same station again pans again */
+  mapFocus: { lat: number; lon: number; zoom: number } | null;
   view: View;
   /** overview regions from the bake, and the one on screen (a site's region while on a site) */
   regions: Region[];
@@ -31,6 +40,9 @@ export type ShowcaseStore = {
   tick(dtS: number): void;
   seek(tS: number): void;
   togglePlay(): void;
+  setMode(mode: Mode): void;
+  focusStation(stationId: string): void;
+  focusPlace(place: Place): void;
   goOverview(regionId?: string): void;
   goSite(stationId: string): void;
   select(segmentId: string | null): void;
@@ -49,6 +61,8 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
   scenario: null,
   clockS: 0,
   playing: false,
+  mode: "map",
+  mapFocus: null,
   view: "overview",
   regions: [],
   regionId: DEFAULT_REGION,
@@ -88,6 +102,17 @@ export const useShowcase = create<ShowcaseStore>((set, get) => ({
     const { scenario, playing, clockS } = get();
     if (!scenario) return;
     set({ playing: !playing, clockS: !playing && clockS >= scenario.duration_s ? 0 : clockS });
+  },
+  setMode(mode) {
+    // scenarios play in the 3D scene only
+    set(mode === "map" ? { mode, scenario: null, clockS: 0, playing: false } : { mode });
+  },
+  focusStation(stationId) {
+    const st = get().live?.stations.find((s) => s.station_id === stationId);
+    if (st) set({ mapFocus: { lat: st.lat, lon: st.lon, zoom: STATION_ZOOM } });
+  },
+  focusPlace(place) {
+    set({ mapFocus: { lat: place.lat, lon: place.lon, zoom: place.zoom } });
   },
   goOverview(regionId) {
     set({ view: "overview", regionId: regionId ?? get().regionId, siteId: null, segmentId: null, incidentId: null, error: null });

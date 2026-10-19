@@ -210,3 +210,39 @@ button.row:hover .nm { color: var(--accent-ink); }
 .scenario-on .kpis { top: 128px; }
 @media (max-width: 760px) { .scenario-bar input { width: 90px; } .scenario-bar b { display: none; } }
 .notice { position: fixed; left: 50%; transform: translateX(-50%); top: 76px; padding: 10px 14px; color: var(--high); font-weight: 600; z-index: 25; max-width: calc(100% - 36px); box-sizing: border-box; }
+
+/* view toggle: the active view is a tinted pill */
+.seg { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--track); flex: none; }
+.seg button { border: 0; background: none; color: var(--fg-2); font-weight: 600; padding: 6px 14px; border-radius: 9px; cursor: pointer; }
+.seg button:hover { color: var(--fg); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 800; }
+
+/* the 2D map: full screen below the header; Leaflet's controls and popups in the HUD's materials */
+.map2d { position: fixed; inset: calc(60px + env(safe-area-inset-top, 0px)) 0 0 0; background: var(--bg); font: inherit; }
+.map2d .leaflet-tile-pane { filter: var(--map-tiles); }
+.map2d .leaflet-control-zoom { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+.map2d .leaflet-control-zoom a { width: 38px; height: 38px; line-height: 38px; font-size: 20px; background: var(--surface-solid);
+  color: var(--fg); border-color: var(--line); }
+.map2d .leaflet-control-zoom a:hover { background: var(--accent-soft); color: var(--accent-ink); }
+.map2d .leaflet-popup-content-wrapper, .map2d .leaflet-popup-tip { background: var(--surface-solid); color: var(--fg); box-shadow: var(--shadow); }
+.map2d .leaflet-popup-content { margin: 12px 14px; font: 13px/1.4 var(--font); }
+.map2d a.leaflet-popup-close-button { color: var(--fg-3); }
+.map-pop { display: grid; gap: 6px; justify-items: start; min-width: 160px; }
+.map-pop small { color: var(--fg-2); font-variant-numeric: tabular-nums; }
+/* no shadow: where many incidents stack, their shadows merged into a dark blot */
+.map-incident { display: grid; place-items: center; border-radius: 5px; background: var(--high); color: #fff; font: 800 11px var(--font);
+  border: 1.5px solid var(--surface-solid); box-sizing: border-box; }
+.legend i.incident { border-radius: 3px; background: var(--high); }
+.legend.on-map { max-width: calc(100% - 36px); }
+
+@media (max-width: 760px) {
+  /* on a phone the map keeps the search, so the brand and the "/" hint make room for it */
+  .top.on-map .search { display: block; min-width: 0; }
+  .top.on-map .brand, .top.on-map .search kbd { display: none; }
+  /* the results span the screen, not the narrow search box */
+  .top.on-map .search .menu { position: fixed; left: 12px; right: 12px; top: calc(66px + env(safe-area-inset-top, 0px)); }
+  .seg button { padding: 6px 10px; }
+  .legend.on-map { max-width: calc(100% - 24px); left: 12px; }
+}
+/* a town in the search results: a ring, where stations have a filled risk dot */
+.place-ic { width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--accent); box-sizing: border-box; }
