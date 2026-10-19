@@ -44,6 +44,13 @@ describe("shapeState", () => {
     expect(state.segments[0].county).toBe("Troms");
   });
 
+  it("carries the coloured risk map points with numbers parsed", () => {
+    expect(state.map_points).toEqual([
+      { road: "E8", lat: 69.1185, lon: 20.7302, risk_level: "HIGH", place: "Bossovarri", icing_score: 0.72 },
+      { road: "E8", lat: 69.1221, lon: 20.7604, risk_level: "HIGH", place: "Bossovarri", icing_score: 0.72 },
+    ]);
+  });
+
   it("keys history by road segment, oldest first", () => {
     expect(state.history["1125788-27-9"]).toEqual([
       { t: "2026-10-12T06:00:00.000Z", level: "MEDIUM", score: 0.48 },
