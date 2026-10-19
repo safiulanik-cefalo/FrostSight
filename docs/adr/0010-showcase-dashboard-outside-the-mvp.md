@@ -38,7 +38,10 @@ snapshot. Scripted scenarios play over the snapshot and everything they show is 
   the incident list and map need each incident's own position, so `gold.incident_list` was added to
   `src/frostsight/serving.py`, as the last consequence below prescribes.
 - The showcase does not replace the AI/BI dashboards. Road colours follow the same 5 km coverage rule as
-  `gold.map_points`, so the two agree.
+  `gold.map_points`, so the two agree. Amended 2026-10-14: the page opens on a 2D map, with the 3D view a
+  toggle away. The 2D map reads `gold.map_points` as it is (risk layers only) through the Worker and loads
+  Kartverket's base map tiles in the browser; its search also finds towns through Kartverket's place-name
+  API, called from the browser. No gold or silver change.
 - Cars on the page are ambience, not traffic data, and the page says so.
 - Joins in the Worker are lookups between small serving tables for one consumer. If the showcase needs
   more, the fix is a new plot-ready gold table, not more logic in the Worker.
