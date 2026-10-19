@@ -28,6 +28,9 @@ example `#site=3000016` (Gardeborri).
 The 2D map colours roads from `map_points` in the state document. The committed snapshot predates it, so in
 snapshot mode the map shows stations and incidents only until the snapshot is captured again.
 
+Each 3D site shows land cover, houses and place names from the land around the station, for example
+`http://localhost:5173/#site=3000078` (Tromsø). Add `?perf` for frame rate and draw calls.
+
 ## The Worker, locally
 
 The Worker reads gold through the Databricks SQL Statement Execution API every 15 minutes and serves the
@@ -59,10 +62,12 @@ npm run check                         # the snapshot must still parse
 ## Scene assets
 
 `public/sites/` and `public/overview/` are baked from the NVDB seed (`tools/mock_dashboards/nvdb_seed.sql`),
-Kartverket's county outline and Mapzen Terrarium elevation tiles. Re-run only when the seed changes:
+Kartverket's county outline and Mapzen Terrarium elevation tiles. `cover.bin` and `places.json` per site come
+from NIBIO AR5 and Kartverket's place names. Re-run only when the seed changes:
 
 ```bash
 npm run bake                          # uv run tools/bake_sites.py --out public
+npm run bake:places                   # land cover (NIBIO AR5) and place names (Kartverket) per site
 uv run tools/make_scenarios.py        # rewrites public/scenarios/ from the seed stations
 ```
 
@@ -70,7 +75,7 @@ uv run tools/make_scenarios.py        # rewrites public/scenarios/ from the seed
 
 ```bash
 npm run check                         # TypeScript and Vitest
-uv run pytest tests/unit/test_bake_sites.py   # from the repo root
+uv run pytest tests/unit/test_bake_sites.py tests/unit/test_bake_places.py   # from the repo root
 ```
 
 Screenshot checklist before a demo: the 2D map at 400 px wide with a station searched, the 3D overview, a site (Bossovarri `3000014`), "Snowstorm on E8" at 60 s

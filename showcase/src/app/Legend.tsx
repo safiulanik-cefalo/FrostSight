@@ -2,7 +2,8 @@ import { useState } from "react";
 import { LEVELS, levelLabel } from "../../shared/contract";
 
 export const ATTRIBUTION =
-  "Road data Statens vegvesen (NLOD). Weather MET Norway and Open-Meteo (CC BY 4.0). Elevation Mapzen terrain tiles.";
+  "Road data Statens vegvesen (NLOD). Weather MET Norway and Open-Meteo (CC BY 4.0). Elevation Mapzen terrain tiles. " +
+  "Land cover NIBIO AR5 (CC BY 4.0). Place names Kartverket (CC BY 4.0).";
 export const MAP_ATTRIBUTION =
   "Base map and place names Kartverket (CC BY 4.0). Road data Statens vegvesen (NLOD). Weather MET Norway and Open-Meteo (CC BY 4.0).";
 const VAR: Record<string, string> = { LOW: "--low", MEDIUM: "--medium", HIGH: "--high", VERY_HIGH: "--very-high" };
