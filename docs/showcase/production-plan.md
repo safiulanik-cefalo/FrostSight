@@ -48,6 +48,9 @@ pipeline run costs the same whether anything changed or not, so the interval is 
 
 **Year:** 7 × 722 + 5 × 198 = **USD 6,044, budgeted as USD 6,050.**
 
+The budget counts on choice 1 below (the Worker stops waking the SQL warehouse). Without it, add about **USD 1,400 a month**
+(USD 1,550 to 1,800 at EU rates), about USD 16,600 a year: more than the rest of the budget together. Corrected 2026-10-19.
+
 How a pipeline run is priced:
 
 - Measured on the current jobs (last 10 to 15 runs): ingestion 320 s, silver 624 s, gold 123 s. That is 1,067 s, about 0.3 hours.
@@ -64,8 +67,10 @@ Not in the budget:
 
 ## Choices that keep the bill down
 
-1. **The 3D dashboard stops waking the SQL warehouse.** Today its Worker queries the warehouse every 15 minutes, and each query
-   wakes it up. That is about USD 200 a month for this alone.
+1. **The showcase stops waking the SQL warehouse.** Today its Worker queries the warehouse every 15 minutes, and each query
+   wakes it up. The warehouse then stays up until its 10-minute auto-stop, so it runs about 16.5 hours a day:
+   16.5 h × 30 days × 4 DBU per hour × USD 0.70 ≈ **USD 1,400 a month** for this alone. (Corrected 2026-10-19; this
+   section first said about USD 200, which left out the idle minutes before each auto-stop.)
    - Instead, the gold job writes the dashboard's state file into a Unity Catalog volume.
    - The Worker reads that file through the Databricks Files API, which uses no compute. Cost: USD 0.
    - The checks before storing stay the same. Visitors still never reach Databricks.
