@@ -120,6 +120,10 @@ This began as a separate `/v2/` page on 2026-10-14 and became the only site view
   ranked by tier (towns, districts, bridges, tunnels and islands first; peaks, valleys and lakes nearer;
   rivers and capes close up) and thinned by spacing per kind. The page shows the tiers for the camera
   distance and hides a label that would overlap a higher-ranked one on screen (`src/scenery/labels.ts`).
+- **Landmarks.** Under a landmark's label stands a generic toy model by its Kartverket type: a white church
+  with a spire (Kirke), a pale block with a red roof cross (Sykehus) or long college blocks
+  (Universitet/høgskole). The bake writes the type as `model` in `places.json`; the models are not the real
+  buildings. 155 landmarks across the 115 sites, most of them churches (`src/scenery/Landmarks.tsx`).
 - **Cost.** About 8 KB more per site gzipped. A site without the two files falls back to the
   climate-based trees.
 

@@ -8,6 +8,8 @@ import { Trees } from "../scene/Trees";
 import type { SceneryAssets } from "./assets";
 import { CoverTrees } from "./CoverTrees";
 import { Houses } from "./Houses";
+import { Landmarks } from "./Landmarks";
+import { SITE_SIZE } from "../scene/scale";
 import { reportPerf } from "./Perf";
 import { Places } from "./Places";
 
@@ -19,6 +21,7 @@ export function Scenery({ stationId, assets, model }: { stationId: string; asset
     <>
       <CoverTrees seed={stationId} climate={climate} lat={lat} model={model} cover={assets.cover} />
       <Houses seed={stationId} model={model} cover={assets.cover} />
+      <Landmarks places={assets.places} model={model} half={SITE_SIZE / 2} />
       <Places places={assets.places} model={model} />
       <PerfProbe />
     </>

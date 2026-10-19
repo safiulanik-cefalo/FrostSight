@@ -114,3 +114,17 @@ def test_pick_labels_thins_a_kind_by_spacing_and_cap():
     assert len(labels) == bp.NAME_TYPES["Fjell"][3]
     assert min(b - a for a, b in zip(xs, xs[1:], strict=False)) >= bp.NAME_TYPES["Fjell"][2] * 0.6
     assert labels[0]["xz"] == [0, 0]  # centre-out within a kind
+
+
+def test_pick_labels_names_the_model_of_a_landmark_by_its_ssr_type():
+    names = [
+        ssr("Ishavskatedralen", "Kirke", 500, 500),  # no "kirke" in the name; the type still says church
+        ssr("UNN Tromsø", "Sykehus", -2000, 1500),
+        ssr("UiT Tromsø", "Universitet/høgskole", 2500, -2500),
+        ssr("Tromsø", "By", 0, 0),
+    ]
+    by_name = {p["name"]: p for p in bp.pick_labels(names, LON0, LAT0, 7000.0)}
+    assert by_name["Ishavskatedralen"]["model"] == "church"
+    assert by_name["UNN Tromsø"]["model"] == "hospital"
+    assert by_name["UiT Tromsø"]["model"] == "campus"
+    assert "model" not in by_name["Tromsø"]
