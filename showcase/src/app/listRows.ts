@@ -70,6 +70,21 @@ const TYPE_LABEL: Record<string, string> = {
   GENERALNETWORKMANAGEMENT: "Traffic management",
   SPEEDMANAGEMENT: "Speed restriction",
 };
+/**
+ * The DATEX II feed packs multiple clauses into one string: "|" separates top-level clauses, and a run of
+ * "Periode N: ..." clauses has no separator between them at all. Break both apart into one clause per line,
+ * so the UI doesn't show one unreadable run-on sentence. Doesn't translate the Norwegian text itself.
+ */
+export function formatIncidentDescription(description: string | null): string {
+  if (!description) return "";
+  return description
+    .split("|")
+    .flatMap((clause) => clause.split(/(?=Periode\s*\d+\s*:)/i))
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
 export function incidentLabel(t: string): string {
   if (TYPE_LABEL[t]) return TYPE_LABEL[t];
   const words = t === t.toUpperCase() ? t.toLowerCase() : t.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
@@ -83,7 +98,7 @@ export function incidentRows(state: State, siteId: string | null, now: Date, fal
     .map((i) => ({
       id: i.incident_id,
       title: incidentLabel(i.incident_type),
-      subtitle: i.description ?? i.road,
+      subtitle: i.description ? formatIncidentDescription(i.description) : i.road,
       active: isActive(i.end_time, now),
       closure: isClosureIncident(i.incident_type),
       simulated: isSimulatedIncident(i.incident_id),

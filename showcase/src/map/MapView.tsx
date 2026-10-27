@@ -28,9 +28,9 @@ function popup(title: string, level: Level | null | "none", detail: string): HTM
     pill.textContent = level ? `${levelLabel(level)} risk` : levelLabel(null);
     box.appendChild(pill);
   }
-  if (detail) {
+  for (const line of detail.split("\n").filter(Boolean)) {
     const p = document.createElement("small");
-    p.textContent = detail;
+    p.textContent = line;
     box.appendChild(p);
   }
   return box;

@@ -49,9 +49,15 @@
 .scenario-btn[aria-pressed="true"] .sw { background: var(--sim); }
 .scenario-btn[aria-pressed="true"] .sw::after { left: 14px; }
 .who { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-.bell { position: relative; width: 34px; height: 34px; display: grid; place-items: center; color: var(--fg-2); }
+.bell-wrap { position: relative; }
+.bell { position: relative; width: 34px; height: 34px; display: grid; place-items: center; color: var(--fg-2);
+  border: 0; background: transparent; cursor: pointer; border-radius: 10px; }
+.bell:hover { background: var(--accent-soft); color: var(--accent-ink); }
 .bell b { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
   background: var(--high); color: #fff; font-size: 10px; display: grid; place-items: center; box-sizing: border-box; }
+.bell-menu { width: 280px; left: auto; right: 0; }
+.bell-menu .menu-item:disabled { opacity: 0.6; cursor: default; }
+.bell-menu .menu-item:disabled:hover { background: transparent; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #8ec5ff, var(--accent)); display: grid;
   place-items: center; color: #fff; font-weight: 800; font-size: 12px; }
 .who b { display: block; font-size: 13px; }
@@ -234,6 +240,7 @@ button.row:hover .nm { color: var(--accent-ink); }
   border: 1.5px solid var(--surface-solid); box-sizing: border-box; }
 .legend i.incident { border-radius: 3px; background: var(--high); }
 .legend.on-map { max-width: calc(100% - 36px); }
+.kpis.on-map { max-width: calc(100% - 36px); }
 
 @media (max-width: 760px) {
   /* on a phone the map keeps the search, so the brand and the "/" hint make room for it */

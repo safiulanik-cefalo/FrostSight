@@ -19,10 +19,17 @@ const TOWN_TYPES: Record<string, { kind: string; rank: number; zoom: number }> =
 };
 
 /** The request for a typed prefix, or null until there are two letters. */
-export function placeSearchUrl(query: string): string | null {
+export function placeSearchUrl(query: string, opts?: { fuzzy?: boolean }): string | null {
   const q = query.replace(/\*/g, "").trim();
   if (q.length < 2) return null;
-  const params = new URLSearchParams({ sok: `${q}*`, fuzzy: "false", utkoordsys: "4258", treffPerSide: "500", side: "1", filtrer: FIELDS });
+  const params = new URLSearchParams({
+    sok: `${q}*`,
+    fuzzy: opts?.fuzzy ? "true" : "false",
+    utkoordsys: "4258",
+    treffPerSide: "500",
+    side: "1",
+    filtrer: FIELDS,
+  });
   return `${ENDPOINT}?${params}`;
 }
 
@@ -60,9 +67,9 @@ export function parsePlaces(json: unknown, query: string): Place[] {
     .map(({ rank: _rank, ...p }) => p);
 }
 
-/** Towns for a typed prefix; nothing when the service is slow, down or the request is cancelled. */
-export async function searchPlaces(query: string, fetchFn: typeof fetch = fetch, signal?: AbortSignal): Promise<Place[]> {
-  const url = placeSearchUrl(query);
+/** One request; null on a timeout, network error or non-OK response, distinct from an OK answer with no hits. */
+async function fetchPlaces(query: string, fetchFn: typeof fetch, signal: AbortSignal | undefined, fuzzy: boolean): Promise<Place[] | null> {
+  const url = placeSearchUrl(query, { fuzzy });
   if (!url) return [];
   const ctrl = new AbortController();
   const cancel = () => ctrl.abort();
@@ -70,12 +77,25 @@ export async function searchPlaces(query: string, fetchFn: typeof fetch = fetch,
   const timer = setTimeout(cancel, TIMEOUT_MS);
   try {
     const r = await fetchFn(url, { signal: ctrl.signal });
-    if (!r.ok) return [];
+    if (!r.ok) return null;
     return parsePlaces(await r.json(), query);
   } catch {
-    return [];
+    return null;
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", cancel);
   }
+}
+
+/**
+ * Towns for a typed prefix; nothing when the service is slow, down or the request is cancelled. The plain
+ * prefix search is exact, so "Tromso" (typed without the ø) finds nothing; when that happens for a query
+ * with no Norwegian letter already in it, retry once with fuzzy matching before giving up.
+ */
+export async function searchPlaces(query: string, fetchFn: typeof fetch = fetch, signal?: AbortSignal): Promise<Place[]> {
+  const first = await fetchPlaces(query, fetchFn, signal, false);
+  if (first === null) return [];
+  if (first.length > 0 || /[æøåÆØÅ]/.test(query)) return first;
+  const retried = await fetchPlaces(query, fetchFn, signal, true);
+  return retried ?? [];
 }

@@ -76,6 +76,35 @@ describe("searchPlaces", () => {
     }
   });
 
+  it("retries with fuzzy matching so an ASCII-typed name like 'Tromso' still finds 'Tromsø'", async () => {
+    const calls: string[] = [];
+    const fetchFn = (async (url: string) => {
+      calls.push(url);
+      const fuzzy = new URL(url).searchParams.get("fuzzy") === "true";
+      return new Response(JSON.stringify(fuzzy ? { navn: [{ ...ham.navn[1], skrivemåte: "Tromsø" }] } : { navn: [] }));
+    }) as unknown as typeof fetch;
+    const found = await searchPlaces("Tromso", fetchFn);
+    expect(found.map((p) => p.name)).toEqual(["Tromsø"]);
+    expect(calls).toHaveLength(2);
+  });
+
+  it("does not retry when the query already has a Norwegian letter, or when the plain search already found something", async () => {
+    const calls: string[] = [];
+    const empty = (async (url: string) => {
+      calls.push(url);
+      return new Response(JSON.stringify({ navn: [] }));
+    }) as unknown as typeof fetch;
+    expect(await searchPlaces("Tromsø", empty)).toEqual([]);
+    expect(calls).toHaveLength(1);
+    calls.length = 0;
+    const found = (async (url: string) => {
+      calls.push(url);
+      return new Response(JSON.stringify(ham));
+    }) as unknown as typeof fetch;
+    expect((await searchPlaces("ham", found)).length).toBeGreaterThan(0);
+    expect(calls).toHaveLength(1);
+  });
+
   it("returns nothing when the service fails, so station search still works", async () => {
     const down = (async () => new Response("busy", { status: 503 })) as unknown as typeof fetch;
     const offline = (async () => {

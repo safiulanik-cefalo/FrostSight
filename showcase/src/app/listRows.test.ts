@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { segmentRows, stationRows, incidentRows, driverChip, incidentLabel } from "./listRows";
+import { segmentRows, stationRows, incidentRows, driverChip, incidentLabel, formatIncidentDescription } from "./listRows";
 import { baseState } from "../data/fixtures";
 import type { State } from "../../shared/contract";
 
@@ -55,6 +55,29 @@ describe("incidentRows", () => {
     expect(a).toMatchObject({ stationId: "3000014", located: true, where: "0.8 km from Bossovarri" });
     expect(b).toMatchObject({ stationId: null, located: true, where: "No station within 5 km" });
     expect(c).toMatchObject({ stationId: null, located: false, where: null });
+  });
+});
+
+describe("formatIncidentDescription", () => {
+  it("breaks the feed's '|'-joined clauses onto their own lines", () => {
+    expect(formatIncidentDescription("Vegarbeid, vegen er stengt.|Stengt for allmenn trafikk.")).toBe(
+      "Vegarbeid, vegen er stengt.\nStengt for allmenn trafikk.",
+    );
+  });
+  it("breaks a run of 'Periode N:' clauses that have no separator between them", () => {
+    const raw =
+      "Vegarbeid, vegen er stengt.|Periode 2: 19.06.26-17.08.26 kun gående og syklende Periode 3: 17.08.26- 20.11.26 bru stengt men busser kan passere 07-17 Stengt for allmenn trafikk, unntatt gående og syklende.";
+    expect(formatIncidentDescription(raw)).toBe(
+      [
+        "Vegarbeid, vegen er stengt.",
+        "Periode 2: 19.06.26-17.08.26 kun gående og syklende",
+        "Periode 3: 17.08.26- 20.11.26 bru stengt men busser kan passere 07-17 Stengt for allmenn trafikk, unntatt gående og syklende.",
+      ].join("\n"),
+    );
+  });
+  it("passes plain text through untouched and empty text through as empty", () => {
+    expect(formatIncidentDescription("E8 closed at Gardeborri")).toBe("E8 closed at Gardeborri");
+    expect(formatIncidentDescription(null)).toBe("");
   });
 });
 

@@ -112,6 +112,64 @@ function Search() {
   );
 }
 
+/** The segments driving the bell's count, worst first, so the dropdown matches the badge number. */
+function highSegments(state: ReturnType<typeof useCurrentState>) {
+  if (!state) return [];
+  return state.segments
+    .filter((s) => s.risk_level === "HIGH" || s.risk_level === "VERY_HIGH")
+    .sort((a, b) => b.icing_score - a.icing_score);
+}
+
+function Bell() {
+  const state = useCurrentState();
+  const mode = useShowcase((s) => s.mode);
+  const goSite = useShowcase((s) => s.goSite);
+  const focusStation = useShowcase((s) => s.focusStation);
+  const [open, setOpen] = useState(false);
+  const high = state ? state.kpi.segments_high : 0;
+  const segments = useMemo(() => highSegments(state), [state]);
+  const go = (stationId: string | null) => {
+    if (!stationId) return;
+    if (mode === "map") focusStation(stationId);
+    else goSite(stationId);
+    setOpen(false);
+  };
+  return (
+    <div className="bell-wrap" onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setOpen(false)}>
+      <button
+        className="bell"
+        title={`${high} segments at HIGH or above`}
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <Icon.Bell />
+        {high > 0 && <b>{high}</b>}
+      </button>
+      {open && (
+        <div className="menu glass bell-menu" role="listbox">
+          {segments.length === 0 ? (
+            <div className="menu-empty">No segments at HIGH or above right now.</div>
+          ) : (
+            segments.map((s) => (
+              <button
+                key={s.road_segment_id}
+                className="menu-item"
+                disabled={!s.station_id}
+                onMouseDown={() => go(s.station_id)}
+              >
+                <i className="dot" style={{ width: 8, height: 8, borderRadius: "50%", background: LEVEL_COLOR[s.risk_level] }} />
+                <span>{s.segment}</span>
+                <small>{s.road}</small>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Map or 3D; the active one is a tinted pill. */
 function ViewToggle() {
   const mode = useShowcase((s) => s.mode);
@@ -135,7 +193,6 @@ export function Header({ scenarioControl }: { scenarioControl?: ReactNode }) {
   const mode = useShowcase((s) => s.mode);
   const now = useNow();
   const chip = state ? liveChip(state, via, now) : null;
-  const high = state ? state.kpi.segments_high : 0;
   return (
     <header className={`top${mode === "map" ? " on-map" : ""}`}>
       {mode === "3d" ? (
@@ -160,10 +217,7 @@ export function Header({ scenarioControl }: { scenarioControl?: ReactNode }) {
       )}
       {scenarioControl}
       <div className="who">
-        <div className="bell" title={`${high} segments at HIGH or above`}>
-          <Icon.Bell />
-          {high > 0 && <b>{high}</b>}
-        </div>
+        <Bell />
         <div className="avatar">RO</div>
         <div>
           <b>Road operations</b>
