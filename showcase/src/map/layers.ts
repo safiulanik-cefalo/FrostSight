@@ -1,7 +1,7 @@
 // What the 2D map draws, from the state document: coloured road points, stations and open live incidents.
 // Pure, so the Leaflet view only places markers and popups.
 import { ageLabel, dataAgeMinutes, type Level, type State } from "../../shared/contract";
-import { incidentLabel } from "../app/listRows";
+import { formatIncidentDescription, incidentLabel } from "../app/listRows";
 import { isSimulatedIncident } from "../scene/dressing";
 
 export type MapDot = { lat: number; lon: number; level: Level; title: string; detail: string };
@@ -42,5 +42,5 @@ export function openIncidents(state: State, now: Date): IncidentMarker[] {
   return state.incidents
     .filter((i) => i.lat != null && i.lon != null && !isSimulatedIncident(i.incident_id))
     .filter((i) => !i.end_time || new Date(i.end_time).getTime() > now.getTime())
-    .map((i) => ({ id: i.incident_id, lat: i.lat!, lon: i.lon!, title: `${incidentLabel(i.incident_type)} · ${i.road}`, detail: i.description ?? "" }));
+    .map((i) => ({ id: i.incident_id, lat: i.lat!, lon: i.lon!, title: `${incidentLabel(i.incident_type)} · ${i.road}`, detail: formatIncidentDescription(i.description) }));
 }

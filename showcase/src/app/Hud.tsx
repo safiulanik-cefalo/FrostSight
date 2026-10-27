@@ -18,6 +18,7 @@ export function Hud() {
     return (
       <div className="hud">
         <Header />
+        <KpiCards onMap />
         <Legend simulated={false} raised={false} onMap />
         {!state && !error && <div className="boot">Loading the map…</div>}
         {error && <div className="glass notice" role="alert">{error}</div>}

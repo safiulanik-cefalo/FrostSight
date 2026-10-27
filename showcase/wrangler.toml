@@ -1,5 +1,12 @@
 # FrostSight showcase Worker. Local: `npx wrangler dev --test-scheduled`, with DATABRICKS_TOKEN and any
 # overrides of the vars below in .dev.vars (gitignored). Cloudflare setup comes after the local demo.
+#
+# kv_namespaces.id and the Databricks host/warehouse below are filled in with one person's own
+# Cloudflare account and Databricks workspace, as a known-working example (ADR-0010: a personal demo,
+# not team infra). Deploying your own copy: run `npx wrangler kv namespace create STATE` and replace
+# the id, then replace DATABRICKS_HOST and DATABRICKS_WAREHOUSE_ID with your own workspace's (Settings
+# > Developer for the host, SQL Warehouses for the id) before `wrangler deploy` — otherwise you deploy
+# against someone else's KV namespace and Databricks warehouse.
 name = "frostsight-showcase"
 main = "worker/src/index.ts"
 compatibility_date = "2026-09-01"
@@ -11,12 +18,12 @@ not_found_handling = "single-page-application"
 
 [[kv_namespaces]]
 binding = "STATE"
-id = "local"          # replaced by `wrangler kv namespace create STATE` at Cloudflare setup
+id = "418fb1d713a2437aaf2421daab912269"          # replace with your own `wrangler kv namespace create STATE` id
 
 [triggers]
 crons = ["*/15 * * * *"]
 
 [vars]
-DATABRICKS_HOST = "https://REPLACE.cloud.databricks.com"
-DATABRICKS_WAREHOUSE_ID = "REPLACE"
+DATABRICKS_HOST = "https://dbc-03393298-a93c.cloud.databricks.com"   # replace with your own workspace host
+DATABRICKS_WAREHOUSE_ID = "b65ed643f1b3367e"                         # replace with your own warehouse id
 CATALOG = "frostsight"

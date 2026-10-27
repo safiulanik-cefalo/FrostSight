@@ -5,4 +5,5 @@ export type Env = {
   DATABRICKS_WAREHOUSE_ID: string;
   CATALOG: string;
   DATABRICKS_TOKEN: string;
+  REFRESH_TOKEN?: string;
 };

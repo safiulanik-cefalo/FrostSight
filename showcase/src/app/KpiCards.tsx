@@ -6,7 +6,7 @@ import { useRegion } from "./useRegion";
 import { Icon } from "./icons";
 import { useSites } from "./useSites";
 
-export function KpiCards() {
+export function KpiCards({ onMap = false }: { onMap?: boolean } = {}) {
   const state = useCurrentState();
   const siteId = useShowcase((s) => s.siteId);
   const bakedRoad = useSites().find((s) => s.station_id === siteId)?.road;
@@ -21,7 +21,7 @@ export function KpiCards() {
   const ageText = ageLabel(age).replace(" old", "");
   const [ageNum, ageUnit] = /\d/.test(ageText) ? ageText.split(" ") : [ageText, ""];
   return (
-    <div className="kpis">
+    <div className={`kpis${onMap ? " on-map" : ""}`}>
       <div className="glass kpi">
         <div className="ic alert"><Icon.Alert /></div>
         <div>
