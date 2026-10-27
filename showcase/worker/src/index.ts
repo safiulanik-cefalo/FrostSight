@@ -52,6 +52,14 @@ export default {
       if (!doc) return json({ error: "no state yet" }, 404);
       return new Response(doc, { headers: { "content-type": "application/json", "cache-control": "public, max-age=60" } });
     }
+    if (pathname === "/api/refresh") {
+      if (request.method !== "POST") return json({ error: "method not allowed" }, 405);
+      if (!env.REFRESH_TOKEN || request.headers.get("x-refresh-token") !== env.REFRESH_TOKEN) {
+        return json({ error: "unauthorized" }, 401);
+      }
+      const result = await refresh(env, new Date());
+      return json({ result });
+    }
     if (pathname === "/api/health") {
       const doc = await env.STATE.get(CURRENT);
       const err = await env.STATE.get(LAST_ERROR);
