@@ -104,6 +104,48 @@ describe("fetch", () => {
   });
 });
 
+describe("fetch /api/refresh", () => {
+  it("401s when REFRESH_TOKEN is unset", async () => {
+    const res = await worker.fetch(new Request("https://x/api/refresh", { method: "POST" }), makeEnv());
+    expect(res.status).toBe(401);
+  });
+
+  it("401s when the header doesn't match", async () => {
+    const env = { ...makeEnv(), REFRESH_TOKEN: "secret" };
+    const res = await worker.fetch(
+      new Request("https://x/api/refresh", { method: "POST", headers: { "x-refresh-token": "wrong" } }),
+      env,
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("405s on GET", async () => {
+    const env = { ...makeEnv(), REFRESH_TOKEN: "secret" };
+    const res = await worker.fetch(
+      new Request("https://x/api/refresh", { headers: { "x-refresh-token": "secret" } }),
+      env,
+    );
+    expect(res.status).toBe(405);
+  });
+
+  it("runs refresh and reports the result when the token matches", async () => {
+    const env = { ...makeEnv(), REFRESH_TOKEN: "secret" };
+    const { fetchFn } = scriptedFetch(TABLE_KEYS.map(answer));
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchFn;
+    try {
+      const res = await worker.fetch(
+        new Request("https://x/api/refresh", { method: "POST", headers: { "x-refresh-token": "secret" } }),
+        env,
+      );
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ result: "updated" });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
+
 describe("refresh validation", () => {
   it("keeps the previous document when gold yields a state the app would reject", async () => {
     const env = makeEnv(memoryKV({ "state:current": '{"keep":true}' }));

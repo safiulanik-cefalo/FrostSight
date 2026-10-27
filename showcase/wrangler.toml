@@ -11,12 +11,12 @@ not_found_handling = "single-page-application"
 
 [[kv_namespaces]]
 binding = "STATE"
-id = "local"          # replaced by `wrangler kv namespace create STATE` at Cloudflare setup
+id = "418fb1d713a2437aaf2421daab912269"
 
 [triggers]
 crons = ["*/15 * * * *"]
 
 [vars]
-DATABRICKS_HOST = "https://REPLACE.cloud.databricks.com"
-DATABRICKS_WAREHOUSE_ID = "REPLACE"
+DATABRICKS_HOST = "https://dbc-03393298-a93c.cloud.databricks.com"
+DATABRICKS_WAREHOUSE_ID = "b65ed643f1b3367e"
 CATALOG = "frostsight"

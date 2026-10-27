@@ -49,6 +49,16 @@ With the Worker on port 8787, `npm run dev` proxies `/api` to it and the chip tu
 `/api/health` says when the last refresh failed but not why, since the reason can name the workspace. Read
 the reason in the Worker log (`npx wrangler tail` once deployed) or in KV under `state:last_error`.
 
+### Manual refresh (no redeploy, no waiting for the cron)
+
+`POST /api/refresh` with header `x-refresh-token: <REFRESH_TOKEN>` runs the same refresh the cron runs, on
+demand. Requires `REFRESH_TOKEN` to be set (`wrangler secret put REFRESH_TOKEN` once deployed, or in
+`.dev.vars` locally); the route 401s if it is unset or the header doesn't match.
+
+```bash
+curl -X POST -H "x-refresh-token: $REFRESH_TOKEN" https://<your-worker>.workers.dev/api/refresh
+```
+
 ### Capture a real snapshot
 
 The committed `public/snapshot.json` is real gold from the Free Edition workspace, captured 2026-10-12. Refresh it
